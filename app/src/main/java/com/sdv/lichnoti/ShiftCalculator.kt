@@ -307,7 +307,7 @@ object ShiftCalculator {
                 (m == 2 && d in 16..20) || (m == 4 && d == 26)
             }
             2027 -> {
-                (m == 2 && d in 5..9) || (m == 4 && d == 15)
+                (m == 2 && d in 5..9) || (m == 4 && d == 16)
             }
             2028 -> {
                 (m == 1 && d in 25..29) || (m == 4 && d == 4)
@@ -359,7 +359,7 @@ object ShiftCalculator {
             y == 2026 && m == 4 && d == 26 -> "Giỗ Tổ Hùng Vương"
             
             y == 2027 && (m == 2 && d in 5..9) -> "Tết Nguyên Đán"
-            y == 2027 && m == 4 && d == 15 -> "Giỗ Tổ Hùng Vương"
+            y == 2027 && m == 4 && d == 16 -> "Giỗ Tổ Hùng Vương"
             
             y == 2028 && (m == 1 && d in 25..29) -> "Tết Nguyên Đán"
             y == 2028 && m == 4 && d == 4 -> "Giỗ Tổ Hùng Vương"
