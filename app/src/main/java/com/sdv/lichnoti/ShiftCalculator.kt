@@ -48,10 +48,30 @@ object ShiftCalculator {
     )
 
     /**
+     * Kiểm tra Thứ Bảy có phải ngày HO hay không theo 3 giai đoạn:
+     * - Trước tháng 7/2026: MỌI Thứ Bảy đều là HO
+     * - Tháng 7-12/2026: Thứ Bảy CÁCH TUẦN là HO
+     * - Từ tháng 1/2027: Không còn Thứ Bảy HO
+     */
+    private fun isSaturdayHO(date: LocalDate): Boolean {
+        if (date.dayOfWeek.value != 6) return false
+        val y = date.year
+        val m = date.monthValue
+        return when {
+            y > 2026 -> false                    // Từ 2027: không có T7 HO
+            y == 2026 && m >= 7 -> {              // 7-12/2026: T7 cách tuần
+                val diff = toJulianDayNumber(date) - ANCHOR_JDN
+                mod(diff / 7, 2) == 0
+            }
+            else -> true                          // Trước 7/2026: mọi T7 đều HO
+        }
+    }
+
+    /**
      * Tính toán thống kê số ngày HO của một kíp trong năm.
      * Khớp 100% logic trang gốc:
      * - Ngày lễ: chỉ tính HO cho kíp đi làm ca Ngày (ca gốc Ngày).
-     * - Ngày thường: tính HO cho kíp đi làm (Ngày/Đêm) trùng Chủ Nhật hoặc Thứ Bảy cách tuần (trước 2027).
+     * - Ngày thường: tính HO cho kíp đi làm (Ngày/Đêm) trùng Chủ Nhật hoặc Thứ Bảy HO.
      */
     fun getHOStatsForYear(crewId: String, year: Int, today: LocalDate): HOStats {
         if (crewId == "HC") return HOStats(0, 0)
@@ -67,13 +87,7 @@ object ShiftCalculator {
             val actualShift = getActualShift(crewId, curr)
             
             val isSunday = curr.dayOfWeek.value == 7
-            val isSat = curr.dayOfWeek.value == 6
-            val isSatWorkHO = if (isSat && curr.year < 2027) {
-                val diff = toJulianDayNumber(curr) - ANCHOR_JDN
-                mod(diff / 7, 2) == 0
-            } else {
-                false
-            }
+            val isSatWorkHO = isSaturdayHO(curr)
 
             val isHOReal = if (isSunday || isSatWorkHO) {
                 if (isOfficialHol) {
@@ -162,16 +176,8 @@ object ShiftCalculator {
         // Đi làm vào Chủ Nhật (dayOfWeek.value == 7)
         val isSundayWork = (date.dayOfWeek.value == 7) && (actualShift != ShiftType.NGHI)
 
-        // Đi làm vào Thứ Bảy cách tuần (dayOfWeek.value == 6) - chỉ tính cho các năm trước 2027
-        val isSaturday = date.dayOfWeek.value == 6
-        val isSaturdayWork = if (isSaturday && actualShift != ShiftType.NGHI && date.year < 2027) {
-            val targetJDN = toJulianDayNumber(date)
-            val diff = targetJDN - ANCHOR_JDN
-            val weeks = diff / 7
-            mod(weeks, 2) == 0
-        } else {
-            false
-        }
+        // Đi làm vào Thứ Bảy HO (theo 3 giai đoạn: trước 7/2026 mọi T7, 7-12/2026 T7 cách tuần, từ 2027 không)
+        val isSaturdayWork = isSaturdayHO(date) && (actualShift != ShiftType.NGHI)
 
         // Ngày được coi là ngày HO hoặc lễ nếu: trùng lễ chính thức, hoặc đi làm Chủ Nhật, hoặc đi làm Thứ Bảy cách tuần
         val isHOorHoliday = isOfficialHol || isSundayWork || isSaturdayWork
