@@ -1110,12 +1110,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun downloadAndInstallApk(url: String, version: String) {
         try {
+            val destinationFile = java.io.File(getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS), "LichKipSDV_$version.apk")
+            if (destinationFile.exists()) {
+                destinationFile.delete()
+            }
+            
             val manager = getSystemService(DOWNLOAD_SERVICE) as android.app.DownloadManager
             val request = android.app.DownloadManager.Request(Uri.parse(url)).apply {
                 setTitle("Tải về Lịch Kíp SDV $version")
                 setDescription("Đang tải xuống phiên bản cập nhật...")
                 setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, "LichKipSDV_$version.apk")
+                setDestinationUri(Uri.fromFile(destinationFile))
             }
             
             val downloadId = manager.enqueue(request)
@@ -1152,7 +1157,7 @@ class MainActivity : AppCompatActivity() {
     private fun installApk(version: String) {
         try {
             val file = java.io.File(
-                android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS),
+                getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS),
                 "LichKipSDV_$version.apk"
             )
             if (!file.exists()) {

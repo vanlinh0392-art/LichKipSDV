@@ -41,9 +41,12 @@ object NotificationHelper {
         val today = java.time.LocalDate.now()
         val shiftInfo = ShiftCalculator.getShiftInfo(crewId, today)
         
-        val shiftLabel = if (shiftInfo.isHoliday) {
+        val isOfficialHol = ShiftCalculator.isHoliday(today)
+        val shiftLabel = if (isOfficialHol) {
             val label = if (shiftInfo.type == ShiftCalculator.ShiftType.NGAY) "HO Ngày" else "HO Đêm"
             "🎉 ${shiftInfo.holidayName} ($label)"
+        } else if (shiftInfo.isHoliday) {
+            "${shiftInfo.type.emoji} Ca ${shiftInfo.type.label} (HO)"
         } else {
             "${shiftInfo.type.emoji} Ca ${shiftInfo.type.label}"
         }
