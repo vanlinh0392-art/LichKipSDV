@@ -196,6 +196,9 @@ class MainActivity : AppCompatActivity() {
         if (prefs.openOtherApp) {
             rbOpenOther.isChecked = true
             tilPackage.visibility = View.VISIBLE
+            if (prefs.targetPackage.isBlank()) {
+                prefs.targetPackage = "com.samsung.s1.vselflock"
+            }
         } else {
             rbOpenSelf.isChecked = true
             tilPackage.visibility = View.GONE
@@ -207,13 +210,23 @@ class MainActivity : AppCompatActivity() {
             showAppListDialog(etPackage)
         }
 
+        // Bấm vào lần nữa để thay đổi chọn app khác (khi đã check ON)
+        rbOpenOther.setOnClickListener {
+            if (prefs.openOtherApp) {
+                showAppListDialog(etPackage)
+            }
+        }
+
         rgAction.setOnCheckedChangeListener { _, checkedId ->
             val openOther = checkedId == R.id.rbOpenOther
             prefs.openOtherApp = openOther
             tilPackage.visibility = if (openOther) View.VISIBLE else View.GONE
             onSettingsChanged()
             if (openOther) {
-                showAppListDialog(etPackage)
+                if (prefs.targetPackage.isBlank()) {
+                    prefs.targetPackage = "com.samsung.s1.vselflock"
+                }
+                etPackage.setText(prefs.targetPackage)
             }
         }
 
@@ -442,6 +455,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupCalendarControls() {
         val layoutMonthBlock2 = findViewById<View>(R.id.layoutMonthBlock2)
         val layoutHideHolidayShift = findViewById<View>(R.id.layoutHideHolidayShift)
+        val layoutAutoLockSamsung = findViewById<View>(R.id.layoutAutoLockSamsung)
         val switchHideHolidayShift = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchHideHolidayShift)
         val btnToggle = findViewById<ImageButton>(R.id.btnToggleCalendarView)
 
@@ -449,6 +463,7 @@ class MainActivity : AppCompatActivity() {
         val isVisible = prefs.calendarVisible
         layoutMonthBlock2.visibility = View.GONE
         layoutHideHolidayShift.visibility = if (isVisible) View.GONE else View.VISIBLE
+        layoutAutoLockSamsung?.visibility = if (isVisible) View.GONE else View.VISIBLE
         btnToggle.setImageResource(if (isVisible) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
 
         // Phục hồi trạng thái switch ẩn ca Lễ
@@ -462,6 +477,7 @@ class MainActivity : AppCompatActivity() {
             val nextState = !prefs.calendarVisible
             prefs.calendarVisible = nextState
             layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
+            layoutAutoLockSamsung?.visibility = if (nextState) View.GONE else View.VISIBLE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
             updateMonthDisplay()
             setupCalendar()
@@ -484,6 +500,9 @@ class MainActivity : AppCompatActivity() {
         switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
         switchAutoLockSamsung.setOnCheckedChangeListener { _, isChecked ->
             prefs.autoLockSamsung = isChecked
+            if (isChecked) {
+                Toast.makeText(this, "Đã bật Khóa Samsung VSelf Lock", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

@@ -56,7 +56,10 @@ class AppPreferences(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_NOTIFICATION_ENABLED, value).apply()
 
     var targetPackage: String
-        get() = prefs.getString(KEY_TARGET_PACKAGE, "") ?: ""
+        get() {
+            val value = prefs.getString(KEY_TARGET_PACKAGE, "com.samsung.s1.vselflock") ?: "com.samsung.s1.vselflock"
+            return if (value.isBlank()) "com.samsung.s1.vselflock" else value
+        }
         set(value) = prefs.edit().putString(KEY_TARGET_PACKAGE, value).apply()
 
     var openSelf: Boolean
@@ -124,6 +127,6 @@ class AppPreferences(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_HIDE_HOLIDAY_SHIFT, value).apply()
 
     var autoLockSamsung: Boolean
-        get() = prefs.getBoolean(KEY_AUTO_LOCK_SAMSUNG, false)
+        get() = prefs.getBoolean(KEY_AUTO_LOCK_SAMSUNG, true)
         set(value) = prefs.edit().putBoolean(KEY_AUTO_LOCK_SAMSUNG, value).apply()
 }
