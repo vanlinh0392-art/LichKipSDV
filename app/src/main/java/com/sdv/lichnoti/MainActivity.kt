@@ -716,7 +716,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 ""
             }
-            textSize = 9f
+            textSize = 9.5f
             setTextColor(labelColor)
         }
 
