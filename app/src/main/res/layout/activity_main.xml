@@ -174,7 +174,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="A: 20 (C: 10)\nB: 18 (C: 8)\nC: 22 (C: 12)"
+                                android:text="A: 20 (Còn: 10)\nB: 18 (Còn: 8)\nC: 22 (Còn: 12)"
                                 android:textColor="#CCFFFFFF"
                                 android:textSize="11sp"
                                 android:gravity="end"
