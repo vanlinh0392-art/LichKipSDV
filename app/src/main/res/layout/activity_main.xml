@@ -783,7 +783,7 @@
                     android:layout_height="28dp"
                     android:layout_margin="3dp"
                     app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#F97316"
+                    app:cardBackgroundColor="#15803D"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground" />
@@ -838,7 +838,7 @@
                     android:layout_height="28dp"
                     android:layout_margin="3dp"
                     app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#10B981"
+                    app:cardBackgroundColor="#F97316"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground" />
@@ -889,7 +889,7 @@
                     android:layout_height="28dp"
                     android:layout_margin="3dp"
                     app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#3B82F6"
+                    app:cardBackgroundColor="#6D28D9"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground" />
@@ -911,7 +911,7 @@
                     android:layout_height="28dp"
                     android:layout_margin="3dp"
                     app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#6D28D9"
+                    app:cardBackgroundColor="#3B82F6"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground" />

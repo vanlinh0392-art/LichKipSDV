@@ -251,19 +251,19 @@ class MainActivity : AppCompatActivity() {
         updateColorSelectionIndicators()
         
         // Ca Ngày Click Listeners
-        findViewById<View>(R.id.btnColorDay1).setOnClickListener { prefs.dayColor = "#F97316"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorDay1).setOnClickListener { prefs.dayColor = "#15803D"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorDay2).setOnClickListener { prefs.dayColor = "#EF4444"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorDay3).setOnClickListener { prefs.dayColor = "#F59E0B"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorDay4).setOnClickListener { prefs.dayColor = "#EC4899"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorDay5).setOnClickListener { prefs.dayColor = "#8B5CF6"; updateColorSelectionIndicators(); onSettingsChanged() }
-        findViewById<View>(R.id.btnColorDay6).setOnClickListener { prefs.dayColor = "#10B981"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorDay6).setOnClickListener { prefs.dayColor = "#F97316"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorDay7).setOnClickListener { prefs.dayColor = "#14B8A6"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorDay8).setOnClickListener { prefs.dayColor = "#06B6D4"; updateColorSelectionIndicators(); onSettingsChanged() }
 
         // Ca Đêm Click Listeners
-        findViewById<View>(R.id.btnColorNight1).setOnClickListener { prefs.nightColor = "#3B82F6"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorNight1).setOnClickListener { prefs.nightColor = "#6D28D9"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorNight2).setOnClickListener { prefs.nightColor = "#1E3A8A"; updateColorSelectionIndicators(); onSettingsChanged() }
-        findViewById<View>(R.id.btnColorNight3).setOnClickListener { prefs.nightColor = "#6D28D9"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorNight3).setOnClickListener { prefs.nightColor = "#3B82F6"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorNight4).setOnClickListener { prefs.nightColor = "#047857"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorNight5).setOnClickListener { prefs.nightColor = "#475569"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorNight6).setOnClickListener { prefs.nightColor = "#7F1D1D"; updateColorSelectionIndicators(); onSettingsChanged() }
@@ -319,7 +319,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateColorSelectionIndicators() {
-        val dayColors = arrayOf("#F97316", "#EF4444", "#F59E0B", "#EC4899", "#8B5CF6", "#10B981", "#14B8A6", "#06B6D4")
+        val dayColors = arrayOf("#15803D", "#EF4444", "#F59E0B", "#EC4899", "#8B5CF6", "#F97316", "#14B8A6", "#06B6D4")
         val dayIds = arrayOf(
             R.id.btnColorDay1, R.id.btnColorDay2, R.id.btnColorDay3, R.id.btnColorDay4,
             R.id.btnColorDay5, R.id.btnColorDay6, R.id.btnColorDay7, R.id.btnColorDay8
@@ -328,7 +328,7 @@ class MainActivity : AppCompatActivity() {
             findViewById<View>(dayIds[i]).alpha = if (prefs.dayColor.equals(dayColors[i], ignoreCase = true)) 1.0f else 0.4f
         }
 
-        val nightColors = arrayOf("#3B82F6", "#1E3A8A", "#6D28D9", "#047857", "#475569", "#7F1D1D", "#9F1239", "#0F766E")
+        val nightColors = arrayOf("#6D28D9", "#1E3A8A", "#3B82F6", "#047857", "#475569", "#7F1D1D", "#9F1239", "#0F766E")
         val nightIds = arrayOf(
             R.id.btnColorNight1, R.id.btnColorNight2, R.id.btnColorNight3, R.id.btnColorNight4,
             R.id.btnColorNight5, R.id.btnColorNight6, R.id.btnColorNight7, R.id.btnColorNight8
@@ -574,7 +574,7 @@ class MainActivity : AppCompatActivity() {
         val totalHolidays = ShiftCalculator.getHolidayCountForYear(currentYear)
         
         tvTitle.text = "HO $currentYear (Lễ:$totalHolidays)"
-        tvContent.text = "A: ${statsA.total} (C:${statsA.remaining})\nB: ${statsB.total} (C:${statsB.remaining})\nC: ${statsC.total} (C:${statsC.remaining})"
+        tvContent.text = "A: ${statsA.total} (Còn:${statsA.remaining})\nB: ${statsB.total} (Còn:${statsB.remaining})\nC: ${statsC.total} (Còn:${statsC.remaining})"
     }
 
     private fun createCellView(
@@ -688,19 +688,15 @@ class MainActivity : AppCompatActivity() {
             setTextColor(textColor)
         }
 
-        // Nhãn ca Ngày/Đêm của ca thường dưới số ngày (sát mép trái)
+        // Nhãn ca Ngày/Đêm của ca trực dưới số ngày (sát mép trái)
         val shiftLabelBottom = TextView(this).apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
                 topMargin = (-1 * density).toInt() // Kéo gần lại số ngày
             }
-            text = if (!shiftInfo.isHoliday && !isOfficialHoliday) {
-                when (shiftInfo.type) {
-                    ShiftCalculator.ShiftType.NGAY -> "Ngày"
-                    ShiftCalculator.ShiftType.DEM -> "Đêm"
-                    else -> ""
-                }
-            } else {
-                ""
+            text = when (shiftInfo.type) {
+                ShiftCalculator.ShiftType.NGAY -> "Ngày"
+                ShiftCalculator.ShiftType.DEM -> "Đêm"
+                else -> ""
             }
             textSize = 8.5f
             setTextColor(labelColor)
@@ -713,8 +709,10 @@ class MainActivity : AppCompatActivity() {
                 rightMargin = (5 * density).toInt()
                 topMargin = (2 * density).toInt()
             }
-            text = if (shiftInfo.isHoliday || isOfficialHoliday) {
+            text = if (isOfficialHoliday) {
                 labelText
+            } else if (shiftInfo.isHoliday) {
+                "HO"
             } else {
                 ""
             }

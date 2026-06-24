@@ -79,11 +79,25 @@ class AppPreferences(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_CALENDAR_VISIBLE, value).apply()
 
     var dayColor: String
-        get() = prefs.getString(KEY_DAY_COLOR, "#F97316") ?: "#F97316"
+        get() {
+            val color = prefs.getString(KEY_DAY_COLOR, "#15803D") ?: "#15803D"
+            if (color == "#F97316") {
+                prefs.edit().putString(KEY_DAY_COLOR, "#15803D").apply()
+                return "#15803D"
+            }
+            return color
+        }
         set(value) = prefs.edit().putString(KEY_DAY_COLOR, value).apply()
 
     var nightColor: String
-        get() = prefs.getString(KEY_NIGHT_COLOR, "#3B82F6") ?: "#3B82F6"
+        get() {
+            val color = prefs.getString(KEY_NIGHT_COLOR, "#6D28D9") ?: "#6D28D9"
+            if (color == "#3B82F6") {
+                prefs.edit().putString(KEY_NIGHT_COLOR, "#6D28D9").apply()
+                return "#6D28D9"
+            }
+            return color
+        }
         set(value) = prefs.edit().putString(KEY_NIGHT_COLOR, value).apply()
 
     var notificationContent: String
