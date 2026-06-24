@@ -100,42 +100,87 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
 
-                        <!-- Crew Badge -->
-                        <TextView
-                            android:id="@+id/tvCrewBadge"
-                            android:layout_width="wrap_content"
+                        <!-- Cột bên trái: Badge, Ca trực, Ngày hôm nay -->
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_shift_badge"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="4dp"
-                            android:text="Kíp A"
-                            android:textColor="#FFFFFF"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
+                            android:layout_weight="1.2"
+                            android:orientation="vertical">
 
-                        <!-- Today Shift Status -->
-                        <TextView
-                            android:id="@+id/tvTodayShift"
-                            android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <!-- Crew Badge -->
+                                <TextView
+                                    android:id="@+id/tvCrewBadge"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/bg_shift_badge"
+                                    android:paddingHorizontal="12dp"
+                                    android:paddingVertical="4dp"
+                                    android:text="Kíp A"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <!-- Today Shift Status -->
+                                <TextView
+                                    android:id="@+id/tvTodayShift"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"
+                                    android:text="☀️ Ca Ngày"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvTodayDate"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="Thứ Hai, 23/06/2026"
+                                android:textColor="#CCFFFFFF"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <!-- Cột bên phải: Thống kê HO thu gọn, mờ -->
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="☀️ Ca Ngày"
-                            android:textColor="#FFFFFF"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
+                            android:layout_weight="0.8"
+                            android:orientation="vertical"
+                            android:gravity="end">
+
+                            <TextView
+                                android:id="@+id/tvHOStatsTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="HO 2026"
+                                android:textColor="#CCFFFFFF"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:alpha="0.85" />
+
+                            <TextView
+                                android:id="@+id/tvHOStatsContent"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="A: 20 (C: 10)\nB: 18 (C: 8)\nC: 22 (C: 12)"
+                                android:textColor="#CCFFFFFF"
+                                android:textSize="10sp"
+                                android:gravity="end"
+                                android:alpha="0.75" />
+                        </LinearLayout>
                     </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/tvTodayDate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Thứ Hai, 23/06/2026"
-                        android:textColor="#CCFFFFFF"
-                        android:textSize="14sp" />
 
                 </LinearLayout>
 
@@ -310,58 +355,7 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- HO Stats Card -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cardHOStats"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="4dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:cardBackgroundColor="@color/surface">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="📊 "
-                            android:textSize="20sp" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvHOStatsTitle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Thống kê ngày HO năm 2026"
-                                android:textSize="13sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/on_surface_variant" />
-
-                            <TextView
-                                android:id="@+id/tvHOStatsContent"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Tổng: -- ngày | Còn lại: -- ngày"
-                                android:textSize="15sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/on_background" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
 
 
 

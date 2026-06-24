@@ -573,8 +573,8 @@ class MainActivity : AppCompatActivity() {
         val statsC = ShiftCalculator.getHOStatsForYear("C", currentYear, today)
         val totalHolidays = ShiftCalculator.getHolidayCountForYear(currentYear)
         
-        tvTitle.text = "Thống kê năm $currentYear (Tổng lễ: $totalHolidays ngày)"
-        tvContent.text = "A: ${statsA.total} ngày HO (Còn ${statsA.remaining})\nB: ${statsB.total} ngày HO (Còn ${statsB.remaining})\nC: ${statsC.total} ngày HO (Còn ${statsC.remaining})"
+        tvTitle.text = "HO $currentYear (Lễ:$totalHolidays)"
+        tvContent.text = "A: ${statsA.total} (C:${statsA.remaining})\nB: ${statsB.total} (C:${statsB.remaining})\nC: ${statsC.total} (C:${statsC.remaining})"
     }
 
     private fun createCellView(
