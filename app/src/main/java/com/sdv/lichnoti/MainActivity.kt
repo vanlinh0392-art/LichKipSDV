@@ -667,7 +667,7 @@ class MainActivity : AppCompatActivity() {
             if (isToday) {
                 setStroke((2 * density).toInt(), ContextCompat.getColor(this@MainActivity, R.color.today_ring))
             } else if (!isOfficialHoliday && shiftInfo.isHoliday) {
-                setStroke((1 * density).toInt(), ContextCompat.getColor(this@MainActivity, R.color.ho_ring))
+                setStroke((0.5f * density).toInt().coerceAtLeast(1), ContextCompat.getColor(this@MainActivity, R.color.ho_ring))
             }
         }
         cellLayout.background = bgDrawable

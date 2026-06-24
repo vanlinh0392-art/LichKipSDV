@@ -40,7 +40,7 @@
     <!-- Others -->
     <color name="divider">#E2E8F0</color>
     <color name="today_ring">#0D9488</color>
-    <color name="ho_ring">#EC4899</color>
+    <color name="ho_ring">#80EC4899</color>
     <color name="card_shadow">#1A000000</color>
     <color name="status_bar">#0F766E</color>
 </resources>
