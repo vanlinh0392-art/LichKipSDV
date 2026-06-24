@@ -119,6 +119,6 @@ class AppPreferences(context: Context) {
         set(value) = prefs.edit().putLong(KEY_LAST_UPDATE_CHECK_TIME, value).apply()
 
     var hideHolidayShift: Boolean
-        get() = prefs.getBoolean(KEY_HIDE_HOLIDAY_SHIFT, true)
+        get() = prefs.getBoolean(KEY_HIDE_HOLIDAY_SHIFT, false)
         set(value) = prefs.edit().putBoolean(KEY_HIDE_HOLIDAY_SHIFT, value).apply()
 }

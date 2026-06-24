@@ -144,47 +144,111 @@ object ShiftCalculator {
         return CYCLE[idx]
     }
 
+    // Bảng ca trực lễ năm 2026 thực tế từ ảnh
+    private val REAL_2026_HOLIDAYS = mapOf(
+        Pair(1, 1) to mapOf("A" to ShiftType.DEM, "B" to ShiftType.NGHI, "C" to ShiftType.NGAY),
+        Pair(4, 26) to mapOf("A" to ShiftType.NGAY, "B" to ShiftType.NGHI, "C" to ShiftType.DEM),
+        Pair(4, 30) to mapOf("A" to ShiftType.DEM, "B" to ShiftType.NGAY, "C" to ShiftType.NGHI),
+        Pair(5, 1) to mapOf("A" to ShiftType.NGHI, "B" to ShiftType.NGAY, "C" to ShiftType.DEM),
+        Pair(9, 1) to mapOf("A" to ShiftType.NGAY, "B" to ShiftType.DEM, "C" to ShiftType.NGHI),
+        Pair(9, 2) to mapOf("A" to ShiftType.NGAY, "B" to ShiftType.NGHI, "C" to ShiftType.DEM),
+        Pair(11, 24) to mapOf("A" to ShiftType.NGHI, "B" to ShiftType.NGAY, "C" to ShiftType.DEM),
+        Pair(12, 31) to mapOf("A" to ShiftType.NGAY, "B" to ShiftType.DEM, "C" to ShiftType.NGHI)
+    )
+
     /**
      * Get the actual shift type for a specific crew on a specific date,
      * taking official holidays into account.
      * On official holidays:
      * - HC is off.
-     * - Only crews with base shift NGAY work Day shift (HO).
-     * - Crews with base shift DEM or NGHI are off.
+     * - Only crews with actual work shifts (Day or Night) work, while other rests.
      */
     fun getActualShift(crewId: String, date: LocalDate): ShiftType {
-        val baseShift = getShift(crewId, date)
-        if (isHoliday(date)) {
-            if (crewId == "HC") return ShiftType.NGHI
-            if (isLunarNewYear(date)) return ShiftType.NGHI
+        if (crewId == "HC") {
+            return if (isHoliday(date) || date.dayOfWeek.value > 5) ShiftType.NGHI else ShiftType.NGAY
+        }
 
-            // Quy tắc swap cho ngày 01/05 và 02/09 hàng năm để tránh nghỉ liên tiếp từ 4 ngày trở lên
+        if (isLunarNewYear(date)) return ShiftType.NGHI
+
+        if (isHoliday(date)) {
+            val y = date.year
             val m = date.monthValue
             val d = date.dayOfMonth
-            if ((m == 5 && d == 1) || (m == 9 && d == 2)) {
-                var crewOff = ""
-                var crewDay = ""
-                var crewNight = ""
 
-                val checkCrews = listOf("A", "B", "C")
-                for (c in checkCrews) {
-                    val s = getShift(c, date)
-                    if (s == ShiftType.NGHI) crewOff = c
-                    else if (s == ShiftType.NGAY) crewDay = c
-                    else if (s == ShiftType.DEM) crewNight = c
-                }
-
-                if (crewId == crewOff) {
-                    return ShiftType.DEM  // Kíp nghỉ gốc chuyển sang làm Đêm
-                } else if (crewId == crewNight) {
-                    return ShiftType.NGHI // Kíp làm Đêm gốc chuyển sang nghỉ
-                } else if (crewId == crewDay) {
-                    return ShiftType.NGAY // Kíp làm Ngày gốc giữ nguyên
+            // 1. Nếu là năm 2026, sử dụng bảng ca trực lễ thực tế từ ảnh
+            if (y == 2026) {
+                val dayMonth = Pair(m, d)
+                val holidayMap = REAL_2026_HOLIDAYS[dayMonth]
+                if (holidayMap != null) {
+                    return holidayMap[crewId] ?: ShiftType.NGHI
                 }
             }
-            return baseShift
+
+            // 2. Thuật toán tổng quát cho các năm khác
+            val prevDay = date.minusDays(1)
+            val nextDay = date.plusDays(1)
+
+            val isPrevHol = isHoliday(prevDay) && !isLunarNewYear(prevDay)
+            val isNextHol = isHoliday(nextDay) && !isLunarNewYear(nextDay)
+
+            return when {
+                isNextHol -> {
+                    // Đây là ngày 1 của cụm lễ kép 2 ngày
+                    val baseShifts = mapOf(
+                        "A" to getShift("A", date),
+                        "B" to getShift("B", date),
+                        "C" to getShift("C", date)
+                    )
+                    val dayCrew = baseShifts.entries.first { it.value == ShiftType.NGAY }.key
+                    val nightCrew = baseShifts.entries.first { it.value == ShiftType.DEM }.key
+                    val offCrew = baseShifts.entries.first { it.value == ShiftType.NGHI }.key
+
+                    when (crewId) {
+                        offCrew -> ShiftType.NGAY
+                        dayCrew -> ShiftType.DEM
+                        nightCrew -> ShiftType.NGHI
+                        else -> ShiftType.NGHI
+                    }
+                }
+                isPrevHol -> {
+                    // Đây là ngày 2 của cụm lễ kép 2 ngày
+                    val baseShiftsPrev = mapOf(
+                        "A" to getShift("A", prevDay),
+                        "B" to getShift("B", prevDay),
+                        "C" to getShift("C", prevDay)
+                    )
+                    val dayCrew = baseShiftsPrev.entries.first { it.value == ShiftType.NGAY }.key
+                    val nightCrew = baseShiftsPrev.entries.first { it.value == ShiftType.DEM }.key
+                    val offCrew = baseShiftsPrev.entries.first { it.value == ShiftType.NGHI }.key
+
+                    when (crewId) {
+                        offCrew -> ShiftType.NGAY
+                        dayCrew -> ShiftType.NGHI
+                        nightCrew -> ShiftType.DEM
+                        else -> ShiftType.NGHI
+                    }
+                }
+                else -> {
+                    // Lễ đơn lẻ
+                    val baseShifts = mapOf(
+                        "A" to getShift("A", date),
+                        "B" to getShift("B", date),
+                        "C" to getShift("C", date)
+                    )
+                    val dayCrew = baseShifts.entries.first { it.value == ShiftType.NGAY }.key
+                    val nightCrew = baseShifts.entries.first { it.value == ShiftType.DEM }.key
+                    val offCrew = baseShifts.entries.first { it.value == ShiftType.NGHI }.key
+
+                    when (crewId) {
+                        dayCrew -> ShiftType.NGAY
+                        nightCrew -> ShiftType.NGHI
+                        offCrew -> ShiftType.DEM
+                        else -> ShiftType.NGHI
+                    }
+                }
+            }
         }
-        return baseShift
+        return getShift(crewId, date)
     }
 
     /**
