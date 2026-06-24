@@ -698,7 +698,7 @@ class MainActivity : AppCompatActivity() {
                 ShiftCalculator.ShiftType.DEM -> "Đêm"
                 else -> ""
             }
-            textSize = 8.5f
+            textSize = 9.5f
             setTextColor(labelColor)
         }
 
