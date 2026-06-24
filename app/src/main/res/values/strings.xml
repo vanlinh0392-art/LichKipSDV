@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lịch Kíp SDV</string>
+    <string name="settings">Cài đặt</string>
+    <string name="select_crew">Chọn Kíp</string>
+    <string name="crew_a">Kíp A</string>
+    <string name="crew_b">Kíp B</string>
+    <string name="crew_c">Kíp C</string>
+    <string name="crew_hc">Hành Chính</string>
+    <string name="day_notification_time">Giờ thông báo ca Ngày</string>
+    <string name="night_notification_time">Giờ thông báo ca Đêm</string>
+    <string name="target_package">Package ID app cần mở</string>
+    <string name="target_package_hint">VD: com.example.mdm</string>
+    <string name="notification_action">Khi bấm thông báo</string>
+    <string name="open_this_app">Mở ứng dụng này</string>
+    <string name="open_other_app">Mở app khác</string>
+    <string name="enable_notification">Bật thông báo</string>
+    <string name="dark_mode">Chế độ tối</string>
+    <string name="save">Lưu cài đặt</string>
+    <string name="today">Hôm nay</string>
+    <string name="shift_day">Ngày</string>
+    <string name="shift_night">Đêm</string>
+    <string name="shift_off">Nghỉ</string>
+    <string name="next_alarm">Thông báo tiếp theo</string>
+    <string name="no_alarm">Chưa có lịch thông báo</string>
+    <string name="notification_title">Nhắc nhở ca trực</string>
+    <string name="notification_body">Hãy dán cam hoặc mở app MDM</string>
+</resources>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#2DD4BF</color>
+    <color name="primary_dark">#14B8A6</color>
+    <color name="primary_variant">#5EEAD4</color>
+    <color name="on_primary">#042F2E</color>
+    
+    <color name="secondary">#FBBF24</color>
+    <color name="on_secondary">#000000</color>
+    
+    <color name="background">#0F172A</color>
+    <color name="surface">#1E293B</color>
+    <color name="on_background">#E2E8F0</color>
+    <color name="on_surface">#CBD5E1</color>
+    <color name="on_surface_variant">#94A3B8</color>
+    
+    <color name="shift_day">#FB923C</color>
+    <color name="shift_day_bg">#431407</color>
+    <color name="shift_night">#60A5FA</color>
+    <color name="shift_night_bg">#172554</color>
+    <color name="shift_off">#64748B</color>
+    <color name="shift_off_bg">#1E293B</color>
+    <color name="shift_holiday">#F87171</color>
+    <color name="shift_holiday_bg">#450A0A</color>
+    
+    <color name="crew_a">#A78BFA</color>
+    <color name="crew_a_bg">#2E1065</color>
+    <color name="crew_b">#34D399</color>
+    <color name="crew_b_bg">#022C22</color>
+    <color name="crew_c">#F87171</color>
+    <color name="crew_c_bg">#450A0A</color>
+    <color name="crew_hc">#60A5FA</color>
+    <color name="crew_hc_bg">#172554</color>
+    
+    <color name="divider">#334155</color>
+    <color name="today_ring">#2DD4BF</color>
+    <color name="card_shadow">#40000000</color>
+    <color name="status_bar">#0F172A</color>
+</resources>
