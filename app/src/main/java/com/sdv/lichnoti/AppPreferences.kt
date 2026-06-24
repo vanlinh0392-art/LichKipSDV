@@ -67,7 +67,7 @@ class AppPreferences(context: Context) {
         }
 
     var darkMode: String
-        get() = prefs.getString(KEY_DARK_MODE, "auto") ?: "auto"
+        get() = prefs.getString(KEY_DARK_MODE, "light") ?: "light"
         set(value) = prefs.edit().putString(KEY_DARK_MODE, value).apply()
 
     var calendarMode: String
