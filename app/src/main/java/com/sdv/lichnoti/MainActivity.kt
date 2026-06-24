@@ -1136,9 +1136,6 @@ class MainActivity : AppCompatActivity() {
         android.app.AlertDialog.Builder(this)
             .setTitle("Giới thiệu ứng dụng")
             .setMessage("Ứng dụng Lịch Kíp SDV giúp theo dõi lịch trực ca và nhắc nhở công việc.\n\n" +
-                    "Nuôi tôi: vietcombank 😁\n" +
-                    "Stk: 0011004211173\n" +
-                    "Chủ TK: Vu Van Linh\n\n" +
                     "Phát triển bởi: vanlinh.vu\n" +
                     "Bản quyền © 2026\n" +
                     "Phiên bản hiện tại: v$currentVerName")

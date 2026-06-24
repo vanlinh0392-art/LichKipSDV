@@ -415,37 +415,40 @@
                     <!-- Mục ủng hộ (Donation Info) -->
                     <LinearLayout
                         android:id="@+id/layoutDonation"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_gravity="center_horizontal"
                         android:paddingHorizontal="16dp"
-                        android:paddingVertical="10dp"
-                        android:layout_marginHorizontal="16dp"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="12dp"
-                        android:background="@drawable/bg_clickable_setting"
+                        android:paddingVertical="8dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="8dp"
+                        android:alpha="0.65"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:visibility="gone">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Nuôi tôi: vietcombank 😁"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:textStyle="bold"
                             android:textColor="@color/primary" />
 
                         <LinearLayout
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginTop="4dp">
+                            android:layout_marginTop="2dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Stk: "
-                                android:textSize="12sp"
+                                android:textSize="11sp"
                                 android:textColor="@color/on_surface_variant" />
 
                             <TextView
@@ -453,7 +456,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0011004211173"
-                                android:textSize="12sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/on_surface" />
 
@@ -462,7 +465,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text=" [Copy]"
-                                android:textSize="11sp"
+                                android:textSize="10sp"
                                 android:textColor="@color/primary"
                                 android:textStyle="bold"
                                 android:paddingHorizontal="4dp"
@@ -471,23 +474,24 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginTop="2dp">
+                            android:gravity="center_vertical"
+                            android:layout_marginTop="1dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Chủ TK: "
-                                android:textSize="12sp"
+                                android:textSize="11sp"
                                 android:textColor="@color/on_surface_variant" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Vu Van Linh"
-                                android:textSize="12sp"
+                                android:textSize="11sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/on_surface" />
                         </LinearLayout>
