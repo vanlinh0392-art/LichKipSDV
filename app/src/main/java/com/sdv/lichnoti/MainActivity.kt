@@ -670,26 +670,54 @@ class MainActivity : AppCompatActivity() {
         }
         cellLayout.background = bgDrawable
 
-        // Số ngày (Góc trên trái)
-        val dayText = TextView(this).apply {
+        // Container chứa số ngày ở trên và ca thường ở dưới (sát mép trái)
+        val leftContainer = LinearLayout(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
                 gravity = Gravity.START or Gravity.TOP
                 leftMargin = (5 * density).toInt()
-                topMargin = (2 * density).toInt()
+                topMargin = (1 * density).toInt()
             }
+            orientation = LinearLayout.VERTICAL
+        }
+
+        // Số ngày (Góc trên trái của container)
+        val dayText = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             text = date.dayOfMonth.toString()
             textSize = 12f
             setTextColor(textColor)
         }
 
-        // Nhãn ca (Góc trên phải)
-        val shiftLabel = TextView(this).apply {
+        // Nhãn ca Ngày/Đêm của ca thường dưới số ngày (sát mép trái)
+        val shiftLabelBottom = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                topMargin = (-1 * density).toInt() // Kéo gần lại số ngày
+            }
+            text = if (!shiftInfo.isHoliday && !isOfficialHoliday) {
+                when (shiftInfo.type) {
+                    ShiftCalculator.ShiftType.NGAY -> "Ngày"
+                    ShiftCalculator.ShiftType.DEM -> "Đêm"
+                    else -> ""
+                }
+            } else {
+                ""
+            }
+            textSize = 8.5f
+            setTextColor(labelColor)
+        }
+
+        // Nhãn ca/HO/Lễ (Góc trên cùng bên phải ô lịch)
+        val shiftLabelTop = TextView(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
                 gravity = Gravity.END or Gravity.TOP
                 rightMargin = (5 * density).toInt()
                 topMargin = (2 * density).toInt()
             }
-            text = labelText
+            text = if (shiftInfo.isHoliday || isOfficialHoliday) {
+                labelText
+            } else {
+                ""
+            }
             textSize = 9f
             setTextColor(labelColor)
         }
@@ -698,11 +726,14 @@ class MainActivity : AppCompatActivity() {
         val isBold = labelText.contains("HO") || isOfficialHoliday
         if (isBold || isToday) {
             dayText.typeface = Typeface.DEFAULT_BOLD
-            shiftLabel.typeface = Typeface.DEFAULT_BOLD
+            shiftLabelTop.typeface = Typeface.DEFAULT_BOLD
+            shiftLabelBottom.typeface = Typeface.DEFAULT_BOLD
         }
 
-        cellLayout.addView(dayText)
-        cellLayout.addView(shiftLabel)
+        leftContainer.addView(dayText)
+        leftContainer.addView(shiftLabelBottom)
+        cellLayout.addView(leftContainer)
+        cellLayout.addView(shiftLabelTop)
 
         // Bấm vào ô -> hiện Toast thông tin ca chi tiết
         cellLayout.setOnClickListener {
