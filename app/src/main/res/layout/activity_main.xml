@@ -157,28 +157,35 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="0.8"
                             android:orientation="vertical"
-                            android:gravity="start">
+                            android:gravity="end">
 
-                            <TextView
-                                android:id="@+id/tvHOStatsTitle"
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="HO 2026"
-                                android:textColor="#CCFFFFFF"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:alpha="0.85" />
+                                android:orientation="vertical"
+                                android:gravity="start">
 
-                            <TextView
-                                android:id="@+id/tvHOStatsContent"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="A: 20 (Còn: 10)\nB: 18 (Còn: 8)\nC: 22 (Còn: 12)"
-                                android:textColor="#CCFFFFFF"
-                                android:textSize="11sp"
-                                android:gravity="start"
-                                android:alpha="0.75" />
+                                <TextView
+                                    android:id="@+id/tvHOStatsTitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="HO 2026"
+                                    android:textColor="#CCFFFFFF"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:alpha="0.85" />
+
+                                <TextView
+                                    android:id="@+id/tvHOStatsContent"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="A: 20 (Còn: 10)\nB: 18 (Còn: 8)\nC: 22 (Còn: 12)"
+                                    android:textColor="#CCFFFFFF"
+                                    android:textSize="11sp"
+                                    android:gravity="start"
+                                    android:alpha="0.75" />
+                            </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -268,6 +275,7 @@
 
                     <!-- Month Block 2 -->
                     <LinearLayout
+                        android:id="@+id/layoutMonthBlock2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -716,15 +724,6 @@
                 android:layout_marginBottom="16dp" />
 
             <!-- Snooze Duration Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="💤 Thời gian nhắc lại (Snooze)"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface_variant"
-                android:layout_marginBottom="8dp" />
-
             <LinearLayout
                 android:id="@+id/layoutSnooze"
                 android:layout_width="match_parent"
@@ -732,14 +731,18 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingVertical="8dp"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Thời gian nhắc lại"
+                    android:text="💤 Thời gian nhắc lại (Snooze)"
                     android:textSize="13sp"
+                    android:textStyle="bold"
                     android:textColor="@color/on_surface" />
 
                 <TextView
@@ -747,11 +750,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="10 phút"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="@color/primary"
-                    android:padding="6dp"
-                    android:background="?attr/selectableItemBackground" />
+                    android:padding="4dp" />
             </LinearLayout>
 
             <View
@@ -977,6 +979,112 @@
                     android:layout_margin="3dp"
                     app:cardCornerRadius="14dp"
                     app:cardBackgroundColor="#0F766E"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
+            </LinearLayout>
+
+            <!-- HO Border Color Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌸 Viền Ngày HO:"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/on_surface"
+                android:layout_marginBottom="6dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnColorHo1"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="3dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardBackgroundColor="#EC4899"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnColorHo2"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="3dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardBackgroundColor="#EF4444"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnColorHo3"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="3dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardBackgroundColor="#F59E0B"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnColorHo4"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="3dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardBackgroundColor="#10B981"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnColorHo5"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="3dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardBackgroundColor="#3B82F6"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnColorHo6"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="3dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardBackgroundColor="#8B5CF6"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnColorHo7"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="3dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardBackgroundColor="#F97316"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnColorHo8"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_margin="3dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardBackgroundColor="#14B8A6"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground" />

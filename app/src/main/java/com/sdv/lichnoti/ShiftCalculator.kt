@@ -77,7 +77,7 @@ object ShiftCalculator {
 
             val isHOReal = if (isSunday || isSatWorkHO) {
                 if (isOfficialHol) {
-                    actualShift == ShiftType.NGAY
+                    getShift(crewId, curr) == ShiftType.NGAY
                 } else {
                     actualShift != ShiftType.NGHI
                 }
@@ -141,11 +141,9 @@ object ShiftCalculator {
     fun getActualShift(crewId: String, date: LocalDate): ShiftType {
         val baseShift = getShift(crewId, date)
         if (isHoliday(date)) {
-            return if (crewId != "HC" && baseShift == ShiftType.NGAY) {
-                ShiftType.NGAY
-            } else {
-                ShiftType.NGHI
-            }
+            if (crewId == "HC") return ShiftType.NGHI
+            if (isLunarNewYear(date)) return ShiftType.NGHI
+            return baseShift
         }
         return baseShift
     }
@@ -223,6 +221,23 @@ object ShiftCalculator {
             2029 -> {
                 (m == 2 && d in 12..16) || (m == 4 && d == 23)
             }
+            else -> false
+        }
+    }
+
+    /**
+     * Kiểm tra xem ngày có thuộc 5 ngày nghỉ Tết Âm lịch hàng năm hay không.
+     */
+    fun isLunarNewYear(date: LocalDate): Boolean {
+        val y = date.year
+        val m = date.monthValue
+        val d = date.dayOfMonth
+        return when (y) {
+            2025 -> (m == 1 && d in 28..31) || (m == 2 && d == 1)
+            2026 -> m == 2 && d in 16..20
+            2027 -> m == 2 && d in 5..9
+            2028 -> m == 1 && d in 25..29
+            2029 -> m == 2 && d in 12..16
             else -> false
         }
     }

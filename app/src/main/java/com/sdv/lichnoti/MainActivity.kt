@@ -271,6 +271,16 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnColorNight7).setOnClickListener { prefs.nightColor = "#9F1239"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorNight8).setOnClickListener { prefs.nightColor = "#0F766E"; updateColorSelectionIndicators(); onSettingsChanged() }
 
+        // Viền HO Click Listeners
+        findViewById<View>(R.id.btnColorHo1).setOnClickListener { prefs.hoBorderColor = "#EC4899"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorHo2).setOnClickListener { prefs.hoBorderColor = "#EF4444"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorHo3).setOnClickListener { prefs.hoBorderColor = "#F59E0B"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorHo4).setOnClickListener { prefs.hoBorderColor = "#10B981"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorHo5).setOnClickListener { prefs.hoBorderColor = "#3B82F6"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorHo6).setOnClickListener { prefs.hoBorderColor = "#8B5CF6"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorHo7).setOnClickListener { prefs.hoBorderColor = "#F97316"; updateColorSelectionIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnColorHo8).setOnClickListener { prefs.hoBorderColor = "#14B8A6"; updateColorSelectionIndicators(); onSettingsChanged() }
+
         // 5. About & Update Button
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             showAboutDialog()
@@ -336,6 +346,15 @@ class MainActivity : AppCompatActivity() {
         )
         for (i in nightColors.indices) {
             findViewById<View>(nightIds[i]).alpha = if (prefs.nightColor.equals(nightColors[i], ignoreCase = true)) 1.0f else 0.4f
+        }
+
+        val hoColors = arrayOf("#EC4899", "#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6", "#F97316", "#14B8A6")
+        val hoIds = arrayOf(
+            R.id.btnColorHo1, R.id.btnColorHo2, R.id.btnColorHo3, R.id.btnColorHo4,
+            R.id.btnColorHo5, R.id.btnColorHo6, R.id.btnColorHo7, R.id.btnColorHo8
+        )
+        for (i in hoColors.indices) {
+            findViewById<View>(hoIds[i]).alpha = if (prefs.hoBorderColor.equals(hoColors[i], ignoreCase = true)) 1.0f else 0.4f
         }
     }
 
@@ -418,18 +437,18 @@ class MainActivity : AppCompatActivity() {
 
     // ── Lắng nghe điều khiển lịch ────────────────────────────────────────
     private fun setupCalendarControls() {
-        val layoutCalendarContent = findViewById<View>(R.id.layoutCalendarContent)
+        val layoutMonthBlock2 = findViewById<View>(R.id.layoutMonthBlock2)
         val btnToggle = findViewById<ImageButton>(R.id.btnToggleCalendarView)
 
-        // Phục hồi trạng thái ẩn/hiện lịch
+        // Phục hồi trạng thái ẩn/hiện tháng thứ 2 (calendarVisible: true = hiện cả 2 tháng, false = chỉ hiện 1 tháng)
         val isVisible = prefs.calendarVisible
-        layoutCalendarContent.visibility = if (isVisible) View.VISIBLE else View.GONE
+        layoutMonthBlock2.visibility = if (isVisible) View.VISIBLE else View.GONE
         btnToggle.setImageResource(if (isVisible) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
 
         btnToggle.setOnClickListener {
             val nextState = !prefs.calendarVisible
             prefs.calendarVisible = nextState
-            layoutCalendarContent.visibility = if (nextState) View.VISIBLE else View.GONE
+            layoutMonthBlock2.visibility = if (nextState) View.VISIBLE else View.GONE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
         }
     }
@@ -674,7 +693,10 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     Math.round(0.65f * density).coerceAtLeast(1)
                 }
-                setStroke(strokePx, ContextCompat.getColor(this@MainActivity, R.color.ho_ring))
+                val hoColorHex = prefs.hoBorderColor
+                val hoColorVal = Color.parseColor(hoColorHex)
+                val hoColorWithAlpha = Color.argb(204, Color.red(hoColorVal), Color.green(hoColorVal), Color.blue(hoColorVal))
+                setStroke(strokePx, hoColorWithAlpha)
             }
         }
         cellLayout.background = bgDrawable

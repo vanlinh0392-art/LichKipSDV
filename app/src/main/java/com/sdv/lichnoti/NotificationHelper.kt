@@ -43,7 +43,11 @@ object NotificationHelper {
         
         val isOfficialHol = ShiftCalculator.isHoliday(today)
         val shiftLabel = if (isOfficialHol) {
-            val label = if (shiftInfo.type == ShiftCalculator.ShiftType.NGAY) "HO Ngày" else "HO Đêm"
+            val label = when (shiftInfo.type) {
+                ShiftCalculator.ShiftType.NGAY -> "HO Ngày"
+                ShiftCalculator.ShiftType.DEM -> "HO Đêm"
+                else -> "Nghỉ lễ"
+            }
             "🎉 ${shiftInfo.holidayName} ($label)"
         } else if (shiftInfo.isHoliday) {
             "${shiftInfo.type.emoji} Ca ${shiftInfo.type.label} (HO)"
