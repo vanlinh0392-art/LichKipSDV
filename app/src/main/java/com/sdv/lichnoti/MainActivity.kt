@@ -76,6 +76,7 @@ class MainActivity : AppCompatActivity() {
         // Cấu hình Header và Menu Drawer
         setupMenuDrawer()
         setupHeader(today)
+        setupCrewBadgeDoubleClick()
         setupMonthNavigation()
         setupCalendarControls()
         setupCalendar()
@@ -456,6 +457,7 @@ class MainActivity : AppCompatActivity() {
         val layoutMonthBlock2 = findViewById<View>(R.id.layoutMonthBlock2)
         val layoutHideHolidayShift = findViewById<View>(R.id.layoutHideHolidayShift)
         val layoutAutoLockSamsung = findViewById<View>(R.id.layoutAutoLockSamsung)
+        val layoutDonation = findViewById<View>(R.id.layoutDonation)
         val switchHideHolidayShift = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchHideHolidayShift)
         val btnToggle = findViewById<ImageButton>(R.id.btnToggleCalendarView)
 
@@ -464,6 +466,7 @@ class MainActivity : AppCompatActivity() {
         layoutMonthBlock2.visibility = View.GONE
         layoutHideHolidayShift.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutAutoLockSamsung?.visibility = if (isVisible) View.GONE else View.VISIBLE
+        layoutDonation?.visibility = if (isVisible) View.GONE else View.VISIBLE
         btnToggle.setImageResource(if (isVisible) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
 
         // Phục hồi trạng thái switch ẩn ca Lễ
@@ -478,6 +481,7 @@ class MainActivity : AppCompatActivity() {
             prefs.calendarVisible = nextState
             layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutAutoLockSamsung?.visibility = if (nextState) View.GONE else View.VISIBLE
+            layoutDonation?.visibility = if (nextState) View.GONE else View.VISIBLE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
             updateMonthDisplay()
             setupCalendar()
@@ -1296,6 +1300,60 @@ class MainActivity : AppCompatActivity() {
         } catch (e: java.lang.Exception) {
             Toast.makeText(this, "Lỗi mở file cài đặt: ${e.message}", Toast.LENGTH_LONG).show()
             e.printStackTrace()
+        }
+    }
+
+    private fun changeToNextCrew() {
+        val currentCrew = prefs.selectedCrew
+        val nextCrew = when (currentCrew) {
+            "A" -> "B"
+            "B" -> "C"
+            "C" -> "HC"
+            else -> "A"
+        }
+        prefs.selectedCrew = nextCrew
+        
+        onSettingsChanged()
+        updateDrawerCrewSelection()
+        
+        Toast.makeText(this, "Đã đổi sang Kíp $nextCrew", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateDrawerCrewSelection() {
+        val rgCrew = findViewById<RadioGroup>(R.id.rgCrew) ?: return
+        rgCrew.setOnCheckedChangeListener(null)
+        
+        when (prefs.selectedCrew) {
+            "A" -> findViewById<RadioButton>(R.id.rbCrewA)?.isChecked = true
+            "B" -> findViewById<RadioButton>(R.id.rbCrewB)?.isChecked = true
+            "C" -> findViewById<RadioButton>(R.id.rbCrewC)?.isChecked = true
+            "HC" -> findViewById<RadioButton>(R.id.rbCrewHC)?.isChecked = true
+        }
+        
+        rgCrew.setOnCheckedChangeListener { _, checkedId ->
+            val crewId = when (checkedId) {
+                R.id.rbCrewA -> "A"
+                R.id.rbCrewB -> "B"
+                R.id.rbCrewC -> "C"
+                R.id.rbCrewHC -> "HC"
+                else -> "A"
+            }
+            prefs.selectedCrew = crewId
+            onSettingsChanged()
+            toggleNightTimeVisibility(crewId == "HC")
+        }
+        toggleNightTimeVisibility(prefs.selectedCrew == "HC")
+    }
+
+    private fun setupCrewBadgeDoubleClick() {
+        val tvCrewBadge = findViewById<TextView>(R.id.tvCrewBadge) ?: return
+        var lastClickTime: Long = 0
+        tvCrewBadge.setOnClickListener {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastClickTime < 300) {
+                changeToNextCrew()
+            }
+            lastClickTime = currentTime
         }
     }
 }

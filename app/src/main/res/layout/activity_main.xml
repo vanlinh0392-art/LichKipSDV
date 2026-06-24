@@ -411,6 +411,74 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </LinearLayout>
+
+                    <!-- Mục ủng hộ (Donation Info) -->
+                    <LinearLayout
+                        android:id="@+id/layoutDonation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="10dp"
+                        android:layout_marginHorizontal="16dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/bg_clickable_setting"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nuôi tôi: vietcombank 😁"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/primary" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="4dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Stk: "
+                                android:textSize="12sp"
+                                android:textColor="@color/on_surface_variant" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0011004211173"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/on_surface"
+                                android:textIsSelectable="true" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="2dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Chủ TK: "
+                                android:textSize="12sp"
+                                android:textColor="@color/on_surface_variant" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Vu Van Linh"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/on_surface" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </com.sdv.lichnoti.SwipeLinearLayout>
 
 
