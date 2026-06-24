@@ -27,6 +27,11 @@ class AlarmReceiver : BroadcastReceiver() {
                 NotificationScheduler.scheduleNext(context)
                 // Tự động mở app khác nếu được cấu hình
                 launchTargetApp(context)
+                // Samsung MDM Lock
+                val prefs = AppPreferences(context)
+                if (prefs.autoLockSamsung) {
+                    SamsungLockHelper.sendLockIntent(context)
+                }
             }
             ACTION_SNOOZE -> {
                 Log.d(TAG, "Xử lý hành động NHẮC LẠI báo thức")
@@ -48,6 +53,10 @@ class AlarmReceiver : BroadcastReceiver() {
                         // Chỉ hiển thị notification nhắc nhở dán cam thông thường và lên lịch ca tiếp theo
                         NotificationHelper.showNotification(context)
                         NotificationScheduler.scheduleNext(context)
+                        // Samsung MDM Lock
+                        if (prefs.autoLockSamsung) {
+                            SamsungLockHelper.sendLockIntent(context)
+                        }
                     } else {
                         serviceIntent.apply {
                             putExtra(AlarmService.EXTRA_CREW_ID, crewId)

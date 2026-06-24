@@ -75,6 +75,26 @@ class AlarmActivity : AppCompatActivity() {
         // Xử lý sự kiện click
         findViewById<Button>(R.id.btnStopAlarm).setOnClickListener {
             sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
+            
+            // Tự động mở app khác trực tiếp từ Activity đang ở foreground để tránh Android block background activity start
+            val prefs = AppPreferences(this)
+            if (!prefs.openSelf && prefs.targetPackage.isNotBlank()) {
+                try {
+                    val launchIntent = packageManager.getLaunchIntentForPackage(prefs.targetPackage)
+                    if (launchIntent != null) {
+                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(launchIntent)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            // Samsung MDM Lock
+            if (prefs.autoLockSamsung) {
+                SamsungLockHelper.sendLockIntent(this)
+            }
+
             finish()
         }
 

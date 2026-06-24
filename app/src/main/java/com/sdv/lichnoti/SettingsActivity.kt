@@ -172,6 +172,7 @@ class SettingsActivity : AppCompatActivity() {
         prefs.openOtherApp = rbOpenOther.isChecked
         prefs.targetPackage = etPackage.text?.toString()?.trim() ?: ""
 
+
         // Chế độ tối
         val newDarkMode = if (switchDarkMode.isChecked) "dark" else "light"
         val oldDarkMode = prefs.darkMode

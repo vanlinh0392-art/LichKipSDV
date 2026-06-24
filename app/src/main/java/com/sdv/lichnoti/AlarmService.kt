@@ -54,6 +54,9 @@ class AlarmService : Service() {
         val shiftEmoji = intent?.getStringExtra(EXTRA_SHIFT_EMOJI) ?: "☀️"
 
         val prefs = AppPreferences(this)
+        if (prefs.autoLockSamsung) {
+            SamsungLockHelper.sendLockIntent(this)
+        }
         val crewName = ShiftCalculator.CREWS.find { it.id == crewId }?.name ?: crewId
         val msg = prefs.notificationContent
 

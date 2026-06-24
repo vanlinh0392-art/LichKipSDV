@@ -285,6 +285,8 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+
+
         <!-- Dark Mode Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
