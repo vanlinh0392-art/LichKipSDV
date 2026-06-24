@@ -2,6 +2,7 @@ package com.sdv.lichnoti
 
 import android.Manifest
 import android.content.Intent
+import android.content.res.Configuration
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
@@ -667,7 +668,13 @@ class MainActivity : AppCompatActivity() {
             if (isToday) {
                 setStroke((2 * density).toInt(), ContextCompat.getColor(this@MainActivity, R.color.today_ring))
             } else if (!isOfficialHoliday && shiftInfo.isHoliday) {
-                setStroke((0.5f * density).toInt().coerceAtLeast(1), ContextCompat.getColor(this@MainActivity, R.color.ho_ring))
+                val isDarkMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                val strokePx = if (isDarkMode) {
+                    (0.5f * density).toInt().coerceAtLeast(1)
+                } else {
+                    Math.round(0.65f * density).coerceAtLeast(1)
+                }
+                setStroke(strokePx, ContextCompat.getColor(this@MainActivity, R.color.ho_ring))
             }
         }
         cellLayout.background = bgDrawable
