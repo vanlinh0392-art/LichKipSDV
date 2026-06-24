@@ -438,17 +438,28 @@ class MainActivity : AppCompatActivity() {
     // ── Lắng nghe điều khiển lịch ────────────────────────────────────────
     private fun setupCalendarControls() {
         val layoutMonthBlock2 = findViewById<View>(R.id.layoutMonthBlock2)
+        val layoutHideHolidayShift = findViewById<View>(R.id.layoutHideHolidayShift)
+        val switchHideHolidayShift = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchHideHolidayShift)
         val btnToggle = findViewById<ImageButton>(R.id.btnToggleCalendarView)
 
-        // Phục hồi trạng thái ẩn/hiện tháng thứ 2 (calendarVisible: true = hiện cả 2 tháng, false = chỉ hiện 1 tháng)
+        // Phục hồi trạng thái ẩn/hiện tháng thứ 2
         val isVisible = prefs.calendarVisible
         layoutMonthBlock2.visibility = if (isVisible) View.VISIBLE else View.GONE
+        layoutHideHolidayShift.visibility = if (isVisible) View.GONE else View.VISIBLE
         btnToggle.setImageResource(if (isVisible) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
+
+        // Phục hồi trạng thái switch ẩn ca Lễ
+        switchHideHolidayShift.isChecked = prefs.hideHolidayShift
+        switchHideHolidayShift.setOnCheckedChangeListener { _, isChecked ->
+            prefs.hideHolidayShift = isChecked
+            setupCalendar()
+        }
 
         btnToggle.setOnClickListener {
             val nextState = !prefs.calendarVisible
             prefs.calendarVisible = nextState
             layoutMonthBlock2.visibility = if (nextState) View.VISIBLE else View.GONE
+            layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
         }
     }
@@ -724,10 +735,14 @@ class MainActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
                 topMargin = (-1 * density).toInt() // Kéo gần lại số ngày
             }
-            text = when (shiftInfo.type) {
-                ShiftCalculator.ShiftType.NGAY -> "Ngày"
-                ShiftCalculator.ShiftType.DEM -> "Đêm"
-                else -> ""
+            text = if (isOfficialHoliday && prefs.hideHolidayShift) {
+                "" // Ẩn ca Ngày/Đêm trên ngày lễ khi cài đặt bật
+            } else {
+                when (shiftInfo.type) {
+                    ShiftCalculator.ShiftType.NGAY -> "Ngày"
+                    ShiftCalculator.ShiftType.DEM -> "Đêm"
+                    else -> ""
+                }
             }
             textSize = 9.5f
             setTextColor(labelColor)

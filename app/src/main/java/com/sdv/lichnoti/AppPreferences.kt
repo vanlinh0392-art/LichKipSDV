@@ -24,6 +24,7 @@ class AppPreferences(context: Context) {
         private const val KEY_NOTIFICATION_CONTENT = "notification_content"
         private const val KEY_SNOOZE_DURATION = "snooze_duration"
         private const val KEY_LAST_UPDATE_CHECK_TIME = "last_update_check_time"
+        private const val KEY_HIDE_HOLIDAY_SHIFT = "hide_holiday_shift"
     }
 
     private val prefs: SharedPreferences =
@@ -116,4 +117,8 @@ class AppPreferences(context: Context) {
     var lastUpdateCheckTime: Long
         get() = prefs.getLong(KEY_LAST_UPDATE_CHECK_TIME, 0L)
         set(value) = prefs.edit().putLong(KEY_LAST_UPDATE_CHECK_TIME, value).apply()
+
+    var hideHolidayShift: Boolean
+        get() = prefs.getBoolean(KEY_HIDE_HOLIDAY_SHIFT, true)
+        set(value) = prefs.edit().putBoolean(KEY_HIDE_HOLIDAY_SHIFT, value).apply()
 }
