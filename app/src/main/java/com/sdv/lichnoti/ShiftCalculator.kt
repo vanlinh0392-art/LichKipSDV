@@ -66,18 +66,23 @@ object ShiftCalculator {
             val isOfficialHol = isHoliday(curr)
             val actualShift = getActualShift(crewId, curr)
             
-            val isHOReal = if (isOfficialHol) {
-                actualShift == ShiftType.NGAY
+            val isSunday = curr.dayOfWeek.value == 7
+            val isSat = curr.dayOfWeek.value == 6
+            val isSatWorkHO = if (isSat && curr.year < 2027) {
+                val diff = toJulianDayNumber(curr) - ANCHOR_JDN
+                mod(diff / 7, 2) == 0
             } else {
-                val isSunday = curr.dayOfWeek.value == 7
-                val isSat = curr.dayOfWeek.value == 6
-                val isSatWorkHO = if (isSat && curr.year < 2027) {
-                    val diff = toJulianDayNumber(curr) - ANCHOR_JDN
-                    mod(diff / 7, 2) == 0
+                false
+            }
+
+            val isHOReal = if (isSunday || isSatWorkHO) {
+                if (isOfficialHol) {
+                    actualShift == ShiftType.NGAY
                 } else {
-                    false
+                    actualShift != ShiftType.NGHI
                 }
-                (isSunday || isSatWorkHO) && (actualShift != ShiftType.NGHI)
+            } else {
+                false
             }
 
             if (isHOReal) {
