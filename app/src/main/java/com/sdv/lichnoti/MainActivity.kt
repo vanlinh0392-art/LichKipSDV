@@ -462,22 +462,42 @@ class MainActivity : AppCompatActivity() {
             layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
         }
+
+        // Đăng ký sự kiện vuốt trên toàn bộ vùng lịch
+        val layoutCalendarContent = findViewById<SwipeLinearLayout>(R.id.layoutCalendarContent)
+        layoutCalendarContent.onSwipeListener = object : SwipeLinearLayout.OnSwipeListener {
+            override fun onSwipeLeft() {
+                navigateNextMonth()
+            }
+
+            override fun onSwipeRight() {
+                navigatePrevMonth()
+            }
+        }
     }
 
     // ── Điều hướng tháng trước / tháng sau ──────────────────────────────
+    private fun navigatePrevMonth() {
+        if (currentMonth == 1) { currentMonth = 12; currentYear-- }
+        else currentMonth--
+        updateMonthDisplay()
+        setupCalendar()
+    }
+
+    private fun navigateNextMonth() {
+        if (currentMonth == 12) { currentMonth = 1; currentYear++ }
+        else currentMonth++
+        updateMonthDisplay()
+        setupCalendar()
+    }
+
     private fun setupMonthNavigation() {
         findViewById<ImageButton>(R.id.btnPrevMonth).setOnClickListener {
-            if (currentMonth == 1) { currentMonth = 12; currentYear-- }
-            else currentMonth--
-            updateMonthDisplay()
-            setupCalendar()
+            navigatePrevMonth()
         }
 
         findViewById<ImageButton>(R.id.btnNextMonth).setOnClickListener {
-            if (currentMonth == 12) { currentMonth = 1; currentYear++ }
-            else currentMonth++
-            updateMonthDisplay()
-            setupCalendar()
+            navigateNextMonth()
         }
 
         updateMonthDisplay()

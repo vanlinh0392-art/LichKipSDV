@@ -194,7 +194,7 @@
 
 
                 <!-- Container chứa toàn bộ phần lịch để ẩn / hiện -->
-                <LinearLayout
+                <com.sdv.lichnoti.SwipeLinearLayout
                     android:id="@+id/layoutCalendarContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -386,7 +386,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </LinearLayout>
-                </LinearLayout>
+                </com.sdv.lichnoti.SwipeLinearLayout>
 
 
 
@@ -470,11 +470,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Cài Đặt Lịch Kíp"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/primary"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp" />
 
             <!-- Enable/Disable Notification -->
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -483,25 +483,25 @@
                 android:layout_height="wrap_content"
                 android:text="Bật thông báo nhắc nhở"
                 android:textColor="@color/on_background"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="8dp"/>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/divider"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="12dp" />
 
             <!-- Crew Selection Label -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/select_crew"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_surface_variant"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="6dp" />
 
             <!-- Crew Radio Selector -->
             <RadioGroup
@@ -509,18 +509,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="20dp">
+                android:layout_marginBottom="12dp">
 
                 <RadioButton
                     android:id="@+id/rbCrewA"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="36dp"
                     android:layout_weight="1"
                     android:button="@null"
                     android:gravity="center"
                     android:text="A"
                     android:textStyle="bold"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:background="@drawable/bg_crew_selector"
                     android:textColor="@color/on_surface"
                     android:layout_marginEnd="4dp" />
@@ -528,13 +528,13 @@
                 <RadioButton
                     android:id="@+id/rbCrewB"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="36dp"
                     android:layout_weight="1"
                     android:button="@null"
                     android:gravity="center"
                     android:text="B"
                     android:textStyle="bold"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:background="@drawable/bg_crew_selector"
                     android:textColor="@color/on_surface"
                     android:layout_marginEnd="4dp" />
@@ -542,13 +542,13 @@
                 <RadioButton
                     android:id="@+id/rbCrewC"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="36dp"
                     android:layout_weight="1"
                     android:button="@null"
                     android:gravity="center"
                     android:text="C"
                     android:textStyle="bold"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:background="@drawable/bg_crew_selector"
                     android:textColor="@color/on_surface"
                     android:layout_marginEnd="4dp" />
@@ -556,13 +556,13 @@
                 <RadioButton
                     android:id="@+id/rbCrewHC"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="36dp"
                     android:layout_weight="1"
                     android:button="@null"
                     android:gravity="center"
                     android:text="HC"
                     android:textStyle="bold"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:background="@drawable/bg_crew_selector"
                     android:textColor="@color/on_surface" />
             </RadioGroup>
@@ -572,10 +572,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="⏰ Thời Gian Báo Thức"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_surface_variant"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="6dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -591,11 +591,12 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingVertical="8dp"
-                    android:paddingEnd="4dp"
-                    android:background="?attr/selectableItemBackground"
+                    android:paddingVertical="6dp"
+                    android:paddingHorizontal="6dp"
+                    android:background="@drawable/bg_clickable_setting"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:layout_marginEnd="4dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -609,11 +610,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="06:30"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
                         android:textColor="@color/shift_day"
-                        android:layout_marginStart="4dp"
-                        android:padding="4dp" />
+                        android:layout_marginStart="2dp"
+                        android:padding="2dp" />
                 </LinearLayout>
 
                 <!-- Night shift alarm time -->
@@ -624,11 +625,12 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingVertical="8dp"
-                    android:paddingStart="4dp"
-                    android:background="?attr/selectableItemBackground"
+                    android:paddingVertical="6dp"
+                    android:paddingHorizontal="6dp"
+                    android:background="@drawable/bg_clickable_setting"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:layout_marginStart="4dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -642,11 +644,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="18:30"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
                         android:textColor="@color/shift_night"
-                        android:layout_marginStart="4dp"
-                        android:padding="4dp" />
+                        android:layout_marginStart="2dp"
+                        android:padding="2dp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -654,23 +656,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/divider"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="12dp" />
 
             <!-- App Launch Action Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="📱 Hành động khi bấm thông báo"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_surface_variant"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="6dp" />
 
             <RadioGroup
                 android:id="@+id/rgAction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="8dp">
 
                 <RadioButton
                     android:id="@+id/rbOpenSelf"
@@ -679,7 +681,7 @@
                     android:text="Mở ứng dụng này"
                     android:textSize="13sp"
                     android:textColor="@color/on_surface"
-                    android:paddingVertical="4dp" />
+                    android:paddingVertical="3dp" />
 
                 <RadioButton
                     android:id="@+id/rbOpenOther"
@@ -688,7 +690,7 @@
                     android:text="Mở app khác (MDM...)"
                     android:textSize="13sp"
                     android:textColor="@color/on_surface"
-                    android:paddingVertical="4dp" />
+                    android:paddingVertical="3dp" />
             </RadioGroup>
 
             <!-- Package ID input field -->
@@ -696,7 +698,7 @@
                 android:id="@+id/tilPackage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:hint="Package ID ứng dụng cần mở"
                 app:placeholderText="VD: com.sec.android.app.secmodem"
                 android:visibility="gone"
@@ -718,16 +720,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="💬 Nội dung thông báo nhắc nhở"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_surface_variant"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="6dp" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilNotificationContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:hint="Nhập nội dung nhắc nhở"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
@@ -746,7 +748,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/divider"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="12dp" />
 
             <!-- Snooze Duration Section -->
             <LinearLayout
@@ -755,9 +757,10 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingVertical="8dp"
-                android:layout_marginBottom="16dp"
-                android:background="?attr/selectableItemBackground"
+                android:paddingVertical="6dp"
+                android:paddingHorizontal="6dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_clickable_setting"
                 android:clickable="true"
                 android:focusable="true">
 
@@ -775,27 +778,27 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="10 phút"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="@color/primary"
-                    android:padding="4dp" />
+                    android:padding="2dp" />
             </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/divider"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="12dp" />
 
             <!-- Color Selection Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🎨 Tùy chọn màu sắc ngày/đêm"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_surface_variant"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginBottom="8dp" />
 
             <!-- Day Color Section -->
             <TextView
@@ -805,14 +808,14 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_surface"
-                android:layout_marginBottom="6dp" />
+                android:layout_marginBottom="4dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="10dp">
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/btnColorDay1"
@@ -911,14 +914,14 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_surface"
-                android:layout_marginBottom="6dp" />
+                android:layout_marginBottom="4dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="10dp">
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/btnColorNight1"
@@ -1017,14 +1020,14 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_surface"
-                android:layout_marginBottom="6dp" />
+                android:layout_marginBottom="4dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="10dp">
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/btnColorHo1"
@@ -1119,9 +1122,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/divider"
-                android:layout_marginBottom="16dp" />
-
-
+                android:layout_marginBottom="12dp" />
 
             <!-- Battery Config Guide Button (Tối ưu pin) -->
             <Button
@@ -1133,7 +1134,7 @@
                 android:textColor="@color/primary"
                 android:textSize="13sp"
                 app:strokeColor="@color/primary"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginBottom="8dp" />
 
             <!-- About Button (Giới thiệu) -->
             <Button
@@ -1144,7 +1145,7 @@
                 android:text="Giới thiệu ứng dụng"
                 android:textColor="@color/on_surface_variant"
                 android:textSize="12sp"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="12dp" />
 
         </LinearLayout>
     </ScrollView>

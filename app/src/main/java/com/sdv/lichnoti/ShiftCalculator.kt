@@ -157,6 +157,31 @@ object ShiftCalculator {
         if (isHoliday(date)) {
             if (crewId == "HC") return ShiftType.NGHI
             if (isLunarNewYear(date)) return ShiftType.NGHI
+
+            // Quy tắc swap cho ngày 01/05 và 02/09 hàng năm để tránh nghỉ liên tiếp từ 4 ngày trở lên
+            val m = date.monthValue
+            val d = date.dayOfMonth
+            if ((m == 5 && d == 1) || (m == 9 && d == 2)) {
+                var crewOff = ""
+                var crewDay = ""
+                var crewNight = ""
+
+                val checkCrews = listOf("A", "B", "C")
+                for (c in checkCrews) {
+                    val s = getShift(c, date)
+                    if (s == ShiftType.NGHI) crewOff = c
+                    else if (s == ShiftType.NGAY) crewDay = c
+                    else if (s == ShiftType.DEM) crewNight = c
+                }
+
+                if (crewId == crewOff) {
+                    return ShiftType.DEM  // Kíp nghỉ gốc chuyển sang làm Đêm
+                } else if (crewId == crewNight) {
+                    return ShiftType.NGHI // Kíp làm Đêm gốc chuyển sang nghỉ
+                } else if (crewId == crewDay) {
+                    return ShiftType.NGAY // Kíp làm Ngày gốc giữ nguyên
+                }
+            }
             return baseShift
         }
         return baseShift
