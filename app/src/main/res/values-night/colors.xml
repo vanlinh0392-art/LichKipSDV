@@ -34,6 +34,7 @@
     
     <color name="divider">#334155</color>
     <color name="today_ring">#2DD4BF</color>
+    <color name="ho_ring">#F472B6</color>
     <color name="card_shadow">#40000000</color>
     <color name="status_bar">#0F172A</color>
 </resources>

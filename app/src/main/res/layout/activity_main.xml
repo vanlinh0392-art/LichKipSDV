@@ -544,67 +544,77 @@
                 android:textColor="@color/on_surface_variant"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Day shift alarm time -->
             <LinearLayout
-                android:id="@+id/layoutDayTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingVertical="8dp">
+                android:baselineAligned="false">
 
-                <TextView
+                <!-- Day shift alarm time -->
+                <LinearLayout
+                    android:id="@+id/layoutDayTime"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="☀️ Ca Ngày"
-                    android:textSize="13sp"
-                    android:textColor="@color/on_surface" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp"
+                    android:paddingEnd="4dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
 
-                <TextView
-                    android:id="@+id/tvDayTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="06:30"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/shift_day"
-                    android:padding="6dp"
-                    android:background="?attr/selectableItemBackground" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="☀️ Ca ngày >"
+                        android:textSize="13sp"
+                        android:textColor="@color/on_surface" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/divider" />
+                    <TextView
+                        android:id="@+id/tvDayTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="06:30"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/shift_day"
+                        android:layout_marginStart="4dp"
+                        android:padding="4dp" />
+                </LinearLayout>
 
-            <!-- Night shift alarm time -->
-            <LinearLayout
-                android:id="@+id/layoutNightTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="8dp">
-
-                <TextView
+                <!-- Night shift alarm time -->
+                <LinearLayout
+                    android:id="@+id/layoutNightTime"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="🌙 Ca Đêm"
-                    android:textSize="13sp"
-                    android:textColor="@color/on_surface" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp"
+                    android:paddingStart="4dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
 
-                <TextView
-                    android:id="@+id/tvNightTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="18:30"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/shift_night"
-                    android:padding="6dp"
-                    android:background="?attr/selectableItemBackground" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🌙 Ca đêm >"
+                        android:textSize="13sp"
+                        android:textColor="@color/on_surface" />
+
+                    <TextView
+                        android:id="@+id/tvNightTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="18:30"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/shift_night"
+                        android:layout_marginStart="4dp"
+                        android:padding="4dp" />
+                </LinearLayout>
             </LinearLayout>
 
             <View
