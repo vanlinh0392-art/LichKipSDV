@@ -88,10 +88,14 @@ class MainActivity : AppCompatActivity() {
         // Setup click copy STK
         val btnCopyStk = findViewById<View>(R.id.btnCopyStk)
         val copyAction = View.OnClickListener {
-            val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-            val clip = android.content.ClipData.newPlainText("STK", "0011004211173")
-            clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, "Đã copy số tài khoản vietcombank!", Toast.LENGTH_SHORT).show()
+            val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+            if (clipboard != null) {
+                val clip = android.content.ClipData.newPlainText("STK", "0011004211173")
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "Đã copy số tài khoản vietcombank!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Không thể truy cập Clipboard hệ thống", Toast.LENGTH_SHORT).show()
+            }
         }
         btnCopyStk?.setOnClickListener(copyAction)
         findViewById<View>(R.id.layoutDonation)?.setOnClickListener(copyAction)
@@ -1366,8 +1370,10 @@ class MainActivity : AppCompatActivity() {
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastClickTime < 300) {
                 changeToNextCrew()
+                lastClickTime = 0
+            } else {
+                lastClickTime = currentTime
             }
-            lastClickTime = currentTime
         }
     }
 }
