@@ -85,6 +85,17 @@ class MainActivity : AppCompatActivity() {
         setupBatteryOptimizationButtons()
         setupDarkModeToggle()
 
+        // Setup click copy STK
+        val btnCopyStk = findViewById<View>(R.id.btnCopyStk)
+        val copyAction = View.OnClickListener {
+            val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = android.content.ClipData.newPlainText("STK", "0011004211173")
+            clipboard.setPrimaryClip(clip)
+            Toast.makeText(this, "Đã copy số tài khoản vietcombank!", Toast.LENGTH_SHORT).show()
+        }
+        btnCopyStk?.setOnClickListener(copyAction)
+        findViewById<View>(R.id.layoutDonation)?.setOnClickListener(copyAction)
+
         // Tạo notification channel và xin quyền
         NotificationHelper.createNotificationChannel(this)
         requestNotificationPermission()
@@ -1121,6 +1132,9 @@ class MainActivity : AppCompatActivity() {
         android.app.AlertDialog.Builder(this)
             .setTitle("Giới thiệu ứng dụng")
             .setMessage("Ứng dụng Lịch Kíp SDV giúp theo dõi lịch trực ca và nhắc nhở công việc.\n\n" +
+                    "Nuôi tôi: vietcombank 😁\n" +
+                    "Stk: 0011004211173\n" +
+                    "Chủ TK: Vu Van Linh\n\n" +
                     "Phát triển bởi: vanlinh.vu\n" +
                     "Bản quyền © 2026\n" +
                     "Phiên bản hiện tại: v$currentVerName")

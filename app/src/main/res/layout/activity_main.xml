@@ -438,6 +438,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
+                            android:gravity="center_vertical"
                             android:layout_marginTop="4dp">
 
                             <TextView
@@ -448,13 +449,25 @@
                                 android:textColor="@color/on_surface_variant" />
 
                             <TextView
+                                android:id="@+id/tvStk"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0011004211173"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
-                                android:textColor="@color/on_surface"
-                                android:textIsSelectable="true" />
+                                android:textColor="@color/on_surface" />
+
+                            <TextView
+                                android:id="@+id/btnCopyStk"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=" [Copy]"
+                                android:textSize="11sp"
+                                android:textColor="@color/primary"
+                                android:textStyle="bold"
+                                android:paddingHorizontal="4dp"
+                                android:clickable="true"
+                                android:focusable="true" />
                         </LinearLayout>
 
                         <LinearLayout
