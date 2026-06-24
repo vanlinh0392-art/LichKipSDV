@@ -25,6 +25,8 @@ class AlarmReceiver : BroadcastReceiver() {
                 Log.d(TAG, "Xử lý hành động DỪNG báo thức")
                 context.stopService(serviceIntent)
                 NotificationScheduler.scheduleNext(context)
+                // Tự động mở app khác nếu được cấu hình
+                launchTargetApp(context)
             }
             ACTION_SNOOZE -> {
                 Log.d(TAG, "Xử lý hành động NHẮC LẠI báo thức")
@@ -54,6 +56,24 @@ class AlarmReceiver : BroadcastReceiver() {
                 } else {
                     NotificationScheduler.scheduleNext(context)
                 }
+            }
+        }
+    }
+
+    private fun launchTargetApp(context: Context) {
+        val prefs = AppPreferences(context)
+        if (!prefs.openSelf && prefs.targetPackage.isNotBlank()) {
+            try {
+                val launchIntent = context.packageManager.getLaunchIntentForPackage(prefs.targetPackage)
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(launchIntent)
+                    Log.d(TAG, "Đã tự động mở ứng dụng mục tiêu: ${prefs.targetPackage}")
+                } else {
+                    Log.e(TAG, "Không tìm thấy launch intent cho package: ${prefs.targetPackage}")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Không thể tự động mở ứng dụng mục tiêu", e)
             }
         }
     }
