@@ -457,21 +457,63 @@ class MainActivity : AppCompatActivity() {
             "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
             "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
         )
-        findViewById<TextView>(R.id.tvMonthYear).text = "${monthNames[currentMonth - 1]} $currentYear"
+        val nextMonth = if (currentMonth == 12) 1 else currentMonth + 1
+        val nextYear = if (currentMonth == 12) currentYear + 1 else currentYear
+        
+        val displayStr = if (currentYear == nextYear) {
+            "${monthNames[currentMonth - 1]} - ${nextMonth} / $currentYear"
+        } else {
+            "${monthNames[currentMonth - 1]}/$currentYear - ${nextMonth}/$nextYear"
+        }
+        findViewById<TextView>(R.id.tvMonthYear).text = displayStr
     }
 
-    // ── Render lịch (Thành grid 7 cột) ───────────────────────────────────
+    // ── Render lịch (Thành grid 7 cột cho 2 tháng) ───────────────────────────
     private fun setupCalendar() {
         val crewId = prefs.selectedCrew
         val today = LocalDate.now()
         val density = resources.displayMetrics.density
+        val cellHeight = (34 * density).toInt()
 
         // Luôn hiển thị Month Navigation
-        val layoutMonthNav = findViewById<View>(R.id.layoutMonthNavigation)
-        layoutMonthNav.visibility = View.VISIBLE
+        findViewById<View>(R.id.layoutMonthNavigation).visibility = View.VISIBLE
 
+        val monthNames = arrayOf(
+            "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+            "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+        )
+
+        // ── THÁNG 1 (Tháng hiện tại) ──
+        findViewById<TextView>(R.id.tvMonthYear1).text = "${monthNames[currentMonth - 1]} $currentYear"
+        populateMonthGrid(
+            crewId, currentYear, currentMonth, today, cellHeight, density,
+            findViewById(R.id.dayOfWeekHeaders1), findViewById(R.id.calendarGrid1)
+        )
+
+        // ── THÁNG 2 (Tháng tiếp theo) ──
+        val nextMonth = if (currentMonth == 12) 1 else currentMonth + 1
+        val nextYear = if (currentMonth == 12) currentYear + 1 else currentYear
+        findViewById<TextView>(R.id.tvMonthYear2).text = "${monthNames[nextMonth - 1]} $nextYear"
+        populateMonthGrid(
+            crewId, nextYear, nextMonth, today, cellHeight, density,
+            findViewById(R.id.dayOfWeekHeaders2), findViewById(R.id.calendarGrid2)
+        )
+
+        // Cập nhật thống kê HO của cả 3 kíp
+        setupHOStats()
+    }
+
+    private fun populateMonthGrid(
+        crewId: String,
+        year: Int,
+        month: Int,
+        today: LocalDate,
+        cellHeight: Int,
+        density: Float,
+        headerLayout: LinearLayout,
+        grid: GridLayout
+    ) {
         // Header thứ trong tuần: T2..CN
-        val headerLayout = findViewById<LinearLayout>(R.id.dayOfWeekHeaders)
         headerLayout.removeAllViews()
         val dayHeaders = arrayOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
         for (header in dayHeaders) {
@@ -485,24 +527,19 @@ class MainActivity : AppCompatActivity() {
                         if (header == "CN" || header == "T7") R.color.shift_holiday else R.color.on_surface_variant
                     )
                 )
-                setPadding(0, (6 * density).toInt(), 0, (6 * density).toInt())
+                setPadding(0, (4 * density).toInt(), 0, (4 * density).toInt())
                 typeface = Typeface.DEFAULT_BOLD
             }
             headerLayout.addView(tv)
         }
 
         // Grid lịch
-        val grid = findViewById<GridLayout>(R.id.calendarGrid)
         grid.removeAllViews()
         grid.columnCount = 7
 
-        // Thu gọn chiều cao ô lịch xuống 50dp
-        val cellHeight = (50 * density).toInt()
-
-        // Chế độ tháng: Vẽ đầy đủ các ngày trong tháng hiện tại
-        val firstDay = LocalDate.of(currentYear, currentMonth, 1)
+        val firstDay = LocalDate.of(year, month, 1)
         val daysInMonth = firstDay.lengthOfMonth()
-        val startOffset = firstDay.dayOfWeek.value - 1  // Thứ 2 = 0
+        val startOffset = firstDay.dayOfWeek.value - 1
 
         // Ô trống đầu tháng
         for (i in 0 until startOffset) {
@@ -517,13 +554,10 @@ class MainActivity : AppCompatActivity() {
 
         // Ô ngày
         for (day in 1..daysInMonth) {
-            val date = LocalDate.of(currentYear, currentMonth, day)
+            val date = LocalDate.of(year, month, day)
             val cell = createCellView(crewId, date, today, cellHeight, density, false)
             grid.addView(cell)
         }
-
-        // Cập nhật thống kê HO của cả 3 kíp
-        setupHOStats()
     }
 
     /**
@@ -608,7 +642,6 @@ class MainActivity : AppCompatActivity() {
                 else -> ContextCompat.getColor(this, R.color.on_background)
             }
             labelText = if (shiftInfo.isHoliday) {
-                // Trường hợp đi làm ngày Chủ Nhật hoặc thứ Bảy cách tuần (không phải ngày lễ chính thức)
                 when (shiftInfo.type) {
                     ShiftCalculator.ShiftType.NGAY -> "HO N"
                     ShiftCalculator.ShiftType.DEM -> "HO Đ"
@@ -630,37 +663,42 @@ class MainActivity : AppCompatActivity() {
 
         val bgDrawable = GradientDrawable().apply {
             setColor(bgColor)
-            cornerRadius = 8f * density
+            cornerRadius = 6f * density
             if (isToday) {
                 setStroke((2 * density).toInt(), ContextCompat.getColor(this@MainActivity, R.color.today_ring))
             }
         }
         cellLayout.background = bgDrawable
 
-        // Số ngày
+        // Số ngày (Góc trên trái)
         val dayText = TextView(this).apply {
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
-                gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-                topMargin = (3 * density).toInt()
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.START or Gravity.TOP
+                leftMargin = (5 * density).toInt()
+                topMargin = (2 * density).toInt()
             }
             text = date.dayOfMonth.toString()
-            this.gravity = Gravity.CENTER
-            textSize = 14f
+            textSize = 12f
             setTextColor(textColor)
-            if (isToday) typeface = Typeface.DEFAULT_BOLD
         }
 
-        // Nhãn ca
+        // Nhãn ca (Góc trên phải)
         val shiftLabel = TextView(this).apply {
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
-                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-                bottomMargin = (2 * density).toInt()
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.END or Gravity.TOP
+                rightMargin = (5 * density).toInt()
+                topMargin = (2 * density).toInt()
             }
             text = labelText
-            this.gravity = Gravity.CENTER
-            textSize = 11f
+            textSize = 9f
             setTextColor(labelColor)
-            typeface = Typeface.DEFAULT_BOLD
+        }
+
+        // Kiểm tra in đậm nếu là ngày HO hoặc lễ tế hoặc hôm nay
+        val isBold = labelText.contains("HO") || isOfficialHoliday
+        if (isBold || isToday) {
+            dayText.typeface = Typeface.DEFAULT_BOLD
+            shiftLabel.typeface = Typeface.DEFAULT_BOLD
         }
 
         cellLayout.addView(dayText)
@@ -692,7 +730,7 @@ class MainActivity : AppCompatActivity() {
         val timeNow = java.time.LocalDateTime.now()
 
         if (!prefs.notificationEnabled) {
-            tvNextAlarm.text = "Thông báo đã tắt"
+            tvNextAlarm.text = "🔔 Đã tắt"
             return
         }
 
@@ -711,13 +749,12 @@ class MainActivity : AppCompatActivity() {
                     val timeStr = String.format("%02d:%02d", hour, minute)
                     val isHol = ShiftCalculator.isHoliday(date)
                     val labelSuffix = if (isHol) " (HO Lễ)" else ""
-                    tvNextAlarm.text = "$timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${String.format("%02d", date.monthValue)} (${shift.emoji} ca ${if (shift == ShiftCalculator.ShiftType.NGAY) "Ngày" else "Đêm"}$labelSuffix)"
+                    tvNextAlarm.text = "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (${shift.emoji}$labelSuffix)"
                     return
                 }
             }
         }
-
-        tvNextAlarm.text = "Không có ca làm trong 14 ngày tới"
+        tvNextAlarm.text = "🔔 Không có ca trực trong 14 ngày"
     }
 
     // ── Toggle bật/tắt thông báo (Chỉ trong settings Drawer) ───────────────
