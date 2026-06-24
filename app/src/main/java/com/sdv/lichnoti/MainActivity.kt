@@ -228,20 +228,20 @@ class MainActivity : AppCompatActivity() {
 
         // 4b-2. Thời gian nhắc lại (Snooze)
         val tvSnoozeDuration = findViewById<TextView>(R.id.tvSnoozeDuration)
-        tvSnoozeDuration.text = "${prefs.snoozeDuration} phút"
+        tvSnoozeDuration.text = if (prefs.snoozeDuration == 0) "Không" else "${prefs.snoozeDuration} phút"
         findViewById<View>(R.id.layoutSnooze).setOnClickListener {
-            val options = arrayOf("5 phút", "10 phút", "15 phút", "20 phút", "30 phút")
-            val values = arrayOf(5, 10, 15, 20, 30)
+            val options = arrayOf("Không", "5 phút", "10 phút", "15 phút", "20 phút", "30 phút")
+            val values = arrayOf(0, 5, 10, 15, 20, 30)
             
             var currentIdx = values.indexOf(prefs.snoozeDuration)
-            if (currentIdx == -1) currentIdx = 1 // Default 10 phút
+            if (currentIdx == -1) currentIdx = 2 // Mặc định là 10 phút (index 2)
 
             android.app.AlertDialog.Builder(this)
                 .setTitle("Chọn thời gian nhắc lại")
                 .setSingleChoiceItems(options, currentIdx) { dialog, which ->
                     val selectedVal = values[which]
                     prefs.snoozeDuration = selectedVal
-                    tvSnoozeDuration.text = "$selectedVal phút"
+                    tvSnoozeDuration.text = if (selectedVal == 0) "Không" else "$selectedVal phút"
                     onSettingsChanged()
                     dialog.dismiss()
                 }

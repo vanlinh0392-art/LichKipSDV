@@ -48,22 +48,21 @@ object ShiftCalculator {
     )
 
     /**
-     * Kiểm tra Thứ Bảy có phải ngày HO hay không theo 3 giai đoạn:
-     * - Trước tháng 7/2026: MỌI Thứ Bảy đều là HO
-     * - Tháng 7-12/2026: Thứ Bảy CÁCH TUẦN là HO
-     * - Từ tháng 1/2027: Không còn Thứ Bảy HO
+     * Kiểm tra Thứ Bảy có phải ngày HO hay không:
+     * - Trước tháng 7/2026: Thứ Bảy thứ nhất và thứ ba của tháng là HO
+     * - Từ tháng 7-12/2026: Chỉ Thứ Bảy thứ nhất của tháng là HO (cắt ngày 18/7 và tuần 3)
+     * - Từ năm 2027 trở đi: Không còn Thứ Bảy HO (chỉ còn HO Chủ Nhật)
      */
     private fun isSaturdayHO(date: LocalDate): Boolean {
         if (date.dayOfWeek.value != 6) return false
         val y = date.year
         val m = date.monthValue
+        val nthSaturday = (date.dayOfMonth - 1) / 7 + 1
+
         return when {
-            y > 2026 -> false                    // Từ 2027: không có T7 HO
-            y == 2026 && m >= 7 -> {              // 7-12/2026: T7 cách tuần
-                val diff = toJulianDayNumber(date) - ANCHOR_JDN
-                mod(diff / 7, 2) == 0
-            }
-            else -> true                          // Trước 7/2026: mọi T7 đều HO
+            y > 2026 -> false
+            y == 2026 && m >= 7 -> nthSaturday == 1
+            else -> nthSaturday == 1 || nthSaturday == 3
         }
     }
 

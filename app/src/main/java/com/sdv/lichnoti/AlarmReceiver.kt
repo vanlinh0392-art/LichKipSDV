@@ -35,7 +35,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 NotificationScheduler.scheduleSnooze(context, prefs.snoozeDuration)
             }
             else -> {
-                Log.d(TAG, "Đến giờ báo thức ca trực, khởi chạy AlarmService")
+                Log.d(TAG, "Đến giờ báo thức ca trực")
                 val prefs = AppPreferences(context)
                 val crewId = prefs.selectedCrew
                 val today = java.time.LocalDate.now()
@@ -43,15 +43,25 @@ class AlarmReceiver : BroadcastReceiver() {
 
                 // Chỉ chạy báo thức nếu kíp có ca làm thực tế (không phải ca nghỉ)
                 if (shiftInfo.type != ShiftCalculator.ShiftType.NGHI) {
-                    serviceIntent.apply {
-                        putExtra(AlarmService.EXTRA_CREW_ID, crewId)
-                        putExtra(AlarmService.EXTRA_SHIFT_LABEL, shiftInfo.type.label)
-                        putExtra(AlarmService.EXTRA_SHIFT_EMOJI, shiftInfo.type.emoji)
-                    }
-                    try {
-                        ContextCompat.startForegroundService(context, serviceIntent)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Không thể khởi chạy Foreground Service báo thức", e)
+                    if (prefs.snoozeDuration == 0) {
+                        // Người dùng cấu hình "Không" sử dụng báo thức full màn reo chuông
+                        // Chỉ hiển thị notification nhắc nhở dán cam thông thường và lên lịch ca tiếp theo
+                        NotificationHelper.showNotification(context)
+                        NotificationScheduler.scheduleNext(context)
+                    } else {
+                        serviceIntent.apply {
+                            putExtra(AlarmService.EXTRA_CREW_ID, crewId)
+                            putExtra(AlarmService.EXTRA_SHIFT_LABEL, shiftInfo.type.label)
+                            putExtra(AlarmService.EXTRA_SHIFT_EMOJI, shiftInfo.type.emoji)
+                        }
+                        try {
+                            ContextCompat.startForegroundService(context, serviceIntent)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Không thể khởi chạy Foreground Service báo thức", e)
+                            // Fallback hiển thị notification nhắc nhở thông thường nếu crash
+                            NotificationHelper.showNotification(context)
+                            NotificationScheduler.scheduleNext(context)
+                        }
                     }
                 } else {
                     NotificationScheduler.scheduleNext(context)
