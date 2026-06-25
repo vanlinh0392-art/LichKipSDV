@@ -18,6 +18,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -118,7 +119,11 @@ class MainActivity : AppCompatActivity() {
         // Đồng bộ trạng thái switch thông báo
         findViewById<SwitchMaterial>(R.id.switchNotificationDrawer).isChecked = prefs.notificationEnabled
 
-        // Đồng bộ trạng thái switch khóa Samsung
+        // Đồng bộ trạng thái switch khóa Samsung (Kiểm tra cả quyền vẽ lên ứng dụng khác)
+        val hasOverlayPermission = Settings.canDrawOverlays(this)
+        if (prefs.autoLockSamsung && !hasOverlayPermission) {
+            prefs.autoLockSamsung = false
+        }
         findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)?.isChecked = prefs.autoLockSamsung
 
         // Cập nhật icon Dark Mode ngoài màn hình chính
@@ -518,9 +523,36 @@ class MainActivity : AppCompatActivity() {
         val switchAutoLockSamsung = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)
         switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
         switchAutoLockSamsung.setOnCheckedChangeListener { _, isChecked ->
-            prefs.autoLockSamsung = isChecked
             if (isChecked) {
-                Toast.makeText(this, "Đã bật Khóa Samsung VSelf Lock", Toast.LENGTH_SHORT).show()
+                if (!Settings.canDrawOverlays(this)) {
+                    // Hiển thị dialog giải thích và yêu cầu cấp quyền
+                    AlertDialog.Builder(this)
+                        .setTitle("Cần cấp quyền hệ thống")
+                        .setMessage("Để tự động gửi tín hiệu khóa Samsung VSelf Lock khi báo thức chạy nền hoặc khi màn hình đang tắt, ứng dụng cần quyền 'Xuất hiện trên cùng'. Vui lòng cấp quyền này ở màn hình tiếp theo.")
+                        .setPositiveButton("Cấp quyền") { dialog, _ ->
+                            dialog.dismiss()
+                            try {
+                                val intent = Intent(
+                                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                    Uri.parse("package:$packageName")
+                                )
+                                startActivity(intent)
+                            } catch (e: Exception) {
+                                Toast.makeText(this, "Không thể mở màn hình cài đặt quyền", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                        .setNegativeButton("Để sau") { dialog, _ ->
+                            dialog.dismiss()
+                            switchAutoLockSamsung.isChecked = false
+                        }
+                        .setCancelable(false)
+                        .show()
+                } else {
+                    prefs.autoLockSamsung = true
+                    Toast.makeText(this, "Đã bật Khóa Samsung VSelf Lock", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                prefs.autoLockSamsung = false
             }
         }
     }
