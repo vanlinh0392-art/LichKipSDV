@@ -478,7 +478,6 @@ class MainActivity : AppCompatActivity() {
     // ── Lắng nghe điều khiển lịch ────────────────────────────────────────
     private fun setupCalendarControls() {
         val layoutHideHolidayShift = findViewById<View>(R.id.layoutHideHolidayShift)
-        val layoutAutoLockSamsung = findViewById<View>(R.id.layoutAutoLockSamsung)
         val layoutMergeMonths = findViewById<View>(R.id.layoutMergeMonths)
         val layoutDonation = findViewById<View>(R.id.layoutDonation)
         val switchHideHolidayShift = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchHideHolidayShift)
@@ -488,7 +487,6 @@ class MainActivity : AppCompatActivity() {
         // Phục hồi trạng thái ẩn/hiện các option ở vùng cài đặt (layoutMonthBlock2 sẽ do setupCalendar tự quản lý)
         val isVisible = prefs.calendarVisible
         layoutHideHolidayShift.visibility = if (isVisible) View.GONE else View.VISIBLE
-        layoutAutoLockSamsung?.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutMergeMonths?.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutDonation?.visibility = if (isVisible) View.GONE else View.VISIBLE
         btnToggle.setImageResource(if (isVisible) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
@@ -511,7 +509,6 @@ class MainActivity : AppCompatActivity() {
             val nextState = !prefs.calendarVisible
             prefs.calendarVisible = nextState
             layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
-            layoutAutoLockSamsung?.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutMergeMonths?.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutDonation?.visibility = if (nextState) View.GONE else View.VISIBLE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
