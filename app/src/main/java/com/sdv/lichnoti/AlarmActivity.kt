@@ -7,6 +7,8 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
@@ -14,6 +16,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class AlarmActivity : AppCompatActivity() {
+
+    private val handler = Handler(Looper.getMainLooper())
+    private var autoLockRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +66,15 @@ class AlarmActivity : AppCompatActivity() {
         setContentView(R.layout.activity_alarm)
 
         val prefs = AppPreferences(this)
+        
+        // Tự động khóa sau 2 giây nếu người dùng không tương tác gì
+        autoLockRunnable = Runnable {
+            if (prefs.autoLockSamsung) {
+                SamsungLockHelper.sendLockIntent(this@AlarmActivity)
+            }
+        }
+        handler.postDelayed(autoLockRunnable!!, 2000)
+
         val crewId = intent.getStringExtra(AlarmService.EXTRA_CREW_ID) ?: "A"
         val shiftLabel = intent.getStringExtra(AlarmService.EXTRA_SHIFT_LABEL) ?: "Ngày"
         val shiftEmoji = intent.getStringExtra(AlarmService.EXTRA_SHIFT_EMOJI) ?: "☀️"
@@ -92,6 +106,7 @@ class AlarmActivity : AppCompatActivity() {
 
         // Xử lý sự kiện click
         findViewById<Button>(R.id.btnStopAlarm).setOnClickListener {
+            autoLockRunnable?.let { handler.removeCallbacks(it) }
             sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
             
             // Tự động mở app khác trực tiếp từ Activity đang ở foreground để tránh Android block background activity start
@@ -119,9 +134,15 @@ class AlarmActivity : AppCompatActivity() {
         }
 
         btnSnooze.setOnClickListener {
+            autoLockRunnable?.let { handler.removeCallbacks(it) }
             sendBroadcastToReceiver(AlarmReceiver.ACTION_SNOOZE)
             finish()
         }
+    }
+
+    override fun onDestroy() {
+        autoLockRunnable?.let { handler.removeCallbacks(it) }
+        super.onDestroy()
     }
 
     private fun sendBroadcastToReceiver(actionStr: String) {
