@@ -632,79 +632,88 @@
                 android:background="@color/divider"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Crew Selection Label -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/select_crew"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface_variant"
-                android:layout_marginBottom="6dp" />
-
-            <!-- Crew Radio Selector -->
-            <RadioGroup
-                android:id="@+id/rgCrew"
+            <!-- Crew Selection Section (Label & Selector on the same row) -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:layout_marginBottom="12dp">
 
-                <RadioButton
-                    android:id="@+id/rbCrewA"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_weight="1"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="A"
-                    android:textStyle="bold"
+                <!-- Crew Selection Label -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/select_crew"
                     android:textSize="13sp"
-                    android:background="@drawable/bg_crew_selector"
-                    android:textColor="@color/on_surface"
-                    android:layout_marginEnd="4dp" />
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface_variant"
+                    android:layout_marginEnd="12dp" />
 
-                <RadioButton
-                    android:id="@+id/rbCrewB"
+                <!-- Crew Radio Selector -->
+                <RadioGroup
+                    android:id="@+id/rgCrew"
                     android:layout_width="0dp"
-                    android:layout_height="36dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="B"
-                    android:textStyle="bold"
-                    android:textSize="13sp"
-                    android:background="@drawable/bg_crew_selector"
-                    android:textColor="@color/on_surface"
-                    android:layout_marginEnd="4dp" />
+                    android:orientation="horizontal">
 
-                <RadioButton
-                    android:id="@+id/rbCrewC"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_weight="1"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="C"
-                    android:textStyle="bold"
-                    android:textSize="13sp"
-                    android:background="@drawable/bg_crew_selector"
-                    android:textColor="@color/on_surface"
-                    android:layout_marginEnd="4dp" />
+                    <RadioButton
+                        android:id="@+id/rbCrewA"
+                        android:layout_width="0dp"
+                        android:layout_height="32dp"
+                        android:layout_weight="1"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="A"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:background="@drawable/bg_crew_selector"
+                        android:textColor="@color/on_surface"
+                        android:layout_marginEnd="4dp" />
 
-                <RadioButton
-                    android:id="@+id/rbCrewHC"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_weight="1"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="HC"
-                    android:textStyle="bold"
-                    android:textSize="13sp"
-                    android:background="@drawable/bg_crew_selector"
-                    android:textColor="@color/on_surface" />
-            </RadioGroup>
+                    <RadioButton
+                        android:id="@+id/rbCrewB"
+                        android:layout_width="0dp"
+                        android:layout_height="32dp"
+                        android:layout_weight="1"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="B"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:background="@drawable/bg_crew_selector"
+                        android:textColor="@color/on_surface"
+                        android:layout_marginEnd="4dp" />
+
+                    <RadioButton
+                        android:id="@+id/rbCrewC"
+                        android:layout_width="0dp"
+                        android:layout_height="32dp"
+                        android:layout_weight="1"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="C"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:background="@drawable/bg_crew_selector"
+                        android:textColor="@color/on_surface"
+                        android:layout_marginEnd="4dp" />
+
+                    <RadioButton
+                        android:id="@+id/rbCrewHC"
+                        android:layout_width="0dp"
+                        android:layout_height="32dp"
+                        android:layout_weight="1"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="HC"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:background="@drawable/bg_crew_selector"
+                        android:textColor="@color/on_surface" />
+                </RadioGroup>
+            </LinearLayout>
 
             <!-- Notification Time Section -->
             <TextView
@@ -832,27 +841,7 @@
                     android:paddingVertical="3dp" />
             </RadioGroup>
 
-            <!-- Package ID input field -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilPackage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:hint="Package ID của MDM"
-                app:placeholderText="VD: com.samsung.s1.vselflock"
-                android:visibility="gone"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etPackage"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:textSize="13sp" />
-            </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Custom Notification Content -->
             <TextView
