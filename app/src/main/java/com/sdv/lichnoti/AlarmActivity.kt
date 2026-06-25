@@ -35,6 +35,7 @@ class AlarmActivity : AppCompatActivity() {
             // (không cần kiểm tra overlay permission vì One UI cho phép foreground context)
             val prefs = AppPreferences(this)
             if (prefs.autoLockSamsung) {
+                SamsungLockHelper.resetDebounce()
                 SamsungLockHelper.sendLockIntent(this)
             }
             finish()
@@ -70,6 +71,7 @@ class AlarmActivity : AppCompatActivity() {
         // Tự động khóa sau 2 giây nếu người dùng không tương tác gì
         autoLockRunnable = Runnable {
             if (prefs.autoLockSamsung) {
+                SamsungLockHelper.resetDebounce()
                 SamsungLockHelper.sendLockIntent(this@AlarmActivity)
             }
         }
@@ -127,6 +129,7 @@ class AlarmActivity : AppCompatActivity() {
             // Không cần check canDrawOverlays() vì AlarmActivity đang ở foreground,
             // One UI luôn cho phép startActivity từ foreground context.
             if (prefs.autoLockSamsung) {
+                SamsungLockHelper.resetDebounce()
                 SamsungLockHelper.sendLockIntent(this)
             }
 
