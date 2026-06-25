@@ -3,6 +3,7 @@ package com.sdv.lichnoti
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.provider.Settings
 import android.util.Log
 import androidx.core.content.ContextCompat
 
@@ -27,9 +28,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 NotificationScheduler.scheduleNext(context)
                 // Tự động mở app khác nếu được cấu hình
                 launchTargetApp(context)
-                // Samsung MDM Lock
+                // Samsung MDM Lock (Chỉ gọi từ background nếu có quyền overlay)
                 val prefs = AppPreferences(context)
-                if (prefs.autoLockSamsung) {
+                if (prefs.autoLockSamsung && Settings.canDrawOverlays(context)) {
                     SamsungLockHelper.sendLockIntent(context)
                 }
             }
@@ -53,8 +54,8 @@ class AlarmReceiver : BroadcastReceiver() {
                         // Chỉ hiển thị notification nhắc nhở dán cam thông thường và lên lịch ca tiếp theo
                         NotificationHelper.showNotification(context)
                         NotificationScheduler.scheduleNext(context)
-                        // Samsung MDM Lock
-                        if (prefs.autoLockSamsung) {
+                        // Samsung MDM Lock (Chỉ gọi từ background nếu có quyền overlay)
+                        if (prefs.autoLockSamsung && Settings.canDrawOverlays(context)) {
                             SamsungLockHelper.sendLockIntent(context)
                         }
                     } else {

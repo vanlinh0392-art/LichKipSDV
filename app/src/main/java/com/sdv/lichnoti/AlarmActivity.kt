@@ -17,6 +17,23 @@ class AlarmActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val autoStopAndLock = intent?.getBooleanExtra("EXTRA_AUTO_STOP_AND_LOCK", false) ?: false
+        if (autoStopAndLock) {
+            // Tắt nhạc chuông báo thức
+            val serviceIntent = Intent(this, AlarmService::class.java)
+            stopService(serviceIntent)
+            
+            // Gửi broadcast để NotificationScheduler lập lịch ca tiếp theo
+            sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
+            
+            // Mở VSelfLock để khóa thiết bị ở foreground (chỉ khi chưa được khóa từ background nhờ overlay permission)
+            val prefs = AppPreferences(this)
+            if (prefs.autoLockSamsung && !android.provider.Settings.canDrawOverlays(this)) {
+                SamsungLockHelper.sendLockIntent(this)
+            }
+            finish()
+            return
+        }
 
         // Cấu hình hiển thị trên màn hình khóa và đánh thức thiết bị
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {

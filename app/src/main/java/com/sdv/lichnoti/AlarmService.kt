@@ -7,6 +7,7 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.os.*
+import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 
@@ -54,7 +55,7 @@ class AlarmService : Service() {
         val shiftEmoji = intent?.getStringExtra(EXTRA_SHIFT_EMOJI) ?: "☀️"
 
         val prefs = AppPreferences(this)
-        if (prefs.autoLockSamsung) {
+        if (prefs.autoLockSamsung && Settings.canDrawOverlays(this)) {
             SamsungLockHelper.sendLockIntent(this)
         }
         val crewName = ShiftCalculator.CREWS.find { it.id == crewId }?.name ?: crewId
@@ -72,11 +73,15 @@ class AlarmService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // 2. Tạo action Dừng báo thức trên Notification
-        val stopIntent = Intent(this, AlarmReceiver::class.java).apply {
-            action = AlarmReceiver.ACTION_STOP
+        // 2. Tạo action Dừng báo thức trên Notification bằng PendingIntent.getActivity để mở AlarmActivity và kích hoạt lock ở foreground
+        val stopIntent = Intent(this, AlarmActivity::class.java).apply {
+            putExtra(EXTRA_CREW_ID, crewId)
+            putExtra(EXTRA_SHIFT_LABEL, shiftLabel)
+            putExtra(EXTRA_SHIFT_EMOJI, shiftEmoji)
+            putExtra("EXTRA_AUTO_STOP_AND_LOCK", true)
+            this.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
-        val stopPendingIntent = PendingIntent.getBroadcast(
+        val stopPendingIntent = PendingIntent.getActivity(
             this, 1, stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
