@@ -229,18 +229,17 @@ class MainActivity : AppCompatActivity() {
             tilPackage.visibility = View.GONE
         }
         etPackage.setText(prefs.targetPackage)
-        etPackage.isFocusable = false
+        etPackage.isFocusable = true
+        etPackage.isFocusableInTouchMode = true
         etPackage.isClickable = true
-        etPackage.setOnClickListener {
-            showAppListDialog(etPackage)
-        }
-
-        // Bấm vào lần nữa để thay đổi chọn app khác (khi đã check ON)
-        rbOpenOther.setOnClickListener {
-            if (prefs.openOtherApp) {
-                showAppListDialog(etPackage)
+        etPackage.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                prefs.targetPackage = s?.toString()?.trim() ?: ""
+                onSettingsChanged()
             }
-        }
+        })
 
         rgAction.setOnCheckedChangeListener { _, checkedId ->
             val openOther = checkedId == R.id.rbOpenOther
