@@ -28,11 +28,8 @@ class AlarmReceiver : BroadcastReceiver() {
                 NotificationScheduler.scheduleNext(context)
                 // Tự động mở app khác nếu được cấu hình
                 launchTargetApp(context)
-                // Samsung MDM Lock (Chỉ gọi từ background nếu có quyền overlay)
-                val prefs = AppPreferences(context)
-                if (prefs.autoLockSamsung && Settings.canDrawOverlays(context)) {
-                    SamsungLockHelper.sendLockIntent(context)
-                }
+                // Samsung MDM Lock: KHÔNG gọi ở đây.
+                // AlarmActivity foreground đã gọi sendLockIntent() khi user bấm DỪNG.
             }
             ACTION_SNOOZE -> {
                 Log.d(TAG, "Xử lý hành động NHẮC LẠI báo thức")
@@ -54,9 +51,10 @@ class AlarmReceiver : BroadcastReceiver() {
                         // Chỉ hiển thị notification nhắc nhở dán cam thông thường và lên lịch ca tiếp theo
                         NotificationHelper.showNotification(context)
                         NotificationScheduler.scheduleNext(context)
-                        // Samsung MDM Lock (Chỉ gọi từ background nếu có quyền overlay)
+                        // Samsung MDM Lock — chế độ không có AlarmActivity (snoozeDuration=0)
+                        // Gọi từ background với delay + retry vì One UI chặn background activity start
                         if (prefs.autoLockSamsung && Settings.canDrawOverlays(context)) {
-                            SamsungLockHelper.sendLockIntent(context)
+                            SamsungLockHelper.sendLockIntentWithDelay(context)
                         }
                     } else {
                         serviceIntent.apply {

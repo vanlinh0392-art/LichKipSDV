@@ -54,10 +54,10 @@ class AlarmService : Service() {
         val shiftLabel = intent?.getStringExtra(EXTRA_SHIFT_LABEL) ?: "Ngày"
         val shiftEmoji = intent?.getStringExtra(EXTRA_SHIFT_EMOJI) ?: "☀️"
 
+        // Samsung MDM Lock: KHÔNG gọi ở đây (quá sớm, màn hình chưa bật).
+        // Intent lock sẽ được gửi từ AlarmActivity foreground khi user bấm DỪNG,
+        // hoặc từ AlarmReceiver nếu chế độ snoozeDuration=0 (không có AlarmActivity).
         val prefs = AppPreferences(this)
-        if (prefs.autoLockSamsung && Settings.canDrawOverlays(this)) {
-            SamsungLockHelper.sendLockIntent(this)
-        }
         val crewName = ShiftCalculator.CREWS.find { it.id == crewId }?.name ?: crewId
         val msg = prefs.notificationContent
 

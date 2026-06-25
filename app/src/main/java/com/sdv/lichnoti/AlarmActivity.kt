@@ -26,9 +26,10 @@ class AlarmActivity : AppCompatActivity() {
             // Gửi broadcast để NotificationScheduler lập lịch ca tiếp theo
             sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
             
-            // Mở VSelfLock để khóa thiết bị ở foreground (chỉ khi chưa được khóa từ background nhờ overlay permission)
+            // Mở VSelfLock để khóa thiết bị — gọi từ foreground Activity nên luôn được phép startActivity
+            // (không cần kiểm tra overlay permission vì One UI cho phép foreground context)
             val prefs = AppPreferences(this)
-            if (prefs.autoLockSamsung && !android.provider.Settings.canDrawOverlays(this)) {
+            if (prefs.autoLockSamsung) {
                 SamsungLockHelper.sendLockIntent(this)
             }
             finish()
@@ -107,7 +108,9 @@ class AlarmActivity : AppCompatActivity() {
                 }
             }
 
-            // Samsung MDM Lock
+            // Samsung MDM Lock — gọi từ foreground Activity (user bấm DẪNg)
+            // Không cần check canDrawOverlays() vì AlarmActivity đang ở foreground,
+            // One UI luôn cho phép startActivity từ foreground context.
             if (prefs.autoLockSamsung) {
                 SamsungLockHelper.sendLockIntent(this)
             }

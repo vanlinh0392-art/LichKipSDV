@@ -533,8 +533,22 @@ class MainActivity : AppCompatActivity() {
         switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
         switchAutoLockSamsung.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
+                // Bước 1: Kiểm tra VSelfLock đã cài đặt chưa
+                if (!SamsungLockHelper.isVSelfLockInstalled(this)) {
+                    AlertDialog.Builder(this)
+                        .setTitle("Chưa cài đặt VSelfLock")
+                        .setMessage("Tính năng auto MDM yêu cầu app Samsung VSelfLock đã được cài đặt trên thiết bị. Vui lòng cài đặt app trước khi bật tính năng này.")
+                        .setPositiveButton("Đã hiểu") { dialog, _ ->
+                            dialog.dismiss()
+                            switchAutoLockSamsung.isChecked = false
+                        }
+                        .setCancelable(false)
+                        .show()
+                    return@setOnCheckedChangeListener
+                }
+
+                // Bước 2: Kiểm tra quyền Overlay (cần cho background lock)
                 if (!Settings.canDrawOverlays(this)) {
-                    // Hiển thị dialog giải thích và yêu cầu cấp quyền
                     AlertDialog.Builder(this)
                         .setTitle("Cần cấp quyền hệ thống")
                         .setMessage("Để tự động gửi tín hiệu khóa Samsung VSelf Lock khi báo thức chạy nền hoặc khi màn hình đang tắt, ứng dụng cần quyền 'Xuất hiện trên cùng'. Vui lòng cấp quyền này ở màn hình tiếp theo.")
@@ -558,7 +572,7 @@ class MainActivity : AppCompatActivity() {
                         .show()
                 } else {
                     prefs.autoLockSamsung = true
-                    Toast.makeText(this, "Đã bật Khóa Samsung VSelf Lock", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Đã bật auto MDM", Toast.LENGTH_SHORT).show()
                 }
             } else {
                 prefs.autoLockSamsung = false
