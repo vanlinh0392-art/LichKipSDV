@@ -412,6 +412,31 @@
                             android:layout_height="wrap_content" />
                     </LinearLayout>
 
+                    <!-- Toggle gộp 2 tháng liên tục (chỉ hiện khi tháng 2 bị ẩn) -->
+                    <LinearLayout
+                        android:id="@+id/layoutMergeMonths"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="6dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Gộp 2 tháng liên tục"
+                            android:textSize="13sp"
+                            android:textColor="@color/on_surface_variant" />
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchMergeMonths"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
                     <!-- Mục ủng hộ (Donation Info) -->
                     <LinearLayout
                         android:id="@+id/layoutDonation"

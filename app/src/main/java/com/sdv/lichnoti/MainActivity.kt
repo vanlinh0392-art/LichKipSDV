@@ -126,6 +126,9 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)?.isChecked = prefs.autoLockSamsung
 
+        // Đồng bộ trạng thái switch gộp tháng
+        findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchMergeMonths)?.isChecked = prefs.mergeMonths
+
         // Cập nhật icon Dark Mode ngoài màn hình chính
         findViewById<ImageButton>(R.id.btnToggleDarkMode)?.let { updateDarkModeIcon(it) }
         updateLegendAndSettingsColors()
@@ -474,18 +477,19 @@ class MainActivity : AppCompatActivity() {
 
     // ── Lắng nghe điều khiển lịch ────────────────────────────────────────
     private fun setupCalendarControls() {
-        val layoutMonthBlock2 = findViewById<View>(R.id.layoutMonthBlock2)
         val layoutHideHolidayShift = findViewById<View>(R.id.layoutHideHolidayShift)
         val layoutAutoLockSamsung = findViewById<View>(R.id.layoutAutoLockSamsung)
+        val layoutMergeMonths = findViewById<View>(R.id.layoutMergeMonths)
         val layoutDonation = findViewById<View>(R.id.layoutDonation)
         val switchHideHolidayShift = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchHideHolidayShift)
+        val switchMergeMonths = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchMergeMonths)
         val btnToggle = findViewById<ImageButton>(R.id.btnToggleCalendarView)
 
-        // Phục hồi trạng thái ẩn/hiện tháng thứ 2 (layoutMonthBlock2 luôn ẩn vì đã gộp)
+        // Phục hồi trạng thái ẩn/hiện các option ở vùng cài đặt (layoutMonthBlock2 sẽ do setupCalendar tự quản lý)
         val isVisible = prefs.calendarVisible
-        layoutMonthBlock2.visibility = View.GONE
         layoutHideHolidayShift.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutAutoLockSamsung?.visibility = if (isVisible) View.GONE else View.VISIBLE
+        layoutMergeMonths?.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutDonation?.visibility = if (isVisible) View.GONE else View.VISIBLE
         btnToggle.setImageResource(if (isVisible) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
 
@@ -496,11 +500,19 @@ class MainActivity : AppCompatActivity() {
             setupCalendar()
         }
 
+        // Phục hồi trạng thái switch gộp tháng
+        switchMergeMonths?.isChecked = prefs.mergeMonths
+        switchMergeMonths?.setOnCheckedChangeListener { _, isChecked ->
+            prefs.mergeMonths = isChecked
+            setupCalendar()
+        }
+
         btnToggle.setOnClickListener {
             val nextState = !prefs.calendarVisible
             prefs.calendarVisible = nextState
             layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutAutoLockSamsung?.visibility = if (nextState) View.GONE else View.VISIBLE
+            layoutMergeMonths?.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutDonation?.visibility = if (nextState) View.GONE else View.VISIBLE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
             updateMonthDisplay()
@@ -604,28 +616,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvMonthYear).text = displayStr
     }
 
-    // ── Render lịch (Thành grid 7 cột cho 2 tháng) ───────────────────────────
-    private fun setupCalendar() {
-        val crewId = prefs.selectedCrew
-        val today = LocalDate.now()
-        val density = resources.displayMetrics.density
-        val cellHeight = (36 * density).toInt()
-
-        // Luôn hiển thị Month Navigation
-        findViewById<View>(R.id.layoutMonthNavigation).visibility = View.VISIBLE
-
-        // Ẩn Block 2 và tiêu đề phụ tháng 1
-        findViewById<View>(R.id.layoutMonthBlock2).visibility = View.GONE
-        findViewById<TextView>(R.id.tvMonthYear1).visibility = View.GONE
-
-        // Grid lịch duy nhất
-        val grid = findViewById<GridLayout>(R.id.calendarGrid1)
-        grid.removeAllViews()
-        grid.columnCount = 7
-
-        // Thiết lập header thứ: T2..CN ở dayOfWeekHeaders1
-        val headerLayout = findViewById<LinearLayout>(R.id.dayOfWeekHeaders1)
-        headerLayout.removeAllViews()
+    // ── Helper điền tiêu đề Thứ (T2..CN) ─────────────────────────────
+    private fun populateDayOfWeekHeaders(layout: LinearLayout, density: Float) {
+        layout.removeAllViews()
         val dayHeaders = arrayOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
         for (header in dayHeaders) {
             val tv = TextView(this).apply {
@@ -641,8 +634,35 @@ class MainActivity : AppCompatActivity() {
                 setPadding(0, (4 * density).toInt(), 0, (4 * density).toInt())
                 typeface = Typeface.DEFAULT_BOLD
             }
-            headerLayout.addView(tv)
+            layout.addView(tv)
         }
+    }
+
+    // ── Render lịch (Gộp hoặc Tách 2 tháng) ───────────────────────────
+    private fun setupCalendar() {
+        val crewId = prefs.selectedCrew
+        val today = LocalDate.now()
+        val density = resources.displayMetrics.density
+        val cellHeight = (36 * density).toInt()
+
+        // Luôn hiển thị Month Navigation
+        findViewById<View>(R.id.layoutMonthNavigation).visibility = View.VISIBLE
+
+        val isVisible = prefs.calendarVisible
+        val merge = prefs.mergeMonths
+
+        val layoutMonthBlock2 = findViewById<View>(R.id.layoutMonthBlock2)
+        val tvMonthYear1 = findViewById<TextView>(R.id.tvMonthYear1)
+        val tvMonthYear2 = findViewById<TextView>(R.id.tvMonthYear2)
+        val grid1 = findViewById<GridLayout>(R.id.calendarGrid1)
+        val grid2 = findViewById<GridLayout>(R.id.calendarGrid2)
+
+        grid1.removeAllViews()
+        grid2.removeAllViews()
+
+        // Thiết lập header thứ cho tháng 1
+        val headerLayout1 = findViewById<LinearLayout>(R.id.dayOfWeekHeaders1)
+        populateDayOfWeekHeaders(headerLayout1, density)
 
         val firstDay1 = LocalDate.of(currentYear, currentMonth, 1)
         val daysInMonth1 = firstDay1.lengthOfMonth()
@@ -656,28 +676,72 @@ class MainActivity : AppCompatActivity() {
                     columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f)
                 }
             }
-            grid.addView(emptyView)
+            grid1.addView(emptyView)
         }
 
         // 2. Các ngày tháng 1
         for (day in 1..daysInMonth1) {
             val date = LocalDate.of(currentYear, currentMonth, day)
             val cell = createCellView(crewId, date, today, cellHeight, density, false)
-            grid.addView(cell)
+            grid1.addView(cell)
         }
 
-        // 3. Các ngày tháng 2 (nối tiếp liền mạch nếu bật hiển thị)
-        if (prefs.calendarVisible) {
+        // 3. Xử lý tháng thứ 2 khi mở rộng
+        if (isVisible) {
             val nextMonth = if (currentMonth == 12) 1 else currentMonth + 1
             val nextYear = if (currentMonth == 12) currentYear + 1 else currentYear
             val firstDay2 = LocalDate.of(nextYear, nextMonth, 1)
             val daysInMonth2 = firstDay2.lengthOfMonth()
 
-            for (day in 1..daysInMonth2) {
-                val date = LocalDate.of(nextYear, nextMonth, day)
-                val cell = createCellView(crewId, date, today, cellHeight, density, false)
-                grid.addView(cell)
+            if (merge) {
+                // CHẾ ĐỘ GỘP (Khối 2 ẩn, vẽ chung vào grid 1)
+                layoutMonthBlock2.visibility = View.GONE
+                tvMonthYear1.visibility = View.GONE
+
+                for (day in 1..daysInMonth2) {
+                    val date = LocalDate.of(nextYear, nextMonth, day)
+                    val cell = createCellView(crewId, date, today, cellHeight, density, false)
+                    grid1.addView(cell)
+                }
+            } else {
+                // CHẾ ĐỘ TÁCH (Khối 2 hiện, có dòng Thứ & Title riêng)
+                layoutMonthBlock2.visibility = View.VISIBLE
+                tvMonthYear1.visibility = View.VISIBLE
+
+                val monthNames = arrayOf(
+                    "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+                )
+                tvMonthYear1.text = "${monthNames[currentMonth - 1]} / $currentYear"
+                tvMonthYear2.text = "${monthNames[nextMonth - 1]} / $nextYear"
+
+                // Thiết lập header thứ cho tháng 2
+                val headerLayout2 = findViewById<LinearLayout>(R.id.dayOfWeekHeaders2)
+                populateDayOfWeekHeaders(headerLayout2, density)
+
+                // Ô trống đầu tháng 2
+                val startOffset2 = firstDay2.dayOfWeek.value - 1
+                for (i in 0 until startOffset2) {
+                    val emptyView = View(this).apply {
+                        layoutParams = GridLayout.LayoutParams().apply {
+                            width = 0; height = cellHeight
+                            columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f)
+                        }
+                    }
+                    grid2.addView(emptyView)
+                }
+
+                // Các ngày tháng 2
+                for (day in 1..daysInMonth2) {
+                    val date = LocalDate.of(nextYear, nextMonth, day)
+                    val cell = createCellView(crewId, date, today, cellHeight, density, false)
+                    grid2.addView(cell)
+                }
             }
+        } else {
+            // Chỉ hiển thị 1 tháng
+            layoutMonthBlock2.visibility = View.GONE
+            tvMonthYear1.visibility = View.GONE
         }
 
         // Cập nhật thống kê HO của cả 3 kíp

@@ -26,6 +26,7 @@ class AppPreferences(context: Context) {
         private const val KEY_LAST_UPDATE_CHECK_TIME = "last_update_check_time"
         private const val KEY_HIDE_HOLIDAY_SHIFT = "hide_holiday_shift"
         private const val KEY_AUTO_LOCK_SAMSUNG = "auto_lock_samsung"
+        private const val KEY_MERGE_MONTHS = "merge_months"
     }
 
     private val prefs: SharedPreferences =
@@ -129,4 +130,8 @@ class AppPreferences(context: Context) {
     var autoLockSamsung: Boolean
         get() = prefs.getBoolean(KEY_AUTO_LOCK_SAMSUNG, true)
         set(value) = prefs.edit().putBoolean(KEY_AUTO_LOCK_SAMSUNG, value).apply()
+
+    var mergeMonths: Boolean
+        get() = prefs.getBoolean(KEY_MERGE_MONTHS, true)
+        set(value) = prefs.edit().putBoolean(KEY_MERGE_MONTHS, value).apply()
 }
