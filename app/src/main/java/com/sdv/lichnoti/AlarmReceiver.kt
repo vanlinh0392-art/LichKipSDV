@@ -53,7 +53,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         NotificationScheduler.scheduleNext(context)
                         // Samsung MDM Lock — chế độ không có AlarmActivity (snoozeDuration=0)
                         // Gọi từ background với delay + retry vì One UI chặn background activity start
-                        if (prefs.autoLockSamsung && Settings.canDrawOverlays(context)) {
+                        if (prefs.autoLockSamsung) {
                             SamsungLockHelper.sendLockIntentWithDelay(context)
                         }
                     } else {

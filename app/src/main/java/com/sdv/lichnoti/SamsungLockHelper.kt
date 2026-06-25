@@ -100,11 +100,9 @@ object SamsungLockHelper {
         val appContext = context.applicationContext
 
         Log.d(TAG, """
-            |=== MDM Lock Intent (Background) ===
+            |=== MDM Lock Intent (Background via Full-Screen Intent) ===
             |caller: $callerName
-            |canDrawOverlays: ${Settings.canDrawOverlays(appContext)}
             |isVSelfLockInstalled: ${isVSelfLockInstalled(appContext)}
-            |mode: DELAYED ($BACKGROUND_DELAY_MS ms) + RETRY
             |timestamp: ${System.currentTimeMillis()}
         """.trimMargin())
 
@@ -113,17 +111,46 @@ object SamsungLockHelper {
             return
         }
 
-        // Bước 1: Đánh thức màn hình
+        // Bước 1: Đánh thức màn hình bằng WakeLock
         wakeScreenIfNeeded(appContext)
 
-        // Bước 2: Delay rồi gửi intent
+        // Bước 2: Gửi Full-Screen Intent qua Notification để đánh thức thiết bị và mở VSelfLock ngay lập tức
+        try {
+            val lockIntent = buildLockIntent()
+            val pendingIntent = android.app.PendingIntent.getActivity(
+                appContext,
+                999,
+                lockIntent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Đảm bảo kênh thông báo nhắc nhở đã được tạo
+            NotificationHelper.createNotificationChannel(appContext)
+
+            val notification = androidx.core.app.NotificationCompat.Builder(appContext, "shift_reminder_channel")
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("MDM Auto Lock")
+                .setContentText("Kích hoạt khóa MDM tự động...")
+                .setPriority(androidx.core.app.NotificationCompat.PRIORITY_MAX)
+                .setCategory(androidx.core.app.NotificationCompat.CATEGORY_ALARM)
+                .setFullScreenIntent(pendingIntent, true)
+                .setAutoCancel(true)
+                .build()
+
+            val notificationManager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            notificationManager.notify(1003, notification)
+            Log.d(TAG, "Đã gửi Notification Full-Screen Intent thành công")
+        } catch (e: Exception) {
+            Log.e(TAG, "Lỗi gửi Full-Screen Intent qua Notification: ${e.message}", e)
+        }
+
+        // Bước 3: Đồng thời vẫn chạy fallback startActivity trực tiếp sau delay đề phòng trường hợp khẩn cấp
         handler.postDelayed({
-            val success = trySendLockIntent(appContext, "attempt_1")
+            val success = trySendLockIntent(appContext, "background_attempt_1")
             if (!success) {
-                // Bước 3: Retry lần 2
-                Log.d(TAG, "Lần 1 thất bại — retry sau ${RETRY_DELAY_MS}ms")
+                Log.d(TAG, "Lần 1 direct startActivity thất bại — retry sau ${RETRY_DELAY_MS}ms")
                 handler.postDelayed({
-                    trySendLockIntent(appContext, "attempt_2_retry")
+                    trySendLockIntent(appContext, "background_attempt_2_retry")
                 }, RETRY_DELAY_MS)
             }
         }, BACKGROUND_DELAY_MS)
