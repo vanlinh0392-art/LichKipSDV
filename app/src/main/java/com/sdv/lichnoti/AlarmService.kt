@@ -29,6 +29,12 @@ class AlarmService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private val autoSnoozeRunnable = Runnable {
         Log.d(TAG, "Báo thức tự động nhắc lại sau 2 phút không tương tác")
+        // Gửi lock intent trước khi snooze — AlarmActivity vẫn đang ở foreground,
+        // màn hình đang sáng nên startActivity() sẽ thành công.
+        val prefs = AppPreferences(this)
+        if (prefs.autoLockSamsung) {
+            SamsungLockHelper.sendLockIntent(this)
+        }
         sendBroadcastToReceiver(AlarmReceiver.ACTION_SNOOZE)
         stopSelf()
     }
