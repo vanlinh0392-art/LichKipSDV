@@ -740,14 +740,8 @@ class MainActivity : AppCompatActivity() {
             } else {
                 // CHẾ ĐỘ TÁCH (Khối 2 hiện, có dòng Thứ & Title riêng)
                 layoutMonthBlock2.visibility = View.VISIBLE
-                tvMonthYear1.visibility = View.VISIBLE
-
-                val monthNames = arrayOf(
-                    "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
-                    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
-                )
-                tvMonthYear1.text = "${monthNames[currentMonth - 1]} / $currentYear"
-                tvMonthYear2.text = "${monthNames[nextMonth - 1]} / $nextYear"
+                tvMonthYear1.visibility = View.GONE
+                tvMonthYear2.visibility = View.GONE
 
                 // Thiết lập header thứ cho tháng 2
                 val headerLayout2 = findViewById<LinearLayout>(R.id.dayOfWeekHeaders2)
