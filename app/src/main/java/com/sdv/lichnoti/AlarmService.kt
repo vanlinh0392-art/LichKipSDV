@@ -22,6 +22,9 @@ class AlarmService : Service() {
         const val EXTRA_CREW_ID = "crew_id"
         const val EXTRA_SHIFT_LABEL = "shift_label"
         const val EXTRA_SHIFT_EMOJI = "shift_emoji"
+
+        @Volatile
+        var isRunning = false
     }
 
     private var mediaPlayer: MediaPlayer? = null
@@ -46,6 +49,7 @@ class AlarmService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "AlarmService bắt đầu chạy")
+        isRunning = true
 
         // Đánh thức CPU và bật sáng màn hình ngay khi chuông reo (Hỗ trợ tốt cho Xiaomi/Samsung)
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -176,6 +180,7 @@ class AlarmService : Service() {
 
     override fun onDestroy() {
         Log.d(TAG, "AlarmService dừng và giải phóng tài nguyên")
+        isRunning = false
         handler.removeCallbacks(autoSnoozeRunnable)
         
         mediaPlayer?.stop()
