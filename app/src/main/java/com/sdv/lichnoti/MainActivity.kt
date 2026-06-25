@@ -488,7 +488,7 @@ class MainActivity : AppCompatActivity() {
         val isVisible = prefs.calendarVisible
         layoutHideHolidayShift.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutMergeMonths?.visibility = if (isVisible) View.GONE else View.VISIBLE
-        layoutDonation?.visibility = if (isVisible) View.GONE else View.VISIBLE
+        layoutDonation?.visibility = View.GONE
         btnToggle.setImageResource(if (isVisible) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
 
         // Phục hồi trạng thái switch ẩn ca Lễ
@@ -510,7 +510,7 @@ class MainActivity : AppCompatActivity() {
             prefs.calendarVisible = nextState
             layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutMergeMonths?.visibility = if (nextState) View.GONE else View.VISIBLE
-            layoutDonation?.visibility = if (nextState) View.GONE else View.VISIBLE
+            layoutDonation?.visibility = View.GONE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
             updateMonthDisplay()
             setupCalendar()

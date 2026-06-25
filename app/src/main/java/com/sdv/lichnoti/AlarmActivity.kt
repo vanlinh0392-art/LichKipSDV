@@ -156,11 +156,7 @@ class AlarmActivity : AppCompatActivity() {
         // Nếu AlarmService vẫn đang chạy (người dùng chưa bấm nút), tức là báo thức đang reo.
         // Nếu màn hình vẫn đang sáng và không có cuộc gọi điện thoại, tự động đưa AlarmActivity trở lại foreground.
         if (AlarmService.isRunning) {
-            // Nếu vừa mới gửi intent khóa trong vòng 4 giây, không kéo AlarmActivity lên foreground nữa để nhường chỗ cho VSelfLock
-            if (SamsungLockHelper.isLockJustSent()) {
-                Log.d("AlarmActivity", "Vừa gửi intent khóa VSelfLock -> Nhường quyền hiển thị cho VSelfLock")
-                return
-            }
+
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             val isInteractive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
                 pm.isInteractive
