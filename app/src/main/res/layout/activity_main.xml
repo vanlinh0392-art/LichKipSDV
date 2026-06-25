@@ -497,32 +497,35 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Toggle gửi ON MDM (auto MDM) - Luôn hiển thị ở dưới cùng -->
-                    <LinearLayout
-                        android:id="@+id/layoutAutoLockSamsung"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="6dp"
-                        android:layout_marginTop="8dp"
-                        android:visibility="visible">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="auto MDM"
-                            android:textSize="13sp"
-                            android:textColor="@color/on_surface_variant" />
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchAutoLockSamsung"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
                 </com.sdv.lichnoti.SwipeLinearLayout>
+
+                <!-- Toggle gửi ON MDM (auto MDM) - Cố định bên ngoài, căn giữa và thu hẹp khoảng cách -->
+                <LinearLayout
+                    android:id="@+id/layoutAutoLockSamsung"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="6dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:visibility="visible">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="auto MDM"
+                        android:textSize="13sp"
+                        android:textColor="@color/on_surface_variant"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchAutoLockSamsung"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
 
 
 
