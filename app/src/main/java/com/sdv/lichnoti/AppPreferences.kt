@@ -132,6 +132,6 @@ class AppPreferences(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_AUTO_LOCK_SAMSUNG, value).apply()
 
     var mergeMonths: Boolean
-        get() = prefs.getBoolean(KEY_MERGE_MONTHS, true)
+        get() = prefs.getBoolean(KEY_MERGE_MONTHS, false)
         set(value) = prefs.edit().putBoolean(KEY_MERGE_MONTHS, value).apply()
 }
