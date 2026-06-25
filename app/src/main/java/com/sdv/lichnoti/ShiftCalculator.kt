@@ -57,12 +57,23 @@ object ShiftCalculator {
         if (date.dayOfWeek.value != 6) return false
         val y = date.year
         val m = date.monthValue
-        val nthSaturday = (date.dayOfMonth - 1) / 7 + 1
+        val d = date.dayOfMonth
 
         return when {
             y > 2026 -> false
-            y == 2026 && m >= 7 -> nthSaturday == 1
-            else -> nthSaturday == 1 || nthSaturday == 3
+            y == 2026 && m >= 7 -> {
+                // Các ngày HO cụ thể của tháng 7-12 năm 2026
+                (m == 7 && d == 4) ||
+                (m == 8 && (d == 15 || d == 29)) ||
+                (m == 9 && d == 12) ||
+                (m == 10 && d == 24) ||
+                (m == 11 && d == 7) ||
+                (m == 12 && d == 5)
+            }
+            else -> {
+                val nthSaturday = (d - 1) / 7 + 1
+                nthSaturday == 1 || nthSaturday == 3
+            }
         }
     }
 

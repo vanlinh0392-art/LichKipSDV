@@ -532,25 +532,28 @@ class MainActivity : AppCompatActivity() {
         // Setup switch Khóa Samsung VSelf Lock
         val switchAutoLockSamsung = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)
         switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
-        switchAutoLockSamsung.setOnCheckedChangeListener { _, isChecked ->
+        var autoLockListener: android.widget.CompoundButton.OnCheckedChangeListener? = null
+        autoLockListener = android.widget.CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 // Bước 1: Kiểm tra VSelfLock đã cài đặt chưa
-                if (!SamsungLockHelper.isVSelfLockInstalled(this)) {
-                    AlertDialog.Builder(this)
+                if (!SamsungLockHelper.isVSelfLockInstalled(this@MainActivity)) {
+                    AlertDialog.Builder(this@MainActivity)
                         .setTitle("Chưa cài đặt VSelfLock")
                         .setMessage("Tính năng auto MDM yêu cầu app Samsung VSelfLock đã được cài đặt trên thiết bị. Vui lòng cài đặt app trước khi bật tính năng này.")
                         .setPositiveButton("Đã hiểu") { dialog, _ ->
                             dialog.dismiss()
-                            switchAutoLockSamsung.isChecked = false
+                            buttonView.setOnCheckedChangeListener(null)
+                            buttonView.isChecked = false
+                            buttonView.setOnCheckedChangeListener(autoLockListener)
                         }
                         .setCancelable(false)
                         .show()
-                    return@setOnCheckedChangeListener
+                    return@OnCheckedChangeListener
                 }
 
                 // Bước 2: Kiểm tra quyền Overlay (cần cho background lock)
-                if (!Settings.canDrawOverlays(this)) {
-                    AlertDialog.Builder(this)
+                if (!Settings.canDrawOverlays(this@MainActivity)) {
+                    AlertDialog.Builder(this@MainActivity)
                         .setTitle("Cần cấp quyền hệ thống")
                         .setMessage("Để tự động gửi tín hiệu khóa Samsung VSelf Lock khi báo thức chạy nền hoặc khi màn hình đang tắt, ứng dụng cần quyền 'Xuất hiện trên cùng'. Vui lòng cấp quyền này ở màn hình tiếp theo.")
                         .setPositiveButton("Cấp quyền") { dialog, _ ->
@@ -562,23 +565,43 @@ class MainActivity : AppCompatActivity() {
                                 )
                                 startActivity(intent)
                             } catch (e: Exception) {
-                                Toast.makeText(this, "Không thể mở màn hình cài đặt quyền", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this@MainActivity, "Không thể mở màn hình cài đặt quyền", Toast.LENGTH_LONG).show()
                             }
                         }
                         .setNegativeButton("Để sau") { dialog, _ ->
                             dialog.dismiss()
-                            switchAutoLockSamsung.isChecked = false
+                            buttonView.setOnCheckedChangeListener(null)
+                            buttonView.isChecked = false
+                            buttonView.setOnCheckedChangeListener(autoLockListener)
                         }
                         .setCancelable(false)
                         .show()
                 } else {
                     prefs.autoLockSamsung = true
-                    Toast.makeText(this, "Đã bật auto MDM", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Đã bật auto MDM", Toast.LENGTH_SHORT).show()
                 }
             } else {
-                prefs.autoLockSamsung = false
+                if (prefs.autoLockSamsung) {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle("Tắt tự động khóa MDM?")
+                        .setMessage("Bạn có chắc chắn muốn tắt tính năng tự động gửi tín hiệu khóa máy MDM sau khi báo thức reo?")
+                        .setPositiveButton("Tắt") { dialog, _ ->
+                            prefs.autoLockSamsung = false
+                            dialog.dismiss()
+                            Toast.makeText(this@MainActivity, "Đã tắt auto MDM", Toast.LENGTH_SHORT).show()
+                        }
+                        .setNegativeButton("Hủy") { dialog, _ ->
+                            dialog.dismiss()
+                            buttonView.setOnCheckedChangeListener(null)
+                            buttonView.isChecked = true
+                            buttonView.setOnCheckedChangeListener(autoLockListener)
+                        }
+                        .setCancelable(false)
+                        .show()
+                }
             }
         }
+        switchAutoLockSamsung.setOnCheckedChangeListener(autoLockListener)
     }
 
     // ── Điều hướng tháng trước / tháng sau ──────────────────────────────
