@@ -169,9 +169,16 @@ object SamsungLockHelper {
     /**
      * Tạo Intent tối ưu cho Samsung One UI.
      *
-     * Lưu ý:
-     * - KHÔNG dùng action "lock" vì không nằm trong intent-filter của VSelfLock.
-     *   Chỉ cần mở app VSelfLock là đủ trigger lock trên thiết bị đã đăng ký MDM.
+     * Phân tích res/xml/shortcuts.xml của VSelfLock xác nhận:
+     * - App Shortcut "lock" (기능 잠금): action="lock", enabled=true
+     * - App Shortcut "unlock" (잠금 해제): action="unlock", enabled=false
+     * - App Shortcut "uninstall": action="uninstall", enabled=true
+     *
+     * Action "lock" KHÔNG nằm trong intent-filter của Manifest nhưng ĐƯỢC
+     * VSelfLock xử lý qua getIntent().getAction() trong MainActivity.
+     * Đây chính là cách VSelfLock phân biệt giữa mở app bình thường và yêu cầu khóa.
+     *
+     * Flags:
      * - FLAG_ACTIVITY_CLEAR_TOP + SINGLE_TOP: tránh tạo instance mới nếu đã mở.
      * - FLAG_ACTIVITY_NO_ANIMATION: tránh flash animation gây khó chịu.
      * - FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS: không hiện trong Recent apps.
@@ -179,6 +186,7 @@ object SamsungLockHelper {
     private fun buildLockIntent(): Intent {
         return Intent().apply {
             component = ComponentName(VSELFLOCK_PACKAGE, VSELFLOCK_ACTIVITY)
+            action = "lock"
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
