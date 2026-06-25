@@ -820,12 +820,14 @@
                 android:id="@+id/rgAction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <RadioButton
                     android:id="@+id/rbOpenSelf"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="Mở ứng dụng này"
                     android:textSize="13sp"
                     android:textColor="@color/on_surface"
@@ -833,8 +835,9 @@
 
                 <RadioButton
                     android:id="@+id/rbOpenOther"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="Mở MDM"
                     android:textSize="13sp"
                     android:textColor="@color/on_surface"
