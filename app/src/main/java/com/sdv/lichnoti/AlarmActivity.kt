@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 class AlarmActivity : AppCompatActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
+    private var autoLockRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +70,16 @@ class AlarmActivity : AppCompatActivity() {
 
         val prefs = AppPreferences(this)
 
+        // Tự động gửi Intent khóa sau 1.5 giây để dự phòng (khi màn hình vừa sáng lên)
+        autoLockRunnable = Runnable {
+            if (prefs.autoLockSamsung) {
+                Log.d("AlarmActivity", "Tự động gửi lock intent dự phòng sau 1.5 giây")
+                SamsungLockHelper.resetDebounce()
+                SamsungLockHelper.sendLockIntent(this@AlarmActivity)
+            }
+        }
+        handler.postDelayed(autoLockRunnable!!, 1500)
+
         val crewId = intent.getStringExtra(AlarmService.EXTRA_CREW_ID) ?: "A"
         val shiftLabel = intent.getStringExtra(AlarmService.EXTRA_SHIFT_LABEL) ?: "Ngày"
         val shiftEmoji = intent.getStringExtra(AlarmService.EXTRA_SHIFT_EMOJI) ?: "☀️"
@@ -100,6 +111,7 @@ class AlarmActivity : AppCompatActivity() {
 
         // Xử lý sự kiện click
         findViewById<Button>(R.id.btnStopAlarm).setOnClickListener {
+            autoLockRunnable?.let { handler.removeCallbacks(it) }
             sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
             
             // Tự động mở app khác trực tiếp từ Activity đang ở foreground để tránh Android block background activity start
@@ -128,12 +140,14 @@ class AlarmActivity : AppCompatActivity() {
         }
 
         btnSnooze.setOnClickListener {
+            autoLockRunnable?.let { handler.removeCallbacks(it) }
             sendBroadcastToReceiver(AlarmReceiver.ACTION_SNOOZE)
             finish()
         }
     }
 
     override fun onDestroy() {
+        autoLockRunnable?.let { handler.removeCallbacks(it) }
         super.onDestroy()
     }
 
@@ -142,6 +156,11 @@ class AlarmActivity : AppCompatActivity() {
         // Nếu AlarmService vẫn đang chạy (người dùng chưa bấm nút), tức là báo thức đang reo.
         // Nếu màn hình vẫn đang sáng và không có cuộc gọi điện thoại, tự động đưa AlarmActivity trở lại foreground.
         if (AlarmService.isRunning) {
+            // Nếu vừa mới gửi intent khóa trong vòng 4 giây, không kéo AlarmActivity lên foreground nữa để nhường chỗ cho VSelfLock
+            if (SamsungLockHelper.isLockJustSent()) {
+                Log.d("AlarmActivity", "Vừa gửi intent khóa VSelfLock -> Nhường quyền hiển thị cho VSelfLock")
+                return
+            }
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             val isInteractive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
                 pm.isInteractive

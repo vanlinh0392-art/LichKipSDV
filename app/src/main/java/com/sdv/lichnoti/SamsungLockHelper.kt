@@ -149,6 +149,13 @@ object SamsungLockHelper {
         lastLockSentMs = 0L
     }
 
+    /**
+     * Kiểm tra xem lệnh khóa có vừa mới được gửi đi trong vòng 4 giây qua hay không.
+     */
+    fun isLockJustSent(): Boolean {
+        return System.currentTimeMillis() - lastLockSentMs < 4000L
+    }
+
     fun isVSelfLockInstalled(context: Context): Boolean {
         return try {
             context.packageManager.getPackageInfo(VSELFLOCK_PACKAGE, 0)
