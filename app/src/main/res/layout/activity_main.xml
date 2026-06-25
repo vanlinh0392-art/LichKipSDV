@@ -1284,6 +1284,17 @@
                 android:text="Giới thiệu ứng dụng"
                 android:textColor="@color/on_surface_variant"
                 android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
+
+            <!-- User Guide Button (Hướng dẫn) -->
+            <Button
+                android:id="@+id/btnUserGuide"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Hướng dẫn &amp; Cấp quyền"
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12sp"
                 android:layout_marginBottom="12dp" />
 
         </LinearLayout>

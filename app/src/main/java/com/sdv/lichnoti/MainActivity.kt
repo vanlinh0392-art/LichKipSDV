@@ -325,6 +325,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             showAboutDialog()
         }
+        findViewById<Button>(R.id.btnUserGuide).setOnClickListener {
+            showUserGuideDialog()
+        }
     }
 
     private fun setupDarkModeToggle() {
@@ -1267,6 +1270,26 @@ class MainActivity : AppCompatActivity() {
                 checkUpdate(isManual = true)
             }
             .setNegativeButton("Đóng", null)
+            .show()
+    }
+
+    private fun showUserGuideDialog() {
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Hướng dẫn & Cấp quyền")
+            .setMessage(
+                "Để ứng dụng hoạt động chính xác, reo chuông đúng giờ và tự động gửi tín hiệu khóa máy, bạn vui lòng hoàn thành các cài đặt sau:\n\n" +
+                "1. Quyền Thông báo:\n" +
+                "   - Cho phép hiển thị ca trực và tin nhắn nhắc nhở.\n\n" +
+                "2. Quyền Báo thức & Nhắc nhở:\n" +
+                "   - Vào Cài đặt hệ thống > Ứng dụng > Lịch SDV > Báo thức & Nhắc nhở -> Chọn \"Cho phép\".\n\n" +
+                "3. Tắt tối ưu hóa pin:\n" +
+                "   - Vào Cài đặt hệ thống > Ứng dụng > Lịch SDV > Pin -> Chọn \"Không hạn chế\" (Unrestricted) để tránh app bị tắt ngầm.\n\n" +
+                "4. Quyền xuất hiện trên cùng (Draw over other apps):\n" +
+                "   - Cho phép hiển thị màn hình báo thức đè lên màn hình khóa khi đang tắt màn hình.\n\n" +
+                "5. Tính năng Tự động khóa MDM:\n" +
+                "   - Khi bật, app sẽ tự động gửi tín hiệu khóa máy sau khi báo thức reo 1.5 giây hoặc khi bạn bấm dừng."
+            )
+            .setPositiveButton("Đóng", null)
             .show()
     }
 
