@@ -105,6 +105,9 @@ class MainActivity : AppCompatActivity() {
         // Tạo notification channel và xin quyền
         NotificationHelper.createNotificationChannel(this)
         requestNotificationPermission()
+
+        // Gửi tracking data im lặng (1 lần/ngày)
+        AnalyticsManager.trackAppLaunch(this)
     }
 
     override fun onResume() {
