@@ -507,7 +507,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Setup switch Khóa Samsung VSelf Lock
+        // Setup switch auto MDM
         val switchAutoLockSamsung = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)
         switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
         var autoLockListener: android.widget.CompoundButton.OnCheckedChangeListener? = null
@@ -533,7 +533,7 @@ class MainActivity : AppCompatActivity() {
                 if (!Settings.canDrawOverlays(this@MainActivity)) {
                     AlertDialog.Builder(this@MainActivity)
                         .setTitle("Cần cấp quyền hệ thống")
-                        .setMessage("Để tự động gửi tín hiệu khóa Samsung VSelf Lock khi báo thức chạy nền hoặc khi màn hình đang tắt, ứng dụng cần quyền 'Xuất hiện trên cùng'. Vui lòng cấp quyền này ở màn hình tiếp theo.")
+                        .setMessage("Để tự động gửi tín hiệu on mdm khi báo thức chạy nền hoặc khi màn hình đang tắt, ứng dụng cần quyền 'Xuất hiện trên cùng'. Vui lòng cấp quyền này ở màn hình tiếp theo.")
                         .setPositiveButton("Cấp quyền") { dialog, _ ->
                             dialog.dismiss()
                             try {
@@ -561,8 +561,8 @@ class MainActivity : AppCompatActivity() {
             } else {
                 if (prefs.autoLockSamsung) {
                     AlertDialog.Builder(this@MainActivity)
-                        .setTitle("Tắt tự động khóa MDM?")
-                        .setMessage("Bạn có chắc chắn muốn tắt tính năng tự động gửi tín hiệu khóa máy MDM sau khi báo thức reo?")
+                        .setTitle("Tắt tự động on mdm?")
+                        .setMessage("Bạn có chắc chắn muốn tắt tính năng tự động gửi tín hiệu on mdm sau khi báo thức reo?")
                         .setPositiveButton("Tắt") { dialog, _ ->
                             prefs.autoLockSamsung = false
                             dialog.dismiss()
@@ -1253,7 +1253,7 @@ class MainActivity : AppCompatActivity() {
         android.app.AlertDialog.Builder(this)
             .setTitle("Hướng dẫn & Cấp quyền")
             .setMessage(
-                "Để ứng dụng hoạt động chính xác, reo chuông đúng giờ và tự động gửi tín hiệu khóa máy, bạn vui lòng hoàn thành các cài đặt sau:\n\n" +
+                "Để ứng dụng hoạt động chính xác, reo chuông đúng giờ và tự động gửi tín hiệu on mdm, bạn vui lòng hoàn thành các cài đặt sau:\n\n" +
                 "1. Quyền Thông báo:\n" +
                 "   - Cho phép hiển thị ca trực và tin nhắn nhắc nhở.\n\n" +
                 "2. Quyền Báo thức & Nhắc nhở:\n" +
@@ -1262,8 +1262,8 @@ class MainActivity : AppCompatActivity() {
                 "   - Vào Cài đặt hệ thống > Ứng dụng > Lịch SDV > Pin -> Chọn \"Không hạn chế\" (Unrestricted) để tránh app bị tắt ngầm.\n\n" +
                 "4. Quyền xuất hiện trên cùng (Draw over other apps):\n" +
                 "   - Cho phép hiển thị màn hình báo thức đè lên màn hình khóa khi đang tắt màn hình.\n\n" +
-                "5. Tính năng Tự động khóa MDM:\n" +
-                "   - Khi bật, app sẽ tự động gửi tín hiệu khóa máy sau khi báo thức reo 1.5 giây hoặc khi bạn bấm dừng."
+                "5. Tính năng Tự động on mdm:\n" +
+                "   - Khi bật, app sẽ tự động gửi tín hiệu on mdm sau khi báo thức reo 1.5 giây hoặc khi bạn bấm dừng."
             )
             .setPositiveButton("Đóng", null)
             .show()

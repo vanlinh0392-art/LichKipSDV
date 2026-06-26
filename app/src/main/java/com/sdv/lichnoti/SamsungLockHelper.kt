@@ -125,6 +125,11 @@ object SamsungLockHelper {
         val layer1Success = sendFullScreenNotification(appContext)
         Log.d(TAG, "[LAYER 1] Full-Screen Notification: ${if (layer1Success) "✅ Gửi thành công" else "❌ Thất bại"}")
 
+        // Tự động hủy thông báo sau 3.5 giây đề phòng trường hợp MDM đã được mở thành công ở Layer 1
+        handler.postDelayed({
+            cancelMdmNotification(appContext)
+        }, 3500L)
+
         // === LAYER 2: WakeLock + startActivity trực tiếp (sau 1.5s) ===
         // Chạy song song như lưới bảo vệ — One UI có thể bỏ qua Full-Screen Notification
         // trong chế độ tiết kiệm pin hoặc khi thông báo bị im lặng
@@ -132,11 +137,16 @@ object SamsungLockHelper {
         handler.postDelayed({
             Log.d(TAG, "[LAYER 2] Thử startActivity trực tiếp sau ${LAYER2_DELAY_MS}ms")
             val success = tryStartActivity(appContext, "layer2")
-            if (!success) {
+            if (success) {
+                cancelMdmNotification(appContext)
+            } else {
                 // === LAYER 3: Retry lần cuối sau 4s ===
                 handler.postDelayed({
                     Log.d(TAG, "[LAYER 3] Retry startActivity lần cuối sau ${LAYER3_DELAY_MS}ms")
-                    tryStartActivity(appContext, "layer3_retry")
+                    val success3 = tryStartActivity(appContext, "layer3_retry")
+                    if (success3) {
+                        cancelMdmNotification(appContext)
+                    }
                 }, LAYER3_DELAY_MS - LAYER2_DELAY_MS)
             }
         }, LAYER2_DELAY_MS)
@@ -150,7 +160,7 @@ object SamsungLockHelper {
     }
 
     /**
-     * Kiểm tra xem lệnh khóa có vừa mới được gửi đi trong vòng 4 giây qua hay không.
+     * Kiểm tra xem lệnh kích hoạt MDM có vừa mới được gửi đi trong vòng 4 giây qua hay không.
      */
     fun isLockJustSent(): Boolean {
         return System.currentTimeMillis() - lastLockSentMs < 4000L
@@ -170,10 +180,8 @@ object SamsungLockHelper {
     // =========================================================
 
     /**
-     * Layer 1: Gửi Full-Screen Notification Intent.
+     * Layer 1: Gửi Full-Screen Intent qua Notification.
      * Kênh riêng biệt với IMPORTANCE_HIGH + lockscreenVisibility PUBLIC.
-     * Full-Screen Intent là cơ chế duy nhất Android cho phép kích hoạt Activity
-     * từ background khi màn hình đang tắt mà không cần quyền SYSTEM_ALERT_WINDOW.
      */
     private fun sendFullScreenNotification(context: Context): Boolean {
         return try {
@@ -189,8 +197,8 @@ object SamsungLockHelper {
 
             val notification = NotificationCompat.Builder(context, MDM_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("Kích hoạt khóa MDM")
-                .setContentText("Đang gửi lệnh khóa thiết bị...")
+                .setContentTitle("Kích hoạt on mdm")
+                .setContentText("Đang gửi tín hiệu on mdm...")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -209,6 +217,19 @@ object SamsungLockHelper {
     }
 
     /**
+     * Hủy thông báo kích hoạt MDM khỏi thanh trạng thái.
+     */
+    fun cancelMdmNotification(context: Context) {
+        try {
+            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.cancel(MDM_NOTIFICATION_ID)
+            Log.d(TAG, "Đã xóa thông báo MDM Lock")
+        } catch (e: Exception) {
+            Log.e(TAG, "Không thể xóa thông báo: ${e.message}")
+        }
+    }
+
+    /**
      * Tạo kênh riêng cho MDM Lock nếu chưa có.
      * Dùng IMPORTANCE_HIGH (không phải DEFAULT) để One UI ưu tiên hiển thị.
      */
@@ -217,7 +238,7 @@ object SamsungLockHelper {
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (nm.getNotificationChannel(MDM_CHANNEL_ID) == null) {
                 val channel = NotificationChannel(MDM_CHANNEL_ID, MDM_CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH).apply {
-                    description = "Kênh kích hoạt khóa MDM tự động"
+                    description = "Kênh kích hoạt on mdm tự động"
                     setSound(null, null)           // Không phát âm thanh (tránh làm phiền)
                     enableVibration(false)          // Không rung
                     lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
