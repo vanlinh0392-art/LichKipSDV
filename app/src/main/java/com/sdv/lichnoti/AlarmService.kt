@@ -31,14 +31,20 @@ class AlarmService : Service() {
     private var vibrator: Vibrator? = null
     private val handler = Handler(Looper.getMainLooper())
     private val autoSnoozeRunnable = Runnable {
-        Log.d(TAG, "Báo thức tự động nhắc lại sau 2 phút không tương tác")
-        // Gửi lock intent trước khi snooze — AlarmActivity vẫn đang ở foreground,
-        // màn hình đang sáng nên startActivity() sẽ thành công.
         val prefs = AppPreferences(this)
-        if (prefs.autoLockSamsung) {
-            SamsungLockHelper.sendLockIntent(this)
+        if (prefs.snoozeDuration == -1) {
+            Log.d(TAG, "Báo thức reo quá 2 phút không tương tác -> Tự động dừng hẳn (chế độ Không nhắc lại)")
+            if (prefs.autoLockSamsung) {
+                SamsungLockHelper.sendLockIntent(this)
+            }
+            sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
+        } else {
+            Log.d(TAG, "Báo thức tự động nhắc lại sau 2 phút không tương tác")
+            if (prefs.autoLockSamsung) {
+                SamsungLockHelper.sendLockIntent(this)
+            }
+            sendBroadcastToReceiver(AlarmReceiver.ACTION_SNOOZE)
         }
-        sendBroadcastToReceiver(AlarmReceiver.ACTION_SNOOZE)
         stopSelf()
     }
 
@@ -106,7 +112,7 @@ class AlarmService : Service() {
         )
 
         // 4. Tạo Notification Full Screen
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("⏰ Nhắc nhở $crewName - Ca $shiftLabel $shiftEmoji")
             .setContentText(msg)
@@ -117,10 +123,13 @@ class AlarmService : Service() {
             .setFullScreenIntent(fullScreenPendingIntent, true)
             .setContentIntent(fullScreenPendingIntent)
             .addAction(R.drawable.ic_notification, "DỪNG", stopPendingIntent)
-            .addAction(R.drawable.ic_notification, "NHẮC LẠI", snoozePendingIntent)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .build()
 
+        if (prefs.snoozeDuration != -1) {
+            builder.addAction(R.drawable.ic_notification, "NHẮC LẠI", snoozePendingIntent)
+        }
+
+        val notification = builder.build()
         startForeground(NOTIFICATION_ID, notification)
 
         // 5. Phát nhạc chuông báo thức

@@ -15,6 +15,7 @@ class BootReceiver : BroadcastReceiver() {
 
             // Reschedule alarm
             NotificationScheduler.scheduleNext(context)
+            NotificationScheduler.scheduleLunarAlarm(context)
         }
     }
 }

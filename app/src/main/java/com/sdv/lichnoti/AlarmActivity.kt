@@ -92,7 +92,12 @@ class AlarmActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvAlarmMessage).text = prefs.notificationContent
 
         val btnSnooze = findViewById<Button>(R.id.btnSnoozeAlarm)
-        btnSnooze.text = "NHẮC LẠI SAU ${prefs.snoozeDuration} PHÚT"
+        if (prefs.snoozeDuration == -1) {
+            btnSnooze.visibility = View.GONE
+        } else {
+            btnSnooze.visibility = View.VISIBLE
+            btnSnooze.text = "NHẮC LẠI SAU ${prefs.snoozeDuration} PHÚT"
+        }
 
         // Đổi màu nền gradient động theo màu ca trực
         val layoutRoot = findViewById<View>(R.id.layoutAlarmRoot)

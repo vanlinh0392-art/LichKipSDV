@@ -247,21 +247,59 @@ class MainActivity : AppCompatActivity() {
 
         // 4b-2. Thời gian nhắc lại (Snooze)
         val tvSnoozeDuration = findViewById<TextView>(R.id.tvSnoozeDuration)
-        tvSnoozeDuration.text = if (prefs.snoozeDuration == 0) "Không" else "${prefs.snoozeDuration} phút"
+        tvSnoozeDuration.text = when (prefs.snoozeDuration) {
+            -1 -> "Không"
+            0 -> "Không báo thức"
+            else -> "${prefs.snoozeDuration} phút"
+        }
         findViewById<View>(R.id.layoutSnooze).setOnClickListener {
-            val options = arrayOf("Không", "5 phút", "10 phút", "15 phút", "20 phút", "30 phút")
-            val values = arrayOf(0, 5, 10, 15, 20, 30)
+            val options = arrayOf("Không", "Không báo thức", "5 phút", "10 phút", "15 phút", "20 phút", "30 phút")
+            val values = arrayOf(-1, 0, 5, 10, 15, 20, 30)
             
             var currentIdx = values.indexOf(prefs.snoozeDuration)
-            if (currentIdx == -1) currentIdx = 2 // Mặc định là 10 phút (index 2)
+            if (currentIdx == -1) currentIdx = 3 // Mặc định là 10 phút (index 3)
 
             android.app.AlertDialog.Builder(this)
                 .setTitle("Chọn thời gian nhắc lại")
                 .setSingleChoiceItems(options, currentIdx) { dialog, which ->
                     val selectedVal = values[which]
                     prefs.snoozeDuration = selectedVal
-                    tvSnoozeDuration.text = if (selectedVal == 0) "Không" else "$selectedVal phút"
+                    tvSnoozeDuration.text = when (selectedVal) {
+                        -1 -> "Không"
+                        0 -> "Không báo thức"
+                        else -> "$selectedVal phút"
+                    }
                     onSettingsChanged()
+                    dialog.dismiss()
+                }
+                .show()
+        }
+
+        // 4b-3. Nhắc mùng 1 và 15 âm
+        val tvLunarReminder = findViewById<TextView>(R.id.tvLunarReminder)
+        tvLunarReminder.text = when (prefs.lunarReminderMode) {
+            0 -> "Không thông báo"
+            1 -> "Báo cùng ngày"
+            2 -> "Trước 1 ngày"
+            else -> "Không thông báo"
+        }
+        findViewById<View>(R.id.layoutLunarReminder).setOnClickListener {
+            val options = arrayOf("Không thông báo", "Báo cùng ngày", "Trước 1 ngày")
+            val values = arrayOf(0, 1, 2)
+
+            var currentIdx = values.indexOf(prefs.lunarReminderMode)
+            if (currentIdx == -1) currentIdx = 0
+
+            android.app.AlertDialog.Builder(this)
+                .setTitle("Nhắc mùng 1 và 15 âm")
+                .setSingleChoiceItems(options, currentIdx) { dialog, which ->
+                    val selectedVal = values[which]
+                    prefs.lunarReminderMode = selectedVal
+                    tvLunarReminder.text = options[which]
+                    
+                    // Lập lịch lại báo thức âm lịch
+                    NotificationScheduler.scheduleLunarAlarm(this@MainActivity)
+                    
                     dialog.dismiss()
                 }
                 .show()

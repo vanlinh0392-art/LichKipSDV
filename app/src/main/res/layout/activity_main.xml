@@ -945,6 +945,46 @@
                 android:background="@color/divider"
                 android:layout_marginBottom="12dp" />
 
+            <!-- Lunar Calendar Reminder Section -->
+            <LinearLayout
+                android:id="@+id/layoutLunarReminder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="6dp"
+                android:paddingHorizontal="6dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_clickable_setting"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📅 Nhắc mùng 1 và 15 âm"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface" />
+
+                <TextView
+                    android:id="@+id/tvLunarReminder"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Không thông báo"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary"
+                    android:padding="2dp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider"
+                android:layout_marginBottom="12dp" />
+
             <!-- Color Selection Section -->
             <TextView
                 android:layout_width="wrap_content"

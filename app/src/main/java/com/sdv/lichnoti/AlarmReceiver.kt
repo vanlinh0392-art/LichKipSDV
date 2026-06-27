@@ -3,6 +3,7 @@ package com.sdv.lichnoti
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.app.PendingIntent
 import android.provider.Settings
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -13,6 +14,7 @@ class AlarmReceiver : BroadcastReceiver() {
         const val TAG = "AlarmReceiver"
         const val ACTION_STOP = "com.sdv.lichnoti.ACTION_STOP"
         const val ACTION_SNOOZE = "com.sdv.lichnoti.ACTION_SNOOZE"
+        const val ACTION_LUNAR_ALARM = "com.sdv.lichnoti.ACTION_LUNAR_ALARM"
     }
 
     override fun onReceive(context: Context, intent: Intent?) {
@@ -36,6 +38,11 @@ class AlarmReceiver : BroadcastReceiver() {
                 context.stopService(serviceIntent)
                 val prefs = AppPreferences(context)
                 NotificationScheduler.scheduleSnooze(context, prefs.snoozeDuration)
+            }
+            ACTION_LUNAR_ALARM -> {
+                Log.d(TAG, "Xử lý báo thức âm lịch mùng 1 & 15")
+                showLunarNotification(context)
+                NotificationScheduler.scheduleLunarAlarm(context)
             }
             else -> {
                 Log.d(TAG, "Đến giờ báo thức ca trực")
@@ -97,5 +104,77 @@ class AlarmReceiver : BroadcastReceiver() {
                 Log.e(TAG, "Không thể tự động mở ứng dụng mục tiêu", e)
             }
         }
+    }
+
+    private fun showLunarNotification(context: Context) {
+        val prefs = AppPreferences(context)
+        val mode = prefs.lunarReminderMode
+        if (mode == 0) return
+
+        val today = java.time.LocalDate.now()
+        val tomorrow = today.plusDays(1)
+
+        val lunarToday = VietCalendar.convertSolar2Lunar(today.dayOfMonth, today.monthValue, today.year, 7.0)
+        val lunarTom = VietCalendar.convertSolar2Lunar(tomorrow.dayOfMonth, tomorrow.monthValue, tomorrow.year, 7.0)
+
+        val title = "📅 Nhắc nhở ngày Âm lịch"
+        var msg = ""
+
+        if (mode == 1) { // Báo cùng ngày
+            msg = if (lunarToday[0] == 1) {
+                "Hôm nay là ngày Mùng 1 Âm lịch (Tháng ${lunarToday[1]})"
+            } else if (lunarToday[0] == 15) {
+                "Hôm nay là ngày Rằm (15 Âm lịch) (Tháng ${lunarToday[1]})"
+            } else {
+                "Hôm nay là ngày ${lunarToday[0]} Âm lịch (Tháng ${lunarToday[1]})"
+            }
+        } else if (mode == 2) { // Trước 1 ngày
+            msg = if (lunarTom[0] == 1) {
+                "Ngày mai là ngày Mùng 1 Âm lịch (Tháng ${lunarTom[1]})"
+            } else if (lunarToday[0] == 14) {
+                "Ngày mai là ngày Rằm (15 Âm lịch) (Tháng ${lunarToday[1]})"
+            } else {
+                "Ngày mai là ngày Âm lịch đặc biệt"
+            }
+        }
+
+        if (msg.isBlank()) return
+
+        // Gửi Notification
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        val channelId = "lunar_reminder_channel"
+        
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if (nm.getNotificationChannel(channelId) == null) {
+                val channel = android.app.NotificationChannel(
+                    channelId, "Nhắc nhở ngày Âm",
+                    android.app.NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Thông báo nhắc nhở mùng 1 & 15 Âm lịch"
+                }
+                nm.createNotificationChannel(channel)
+            }
+        }
+
+        // Intent mở app Lịch SDV khi click
+        val clickIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context, 1002, clickIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = androidx.core.app.NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(msg)
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+            .setCategory(androidx.core.app.NotificationCompat.CATEGORY_REMINDER)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        nm.notify(2002, notification)
     }
 }
