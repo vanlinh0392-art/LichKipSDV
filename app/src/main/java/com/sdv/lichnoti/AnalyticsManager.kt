@@ -40,10 +40,15 @@ object AnalyticsManager {
             // Lưu ngày ngay lập tức để tránh gửi trùng nếu user mở app liên tục
             prefs.edit().putString(KEY_LAST_TRACKING_DATE, today).apply()
 
-            val deviceId = Settings.Secure.getString(
+            val androidId = Settings.Secure.getString(
                 context.contentResolver,
                 Settings.Secure.ANDROID_ID
             ) ?: return
+
+            val manufacturer = android.os.Build.MANUFACTURER ?: "Unknown"
+            val model = android.os.Build.MODEL ?: "Device"
+            val deviceModel = "${manufacturer}_${model}".replace("\\s+".toRegex(), "_")
+            val deviceId = "${deviceModel}_$androidId"
 
             val versionCode: Int
             val versionName: String
