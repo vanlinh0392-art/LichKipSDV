@@ -133,6 +133,9 @@ class MainActivity : AppCompatActivity() {
         // Đồng bộ trạng thái switch gộp tháng
         findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchMergeMonths)?.isChecked = prefs.mergeMonths
 
+        // Đồng bộ trạng thái switch báo thức ngày lễ
+        findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchHolidayAlert)?.isChecked = prefs.holidayAlertEnabled
+
         // Cập nhật icon Dark Mode ngoài màn hình chính
         findViewById<ImageButton>(R.id.btnToggleDarkMode)?.let { updateDarkModeIcon(it) }
         updateLegendAndSettingsColors()
@@ -458,15 +461,18 @@ class MainActivity : AppCompatActivity() {
     private fun setupCalendarControls() {
         val layoutHideHolidayShift = findViewById<View>(R.id.layoutHideHolidayShift)
         val layoutMergeMonths = findViewById<View>(R.id.layoutMergeMonths)
+        val layoutHolidayAlert = findViewById<View>(R.id.layoutHolidayAlert)
         val layoutDonation = findViewById<View>(R.id.layoutDonation)
         val switchHideHolidayShift = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchHideHolidayShift)
         val switchMergeMonths = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchMergeMonths)
+        val switchHolidayAlert = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchHolidayAlert)
         val btnToggle = findViewById<ImageButton>(R.id.btnToggleCalendarView)
 
         // Phục hồi trạng thái ẩn/hiện các option ở vùng cài đặt (layoutMonthBlock2 sẽ do setupCalendar tự quản lý)
         val isVisible = prefs.calendarVisible
         layoutHideHolidayShift.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutMergeMonths?.visibility = if (isVisible) View.GONE else View.VISIBLE
+        layoutHolidayAlert?.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutDonation?.visibility = if (isVisible) View.GONE else View.VISIBLE
         btnToggle.setImageResource(if (isVisible) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
 
@@ -484,11 +490,18 @@ class MainActivity : AppCompatActivity() {
             setupCalendar()
         }
 
+        // Phục hồi trạng thái switch báo thức ngày Lễ
+        switchHolidayAlert?.isChecked = prefs.holidayAlertEnabled
+        switchHolidayAlert?.setOnCheckedChangeListener { _, isChecked ->
+            prefs.holidayAlertEnabled = isChecked
+        }
+
         btnToggle.setOnClickListener {
             val nextState = !prefs.calendarVisible
             prefs.calendarVisible = nextState
             layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutMergeMonths?.visibility = if (nextState) View.GONE else View.VISIBLE
+            layoutHolidayAlert?.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutDonation?.visibility = if (nextState) View.GONE else View.VISIBLE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
             updateMonthDisplay()

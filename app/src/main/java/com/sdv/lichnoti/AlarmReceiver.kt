@@ -44,8 +44,11 @@ class AlarmReceiver : BroadcastReceiver() {
                 val today = java.time.LocalDate.now()
                 val shiftInfo = ShiftCalculator.getShiftInfo(crewId, today)
 
-                // Chỉ chạy báo thức nếu kíp có ca làm thực tế (không phải ca nghỉ)
-                if (shiftInfo.type != ShiftCalculator.ShiftType.NGHI) {
+                val isHoliday = ShiftCalculator.isHoliday(today)
+                val shouldSkipAlarm = isHoliday && !prefs.holidayAlertEnabled
+
+                // Chỉ chạy báo thức nếu kíp có ca làm thực tế (không phải ca nghỉ) và không cấu hình bỏ qua ngày Lễ
+                if (shiftInfo.type != ShiftCalculator.ShiftType.NGHI && !shouldSkipAlarm) {
                     if (prefs.snoozeDuration == 0) {
                         // Người dùng cấu hình "Không" sử dụng báo thức full màn reo chuông
                         // Chỉ hiển thị notification nhắc nhở dán cam thông thường và lên lịch ca tiếp theo
