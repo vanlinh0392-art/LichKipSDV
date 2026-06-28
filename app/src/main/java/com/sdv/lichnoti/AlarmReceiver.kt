@@ -122,19 +122,19 @@ class AlarmReceiver : BroadcastReceiver() {
 
         if (mode == 1) { // Báo cùng ngày
             msg = if (lunarToday[0] == 1) {
-                "Hôm nay là ngày Mùng 1 Âm lịch (Tháng ${lunarToday[1]})"
+                "Hôm nay là Mùng 1 âm lịch (1/${lunarToday[1]} âm lịch)"
             } else if (lunarToday[0] == 15) {
-                "Hôm nay là ngày Rằm (15 Âm lịch) (Tháng ${lunarToday[1]})"
+                "Hôm nay là ngày Rằm (15/${lunarToday[1]} âm lịch)"
             } else {
-                "Hôm nay là ngày ${lunarToday[0]} Âm lịch (Tháng ${lunarToday[1]})"
+                "Hôm nay là ngày ${lunarToday[0]}/${lunarToday[1]} âm lịch"
             }
         } else if (mode == 2) { // Trước 1 ngày
             msg = if (lunarTom[0] == 1) {
-                "Ngày mai là ngày Mùng 1 Âm lịch (Tháng ${lunarTom[1]})"
-            } else if (lunarToday[0] == 14) {
-                "Ngày mai là ngày Rằm (15 Âm lịch) (Tháng ${lunarToday[1]})"
+                "Ngày mai là Mùng 1 âm lịch (1/${lunarTom[1]} âm lịch)"
+            } else if (lunarTom[0] == 15) {
+                "Ngày mai là ngày Rằm (15/${lunarTom[1]} âm lịch)"
             } else {
-                "Ngày mai là ngày Âm lịch đặc biệt"
+                "Ngày mai là ngày âm lịch đặc biệt"
             }
         }
 

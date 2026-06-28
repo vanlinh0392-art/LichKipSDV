@@ -140,10 +140,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.btnToggleDarkMode)?.let { updateDarkModeIcon(it) }
         updateLegendAndSettingsColors()
 
-        // Tự động kiểm tra cập nhật (1 tháng 1 lần)
+        // Tự động kiểm tra cập nhật (2 tuần 1 lần)
         val lastCheck = prefs.lastUpdateCheckTime
         val nowTime = System.currentTimeMillis()
-        if (nowTime - lastCheck > 30L * 24 * 60 * 60 * 1000) {
+        if (nowTime - lastCheck > 14L * 24 * 60 * 60 * 1000) {
             prefs.lastUpdateCheckTime = nowTime
             checkUpdate(isManual = false)
         }
