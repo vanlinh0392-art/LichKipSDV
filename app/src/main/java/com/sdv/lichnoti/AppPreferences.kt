@@ -39,19 +39,19 @@ class AppPreferences(context: Context) {
         set(value) = prefs.edit().putString(KEY_CREW, value).apply()
 
     var dayNotificationHour: Int
-        get() = prefs.getInt(KEY_DAY_HOUR, 6)
+        get() = prefs.getInt(KEY_DAY_HOUR, 7)
         set(value) = prefs.edit().putInt(KEY_DAY_HOUR, value).apply()
 
     var dayNotificationMinute: Int
-        get() = prefs.getInt(KEY_DAY_MINUTE, 30)
+        get() = prefs.getInt(KEY_DAY_MINUTE, 0)
         set(value) = prefs.edit().putInt(KEY_DAY_MINUTE, value).apply()
 
     var nightNotificationHour: Int
-        get() = prefs.getInt(KEY_NIGHT_HOUR, 18)
+        get() = prefs.getInt(KEY_NIGHT_HOUR, 19)
         set(value) = prefs.edit().putInt(KEY_NIGHT_HOUR, value).apply()
 
     var nightNotificationMinute: Int
-        get() = prefs.getInt(KEY_NIGHT_MINUTE, 30)
+        get() = prefs.getInt(KEY_NIGHT_MINUTE, 0)
         set(value) = prefs.edit().putInt(KEY_NIGHT_MINUTE, value).apply()
 
     var notificationEnabled: Boolean
