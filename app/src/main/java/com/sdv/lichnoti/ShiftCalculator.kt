@@ -61,11 +61,16 @@ object ShiftCalculator {
 
         return when {
             y > 2026 -> false
-            y == 2026 && m >= 7 -> {
-                // Các ngày HO cụ thể của tháng 7-12 năm 2026
+            y == 2026 -> {
+                (m == 1 && (d == 3 || d == 17)) ||
+                (m == 2 && d == 14) ||
+                (m == 3 && (d == 14 || d == 28)) ||
+                (m == 4 && (d == 11 || d == 25)) ||
+                (m == 5 && (d == 9 || d == 23)) ||
+                (m == 6 && (d == 6 || d == 20)) ||
                 (m == 7 && d == 4) ||
                 (m == 8 && (d == 15 || d == 29)) ||
-                (m == 9 && d == 12) ||
+                (m == 9 && (d == 12 || d == 26)) ||
                 (m == 10 && d == 24) ||
                 (m == 11 && d == 7) ||
                 (m == 12 && d == 5)
@@ -99,15 +104,7 @@ object ShiftCalculator {
             val isSunday = curr.dayOfWeek.value == 7
             val isSatWorkHO = isSaturdayHO(curr)
 
-            val isHOReal = if (isSunday || isSatWorkHO) {
-                if (isOfficialHol) {
-                    getShift(crewId, curr) == ShiftType.NGAY
-                } else {
-                    actualShift != ShiftType.NGHI
-                }
-            } else {
-                false
-            }
+            val isHOReal = (isSunday || isSatWorkHO) && actualShift != ShiftType.NGHI
 
             if (isHOReal) {
                 total++
