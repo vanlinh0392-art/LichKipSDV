@@ -28,6 +28,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var tilPackage: TextInputLayout
     private lateinit var etPackage: TextInputEditText
     private lateinit var switchDarkMode: SwitchMaterial
+    private lateinit var switchForceMaxVolume: SwitchMaterial
 
     // Lưu tạm giờ thông báo khi user chọn
     private var dayHour = 6
@@ -55,6 +56,7 @@ class SettingsActivity : AppCompatActivity() {
         tilPackage = findViewById(R.id.tilPackage)
         etPackage = findViewById(R.id.etPackage)
         switchDarkMode = findViewById(R.id.switchDarkMode)
+        switchForceMaxVolume = findViewById(R.id.switchForceMaxVolume)
     }
 
     // ── Load cài đặt hiện tại ───────────────────────────────────────────
@@ -78,6 +80,9 @@ class SettingsActivity : AppCompatActivity() {
 
         // Chế độ tối
         switchDarkMode.isChecked = prefs.darkMode == "dark"
+
+        // Âm lượng tối đa
+        switchForceMaxVolume.isChecked = prefs.forceMaxVolume
     }
 
     private fun updateTimeDisplay() {
@@ -157,6 +162,9 @@ class SettingsActivity : AppCompatActivity() {
         prefs.nightNotificationMinute = nightMinute
 
 
+
+        // Âm lượng tối đa
+        prefs.forceMaxVolume = switchForceMaxVolume.isChecked
 
         // Chế độ tối
         val newDarkMode = if (switchDarkMode.isChecked) "dark" else "light"

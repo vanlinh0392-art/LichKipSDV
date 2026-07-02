@@ -60,11 +60,7 @@ class AlarmActivity : AppCompatActivity() {
                     or WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
         )
 
-        // Yêu cầu giải phóng keyguard tạm thời
-        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            keyguardManager.requestDismissKeyguard(this, null)
-        }
+
 
         setContentView(R.layout.activity_alarm)
 
@@ -197,5 +193,14 @@ class AlarmActivity : AppCompatActivity() {
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
         // Vô hiệu hóa nút back vật lý để người dùng buộc phải bấm Stop hoặc Snooze
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        // Yêu cầu giải phóng keyguard tạm thời khi Activity đã gắn vào cửa sổ
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            keyguardManager.requestDismissKeyguard(this, null)
+        }
     }
 }

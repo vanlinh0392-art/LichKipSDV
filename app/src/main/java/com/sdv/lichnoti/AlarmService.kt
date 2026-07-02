@@ -30,6 +30,9 @@ class AlarmService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var vibrator: Vibrator? = null
     private val handler = Handler(Looper.getMainLooper())
+    private var audioManager: android.media.AudioManager? = null
+    private var originalVolume = -1
+    private var audioFocusRequest: android.media.AudioFocusRequest? = null
     private val autoSnoozeRunnable = Runnable {
         val prefs = AppPreferences(this)
         if (prefs.snoozeDuration == -1) {
@@ -50,6 +53,7 @@ class AlarmService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
         createNotificationChannel()
     }
 
@@ -147,6 +151,38 @@ class AlarmService : Service() {
 
     private fun playRingtone() {
         try {
+            // 1. Yêu cầu Audio Focus
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val focusRequest = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                    .setAudioAttributes(AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build())
+                    .setAcceptsDelayedFocusGain(true)
+                    .setOnAudioFocusChangeListener { }
+                    .build()
+                audioFocusRequest = focusRequest
+                audioManager?.requestAudioFocus(focusRequest)
+            } else {
+                @Suppress("DEPRECATION")
+                audioManager?.requestAudioFocus(
+                    { },
+                    android.media.AudioManager.STREAM_ALARM,
+                    android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+                )
+            }
+
+            // 2. Thiết lập Force Max Volume nếu bật
+            val prefs = AppPreferences(this)
+            if (prefs.forceMaxVolume) {
+                audioManager?.let { am ->
+                    originalVolume = am.getStreamVolume(android.media.AudioManager.STREAM_ALARM)
+                    val maxVolume = am.getStreamMaxVolume(android.media.AudioManager.STREAM_ALARM)
+                    am.setStreamVolume(android.media.AudioManager.STREAM_ALARM, maxVolume, 0)
+                    Log.d(TAG, "Force Max Volume: Tăng âm lượng báo thức lên tối đa: $maxVolume (Âm lượng cũ: $originalVolume)")
+                }
+            }
+
             var alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             if (alert == null) {
                 alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
@@ -199,6 +235,29 @@ class AlarmService : Service() {
         vibrator?.cancel()
         vibrator = null
 
+        // 1. Khôi phục âm lượng ban đầu của hệ thống
+        if (originalVolume != -1) {
+            try {
+                audioManager?.setStreamVolume(android.media.AudioManager.STREAM_ALARM, originalVolume, 0)
+                Log.d(TAG, "Đã khôi phục lại âm lượng báo thức ban đầu: $originalVolume")
+            } catch (e: Exception) {
+                Log.e(TAG, "Không thể khôi phục lại âm lượng báo thức ban đầu", e)
+            }
+            originalVolume = -1
+        }
+
+        // 2. Giải phóng Audio Focus
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                audioFocusRequest?.let { audioManager?.abandonAudioFocusRequest(it) }
+            } else {
+                @Suppress("DEPRECATION")
+                audioManager?.abandonAudioFocus { }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Không thể giải phóng Audio Focus", e)
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
@@ -206,6 +265,12 @@ class AlarmService : Service() {
             stopForeground(true)
         }
         super.onDestroy()
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        Log.d(TAG, "AlarmService: onTaskRemoved - App bị đóng từ Recent Apps, dừng báo thức")
+        stopSelf()
     }
 
     override fun onBind(intent: Intent?): IBinder? {

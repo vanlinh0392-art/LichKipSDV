@@ -29,6 +29,7 @@ class AppPreferences(context: Context) {
         private const val KEY_MERGE_MONTHS = "merge_months"
         private const val KEY_HOLIDAY_ALERT_ENABLED = "holiday_alert_enabled"
         private const val KEY_LUNAR_REMINDER_MODE = "lunar_reminder_mode"
+        private const val KEY_FORCE_MAX_VOLUME = "force_max_volume"
     }
 
     private val prefs: SharedPreferences =
@@ -141,4 +142,8 @@ class AppPreferences(context: Context) {
     var lunarReminderMode: Int
         get() = prefs.getInt(KEY_LUNAR_REMINDER_MODE, 0)
         set(value) = prefs.edit().putInt(KEY_LUNAR_REMINDER_MODE, value).apply()
+
+    var forceMaxVolume: Boolean
+        get() = prefs.getBoolean(KEY_FORCE_MAX_VOLUME, false)
+        set(value) = prefs.edit().putBoolean(KEY_FORCE_MAX_VOLUME, value).apply()
 }
