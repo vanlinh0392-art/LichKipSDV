@@ -289,11 +289,12 @@
 
 
 
-        <!-- Force Max Volume Card -->
+        <!-- Force Max Volume Card - ĐÃ ẨN THEO YÊU CẦU: tính năng luôn bật mặc định -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
+            android:visibility="gone"
             app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
             app:cardBackgroundColor="@color/surface">

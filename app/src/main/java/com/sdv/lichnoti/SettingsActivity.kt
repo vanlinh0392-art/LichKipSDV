@@ -80,9 +80,6 @@ class SettingsActivity : AppCompatActivity() {
 
         // Chế độ tối
         switchDarkMode.isChecked = prefs.darkMode == "dark"
-
-        // Âm lượng tối đa
-        switchForceMaxVolume.isChecked = prefs.forceMaxVolume
     }
 
     private fun updateTimeDisplay() {
@@ -163,8 +160,6 @@ class SettingsActivity : AppCompatActivity() {
 
 
 
-        // Âm lượng tối đa
-        prefs.forceMaxVolume = switchForceMaxVolume.isChecked
 
         // Chế độ tối
         val newDarkMode = if (switchDarkMode.isChecked) "dark" else "light"

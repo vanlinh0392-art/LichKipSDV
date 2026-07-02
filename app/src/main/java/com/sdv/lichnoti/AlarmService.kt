@@ -172,15 +172,12 @@ class AlarmService : Service() {
                 )
             }
 
-            // 2. Thiết lập Force Max Volume nếu bật
-            val prefs = AppPreferences(this)
-            if (prefs.forceMaxVolume) {
-                audioManager?.let { am ->
-                    originalVolume = am.getStreamVolume(android.media.AudioManager.STREAM_ALARM)
-                    val maxVolume = am.getStreamMaxVolume(android.media.AudioManager.STREAM_ALARM)
-                    am.setStreamVolume(android.media.AudioManager.STREAM_ALARM, maxVolume, 0)
-                    Log.d(TAG, "Force Max Volume: Tăng âm lượng báo thức lên tối đa: $maxVolume (Âm lượng cũ: $originalVolume)")
-                }
+            // 2. Thiết lập Force Max Volume (luôn luôn bật)
+            audioManager?.let { am ->
+                originalVolume = am.getStreamVolume(android.media.AudioManager.STREAM_ALARM)
+                val maxVolume = am.getStreamMaxVolume(android.media.AudioManager.STREAM_ALARM)
+                am.setStreamVolume(android.media.AudioManager.STREAM_ALARM, maxVolume, 0)
+                Log.d(TAG, "Force Max Volume (Always On): Tăng âm lượng báo thức lên tối đa: $maxVolume (Âm lượng cũ: $originalVolume)")
             }
 
             var alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
