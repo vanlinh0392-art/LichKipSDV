@@ -217,21 +217,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 4. Hành động bấm thông báo
-        val rgAction = findViewById<RadioGroup>(R.id.rgAction)
-        val rbOpenSelf = findViewById<RadioButton>(R.id.rbOpenSelf)
-        val rbOpenOther = findViewById<RadioButton>(R.id.rbOpenOther)
-        if (prefs.openOtherApp) {
-            rbOpenOther.isChecked = true
-        } else {
-            rbOpenSelf.isChecked = true
-        }
-
-        rgAction.setOnCheckedChangeListener { _, checkedId ->
-            val openOther = checkedId == R.id.rbOpenOther
-            prefs.openOtherApp = openOther
-            onSettingsChanged()
-        }
+        // Đã ẩn cài đặt hành động bấm thông báo theo yêu cầu (tự động theo autoLockSamsung)
 
 
         // 4b. Câu thông báo tùy chỉnh

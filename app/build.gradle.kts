@@ -11,8 +11,8 @@ android {
         applicationId = "com.sdv.lichnoti"
         minSdk = 26
         targetSdk = 35
-        versionCode = 66
-        versionName = "4.45"
+        versionCode = 67
+        versionName = "4.46"
 
         ndk {
             abiFilters += listOf("arm64-v8a")

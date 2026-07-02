@@ -121,20 +121,8 @@ class AlarmActivity : AppCompatActivity() {
             
             val prefs = AppPreferences(this)
             if (prefs.autoLockSamsung) {
-                // Ưu tiên MDM lock — đã mở VSelfLock rồi, không cần mở lại bằng launchIntent
                 SamsungLockHelper.resetDebounce()
                 SamsungLockHelper.sendLockIntent(this)
-            } else if (!prefs.openSelf && prefs.targetPackage.isNotBlank()) {
-                // Chỉ mở app khác khi KHÔNG dùng MDM lock
-                try {
-                    val launchIntent = packageManager.getLaunchIntentForPackage(prefs.targetPackage)
-                    if (launchIntent != null) {
-                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        startActivity(launchIntent)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
             }
 
             finish()

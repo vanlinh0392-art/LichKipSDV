@@ -217,10 +217,12 @@
         </androidx.cardview.widget.CardView>
 
         <!-- App Action Card -->
+        <!-- Card "Khi bấm thông báo" - ĐÃ BỎ: logic tự động theo autoLockSamsung -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
+            android:visibility="gone"
             app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
             app:cardBackgroundColor="@color/surface">

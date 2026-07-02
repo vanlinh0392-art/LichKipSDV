@@ -55,15 +55,14 @@ object NotificationHelper {
             "${shiftInfo.type.emoji} Ca ${shiftInfo.type.label}"
         }
 
-        // Create intent based on user preference
-        val intent = if (prefs.openSelf || prefs.targetPackage.isBlank()) {
-            Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        val intent = if (prefs.autoLockSamsung) {
+            Intent().apply {
+                component = android.content.ComponentName("com.samsung.s1.vselflock", "com.samsung.s1.vselflock.ui.MainActivity")
+                action = "lock"
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             }
         } else {
-            context.packageManager.getLaunchIntentForPackage(prefs.targetPackage)?.apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            } ?: Intent(context, MainActivity::class.java).apply {
+            Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
         }

@@ -74,15 +74,7 @@ class SettingsActivity : AppCompatActivity() {
         nightMinute = prefs.nightNotificationMinute
         updateTimeDisplay()
 
-        // Hành động khi bấm thông báo
-        if (prefs.openOtherApp) {
-            rbOpenOther.isChecked = true
-            tilPackage.visibility = View.VISIBLE
-        } else {
-            rbOpenSelf.isChecked = true
-            tilPackage.visibility = View.GONE
-        }
-        etPackage.setText(prefs.targetPackage)
+        // Đã bỏ cài đặt hành động bấm thông báo (tự động theo autoLockSamsung)
 
         // Chế độ tối
         switchDarkMode.isChecked = prefs.darkMode == "dark"
@@ -123,10 +115,6 @@ class SettingsActivity : AppCompatActivity() {
             tvNightTime.performClick()
         }
 
-        // Toggle hiển thị package khi chọn "Mở app khác"
-        rgAction.setOnCheckedChangeListener { _, checkedId ->
-            tilPackage.visibility = if (checkedId == R.id.rbOpenOther) View.VISIBLE else View.GONE
-        }
 
         // Nút lưu
         findViewById<MaterialButton>(R.id.btnSave).setOnClickListener { saveSettings() }
@@ -168,9 +156,6 @@ class SettingsActivity : AppCompatActivity() {
         prefs.nightNotificationHour = nightHour
         prefs.nightNotificationMinute = nightMinute
 
-        // Hành động bấm thông báo
-        prefs.openOtherApp = rbOpenOther.isChecked
-        prefs.targetPackage = etPackage.text?.toString()?.trim() ?: ""
 
 
         // Chế độ tối

@@ -830,7 +830,7 @@
                 android:background="@color/divider"
                 android:layout_marginBottom="12dp" />
 
-            <!-- App Launch Action Section -->
+            <!-- App Launch Action Section - ĐÃ ẨN ĐỂ ĐƠN GIẢN HÓA LOGIC THEO YÊU CẦU -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -838,14 +838,16 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/on_surface_variant"
-                android:layout_marginBottom="6dp" />
+                android:layout_marginBottom="6dp"
+                android:visibility="gone" />
 
             <RadioGroup
                 android:id="@+id/rgAction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:visibility="gone">
 
                 <RadioButton
                     android:id="@+id/rbOpenSelf"
