@@ -55,7 +55,14 @@ object NotificationHelper {
             "${shiftInfo.type.emoji} Ca ${shiftInfo.type.label}"
         }
 
-        val intent = if (prefs.autoLockSamsung) {
+        val isMdmInstalled = try {
+            context.packageManager.getPackageInfo("com.samsung.s1.vselflock", 0)
+            true
+        } catch (e: Exception) {
+            false
+        }
+
+        val intent = if (prefs.autoLockSamsung && isMdmInstalled) {
             Intent().apply {
                 component = android.content.ComponentName("com.samsung.s1.vselflock", "com.samsung.s1.vselflock.ui.MainActivity")
                 action = "lock"

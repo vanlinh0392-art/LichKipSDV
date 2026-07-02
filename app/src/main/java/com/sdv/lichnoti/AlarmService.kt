@@ -35,13 +35,13 @@ class AlarmService : Service() {
         if (prefs.snoozeDuration == -1) {
             Log.d(TAG, "Báo thức reo quá 2 phút không tương tác -> Tự động dừng hẳn (chế độ Không nhắc lại)")
             if (prefs.autoLockSamsung) {
-                SamsungLockHelper.sendLockIntent(this)
+                SamsungLockHelper.sendLockIntentWithDelay(this)
             }
             sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
         } else {
             Log.d(TAG, "Báo thức tự động nhắc lại sau 2 phút không tương tác")
             if (prefs.autoLockSamsung) {
-                SamsungLockHelper.sendLockIntent(this)
+                SamsungLockHelper.sendLockIntentWithDelay(this)
             }
             sendBroadcastToReceiver(AlarmReceiver.ACTION_SNOOZE)
         }
