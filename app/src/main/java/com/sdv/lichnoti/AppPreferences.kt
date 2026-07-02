@@ -59,8 +59,8 @@ class AppPreferences(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_NOTIFICATION_ENABLED, value).apply()
 
     var targetPackage: String
-        get() = "com.samsung.s1.vselflock"
-        set(_) {}
+        get() = prefs.getString(KEY_TARGET_PACKAGE, "com.samsung.s1.vselflock") ?: "com.samsung.s1.vselflock"
+        set(value) = prefs.edit().putString(KEY_TARGET_PACKAGE, value).apply()
 
     var openSelf: Boolean
         get() = prefs.getBoolean(KEY_OPEN_SELF, true)

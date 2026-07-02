@@ -119,9 +119,13 @@ class AlarmActivity : AppCompatActivity() {
             autoLockRunnable?.let { handler.removeCallbacks(it) }
             sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
             
-            // Tự động mở app khác trực tiếp từ Activity đang ở foreground để tránh Android block background activity start
             val prefs = AppPreferences(this)
-            if (!prefs.openSelf && prefs.targetPackage.isNotBlank()) {
+            if (prefs.autoLockSamsung) {
+                // Ưu tiên MDM lock — đã mở VSelfLock rồi, không cần mở lại bằng launchIntent
+                SamsungLockHelper.resetDebounce()
+                SamsungLockHelper.sendLockIntent(this)
+            } else if (!prefs.openSelf && prefs.targetPackage.isNotBlank()) {
+                // Chỉ mở app khác khi KHÔNG dùng MDM lock
                 try {
                     val launchIntent = packageManager.getLaunchIntentForPackage(prefs.targetPackage)
                     if (launchIntent != null) {
@@ -131,14 +135,6 @@ class AlarmActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-            }
-
-            // Samsung MDM Lock — gọi từ foreground Activity (user bấm DỪNG)
-            // Không cần check canDrawOverlays() vì AlarmActivity đang ở foreground,
-            // One UI luôn cho phép startActivity từ foreground context.
-            if (prefs.autoLockSamsung) {
-                SamsungLockHelper.resetDebounce()
-                SamsungLockHelper.sendLockIntent(this)
             }
 
             finish()
@@ -160,7 +156,8 @@ class AlarmActivity : AppCompatActivity() {
         super.onPause()
         // Nếu AlarmService vẫn đang chạy (người dùng chưa bấm nút), tức là báo thức đang reo.
         // Nếu màn hình vẫn đang sáng và không có cuộc gọi điện thoại, tự động đưa AlarmActivity trở lại foreground.
-        if (AlarmService.isRunning) {
+        // Bỏ qua nếu Activity đang finish() (user đã bấm DỪNG) để tránh re-launch gây double-open MDM.
+        if (AlarmService.isRunning && !isFinishing) {
 
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             val isInteractive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {

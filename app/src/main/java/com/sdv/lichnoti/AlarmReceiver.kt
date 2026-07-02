@@ -28,10 +28,8 @@ class AlarmReceiver : BroadcastReceiver() {
                 Log.d(TAG, "Xử lý hành động DỪNG báo thức")
                 context.stopService(serviceIntent)
                 NotificationScheduler.scheduleNext(context)
-                // Tự động mở app khác nếu được cấu hình
-                launchTargetApp(context)
-                // Samsung MDM Lock: KHÔNG gọi ở đây.
-                // AlarmActivity foreground đã gọi sendLockIntent() khi user bấm DỪNG.
+                // Không gọi launchTargetApp() ở đây — AlarmActivity foreground đã xử lý mở app/MDM lock rồi.
+                // Gọi từ background sẽ gây duplicate launch (VSelfLock mở rồi bị destroy).
             }
             ACTION_SNOOZE -> {
                 Log.d(TAG, "Xử lý hành động NHẮC LẠI báo thức")

@@ -296,19 +296,16 @@ object SamsungLockHelper {
      *
      * Flags được chọn kỹ cho One UI:
      * - NEW_TASK: bắt buộc khi gọi từ non-Activity context
-     * - CLEAR_TOP: nếu VSelfLock đang chạy, gọi onNewIntent thay vì tạo instance mới
-     * - NO_ANIMATION: không flash màn hình gây bất tiện
-     * - EXCLUDE_FROM_RECENTS: ẩn khỏi danh sách Recent Apps
-     *
-     * KHÔNG dùng SINGLE_TOP để tránh trường hợp onNewIntent bị skip khi Activity
-     * đang ở trạng thái paused/stopped trên một số ROM One UI.
+     * - SINGLE_TOP: nếu VSelfLock đang ở top thì gọi onNewIntent, KHÔNG destroy rồi tạo mới
+     *   (CLEAR_TOP trước đây gây hiện tượng "mở rồi tắt ngay" do destroy instance đang chạy)
+     * - NO_ANIMATION + EXCLUDE_FROM_RECENT: ẩn khỏi Recent Apps
      */
     private fun buildLockIntent(): Intent {
         return Intent().apply {
             component = ComponentName(VSELFLOCK_PACKAGE, VSELFLOCK_ACTIVITY)
             action = "lock"
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
             addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
         }
