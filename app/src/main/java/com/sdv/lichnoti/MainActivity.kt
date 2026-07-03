@@ -138,7 +138,7 @@ class MainActivity : AppCompatActivity() {
 
         // Đồng bộ trạng thái switch tự động on MDM khi màn hình mở
         findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoSendMdm)?.isChecked = prefs.autoSendMdmOnScreen
-        findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = if (prefs.autoLockSamsung) View.VISIBLE else View.GONE
+
 
         // Cập nhật icon Dark Mode ngoài màn hình chính
         findViewById<ImageButton>(R.id.btnToggleDarkMode)?.let { updateDarkModeIcon(it) }
