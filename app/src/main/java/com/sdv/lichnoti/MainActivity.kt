@@ -123,12 +123,15 @@ class MainActivity : AppCompatActivity() {
         // Đồng bộ trạng thái switch thông báo
         findViewById<SwitchMaterial>(R.id.switchNotificationDrawer).isChecked = prefs.notificationEnabled
 
-        // Đồng bộ trạng thái switch khóa Samsung (Kiểm tra cả quyền vẽ lên ứng dụng khác)
+        // Đồng bộ trạng thái switch khóa Samsung (Kiểm tra và nhắc nhở quyền vẽ lên ứng dụng khác)
         val hasOverlayPermission = Settings.canDrawOverlays(this)
-        if (prefs.autoLockSamsung && !hasOverlayPermission) {
-            prefs.autoLockSamsung = false
+        val switchAutoLockSamsung = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)
+        if (switchAutoLockSamsung != null) {
+            switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
+            if (prefs.autoLockSamsung && !hasOverlayPermission) {
+                Toast.makeText(this, "auto MDM cần cấp lại quyền 'Xuất hiện trên cùng'!", Toast.LENGTH_LONG).show()
+            }
         }
-        findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)?.isChecked = prefs.autoLockSamsung
 
         // Đồng bộ trạng thái switch gộp tháng
         findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchMergeMonths)?.isChecked = prefs.mergeMonths

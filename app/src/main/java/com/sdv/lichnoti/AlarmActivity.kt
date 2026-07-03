@@ -54,12 +54,10 @@ class AlarmActivity : AppCompatActivity() {
             // Gửi broadcast để NotificationScheduler lập lịch ca tiếp theo
             sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
             
-            // Mở VSelfLock để khóa thiết bị — gọi từ foreground Activity nên luôn được phép startActivity
-            // (không cần kiểm tra overlay permission vì One UI cho phép foreground context)
+            // Mở VSelfLock để khóa thiết bị — gọi qua sendLockIntentWithDelay có fallback 3 lớp để tránh bị OS chặn
             val prefs = AppPreferences(this)
             if (prefs.autoLockSamsung) {
-                SamsungLockHelper.resetDebounce()
-                SamsungLockHelper.sendLockIntent(this)
+                SamsungLockHelper.sendLockIntentWithDelay(this)
             }
             finish()
             return
@@ -91,8 +89,7 @@ class AlarmActivity : AppCompatActivity() {
         autoLockRunnable = Runnable {
             if (prefs.autoLockSamsung) {
                 Log.d("AlarmActivity", "Tự động gửi lock intent dự phòng sau 1.5 giây")
-                SamsungLockHelper.resetDebounce()
-                SamsungLockHelper.sendLockIntent(this@AlarmActivity)
+                SamsungLockHelper.sendLockIntentWithDelay(this@AlarmActivity)
             }
         }
         handler.postDelayed(autoLockRunnable!!, 1500)
@@ -138,8 +135,7 @@ class AlarmActivity : AppCompatActivity() {
             
             val prefs = AppPreferences(this)
             if (prefs.autoLockSamsung) {
-                SamsungLockHelper.resetDebounce()
-                SamsungLockHelper.sendLockIntent(this)
+                SamsungLockHelper.sendLockIntentWithDelay(this)
             }
 
             finish()
