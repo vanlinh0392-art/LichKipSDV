@@ -436,6 +436,30 @@
                             android:layout_height="wrap_content" />
                     </LinearLayout>
 
+                    <!-- Toggle tự động on MDM khi màn hình mở -->
+                    <LinearLayout
+                        android:id="@+id/layoutAutoSendMdm"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="6dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Tự động on MDM khi màn hình mở"
+                            android:textSize="13sp"
+                            android:textColor="@color/on_surface_variant" />
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchAutoSendMdm"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
                     <!-- Mục ủng hộ (Donation Info) -->
                     <LinearLayout
                         android:id="@+id/layoutDonation"

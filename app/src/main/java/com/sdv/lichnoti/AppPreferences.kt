@@ -30,6 +30,7 @@ class AppPreferences(context: Context) {
         private const val KEY_HOLIDAY_ALERT_ENABLED = "holiday_alert_enabled"
         private const val KEY_LUNAR_REMINDER_MODE = "lunar_reminder_mode"
         private const val KEY_FORCE_MAX_VOLUME = "force_max_volume"
+        private const val KEY_AUTO_SEND_MDM_ON_SCREEN = "auto_send_mdm_on_screen"
     }
 
     private val prefs: SharedPreferences =
@@ -146,4 +147,8 @@ class AppPreferences(context: Context) {
     var forceMaxVolume: Boolean
         get() = prefs.getBoolean(KEY_FORCE_MAX_VOLUME, false)
         set(value) = prefs.edit().putBoolean(KEY_FORCE_MAX_VOLUME, value).apply()
+
+    var autoSendMdmOnScreen: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_SEND_MDM_ON_SCREEN, true)
+        set(value) = prefs.edit().putBoolean(KEY_AUTO_SEND_MDM_ON_SCREEN, value).apply()
 }

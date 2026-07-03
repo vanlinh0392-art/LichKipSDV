@@ -136,6 +136,10 @@ class MainActivity : AppCompatActivity() {
         // Đồng bộ trạng thái switch báo thức ngày lễ
         findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchHolidayAlert)?.isChecked = prefs.holidayAlertEnabled
 
+        // Đồng bộ trạng thái switch tự động on MDM khi màn hình mở
+        findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoSendMdm)?.isChecked = prefs.autoSendMdmOnScreen
+        findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = if (prefs.autoLockSamsung) View.VISIBLE else View.GONE
+
         // Cập nhật icon Dark Mode ngoài màn hình chính
         findViewById<ImageButton>(R.id.btnToggleDarkMode)?.let { updateDarkModeIcon(it) }
         updateLegendAndSettingsColors()
@@ -497,6 +501,8 @@ class MainActivity : AppCompatActivity() {
         layoutHideHolidayShift.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutMergeMonths?.visibility = if (isVisible) View.GONE else View.VISIBLE
         layoutHolidayAlert?.visibility = if (isVisible) View.GONE else View.VISIBLE
+        val layoutAutoSendMdm = findViewById<View>(R.id.layoutAutoSendMdm)
+        layoutAutoSendMdm?.visibility = if (isVisible || !prefs.autoLockSamsung) View.GONE else View.VISIBLE
         layoutDonation?.visibility = if (isVisible) View.GONE else View.VISIBLE
         btnToggle.setImageResource(if (isVisible) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
 
@@ -520,12 +526,20 @@ class MainActivity : AppCompatActivity() {
             prefs.holidayAlertEnabled = isChecked
         }
 
+        // Phục hồi trạng thái switch tự động on MDM khi màn hình mở
+        val switchAutoSendMdm = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoSendMdm)
+        switchAutoSendMdm?.isChecked = prefs.autoSendMdmOnScreen
+        switchAutoSendMdm?.setOnCheckedChangeListener { _, isChecked ->
+            prefs.autoSendMdmOnScreen = isChecked
+        }
+
         btnToggle.setOnClickListener {
             val nextState = !prefs.calendarVisible
             prefs.calendarVisible = nextState
             layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutMergeMonths?.visibility = if (nextState) View.GONE else View.VISIBLE
             layoutHolidayAlert?.visibility = if (nextState) View.GONE else View.VISIBLE
+            layoutAutoSendMdm?.visibility = if (nextState || !prefs.autoLockSamsung) View.GONE else View.VISIBLE
             layoutDonation?.visibility = if (nextState) View.GONE else View.VISIBLE
             btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
             updateMonthDisplay()
@@ -594,6 +608,8 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     prefs.autoLockSamsung = true
                     Toast.makeText(this@MainActivity, "Đã bật auto MDM", Toast.LENGTH_SHORT).show()
+                    // Hiện switch tự động on MDM khi bật autoLock
+                    findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = if (!prefs.calendarVisible) View.VISIBLE else View.GONE
                 }
             } else {
                 if (prefs.autoLockSamsung) {
@@ -604,6 +620,8 @@ class MainActivity : AppCompatActivity() {
                             prefs.autoLockSamsung = false
                             dialog.dismiss()
                             Toast.makeText(this@MainActivity, "Đã tắt auto MDM", Toast.LENGTH_SHORT).show()
+                            // Ẩn switch tự động on MDM khi tắt autoLock
+                            findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = View.GONE
                         }
                         .setNegativeButton("Hủy") { dialog, _ ->
                             dialog.dismiss()

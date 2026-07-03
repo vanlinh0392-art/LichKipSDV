@@ -24,6 +24,27 @@ class AlarmActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Auto-send MDM khi màn hình đang mở & không khóa
+        val prefsCheck = AppPreferences(this)
+        if (prefsCheck.autoSendMdmOnScreen && prefsCheck.autoLockSamsung) {
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            val km = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            if (pm.isInteractive && !km.isKeyguardLocked) {
+                Log.d("AlarmActivity", "Màn hình đang mở & không khóa → Auto-send MDM")
+                val serviceIntent = Intent(this, AlarmService::class.java)
+                stopService(serviceIntent)
+                sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
+                SamsungLockHelper.resetDebounce()
+                val success = SamsungLockHelper.sendLockIntent(this)
+                if (success) {
+                    Log.d("AlarmActivity", "Auto-send MDM thành công - skip AlarmActivity UI")
+                    finish()
+                    return
+                }
+            }
+        }
+
         val autoStopAndLock = intent?.getBooleanExtra("EXTRA_AUTO_STOP_AND_LOCK", false) ?: false
         if (autoStopAndLock) {
             // Tắt nhạc chuông báo thức
