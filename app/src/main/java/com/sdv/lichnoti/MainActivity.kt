@@ -144,13 +144,29 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.btnToggleDarkMode)?.let { updateDarkModeIcon(it) }
         updateLegendAndSettingsColors()
 
-        // Tự động kiểm tra cập nhật (2 tuần 1 lần)
+        // Tự động kiểm tra cập nhật (1 tuần 1 lần vào 5h sáng thứ 2 hàng tuần)
+        val targetTime = getTargetCheckTimeMillis()
         val lastCheck = prefs.lastUpdateCheckTime
-        val nowTime = System.currentTimeMillis()
-        if (nowTime - lastCheck > 14L * 24 * 60 * 60 * 1000) {
-            prefs.lastUpdateCheckTime = nowTime
+        if (lastCheck < targetTime) {
+            prefs.lastUpdateCheckTime = System.currentTimeMillis()
             checkUpdate(isManual = false)
         }
+    }
+
+    private fun getTargetCheckTimeMillis(): Long {
+        val now = java.time.LocalDateTime.now(java.time.ZoneId.systemDefault())
+        // Tìm thứ 2 tuần này lúc 5:00:00 sáng
+        var target = now.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+            .withHour(5)
+            .withMinute(0)
+            .withSecond(0)
+            .withNano(0)
+        
+        // Nếu hiện tại chưa đến thứ 2 lúc 5:00 sáng, thì mốc so sánh là thứ 2 tuần trước lúc 5:00 sáng
+        if (now.isBefore(target)) {
+            target = target.minusWeeks(1)
+        }
+        return target.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
 
     // ── Áp dụng theme sáng/tối ──────────────────────────────────────────
