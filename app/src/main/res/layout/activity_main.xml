@@ -370,7 +370,7 @@
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
                         android:paddingHorizontal="16dp"
-                        android:paddingVertical="6dp"
+                        android:paddingVertical="3dp"
                         android:visibility="gone">
 
                         <TextView
@@ -378,7 +378,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Ẩn ca Ngày/Đêm trên ngày Lễ"
-                            android:textSize="13sp"
+                            android:textSize="12.5sp"
                             android:textColor="@color/on_surface_variant" />
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -395,7 +395,7 @@
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
                         android:paddingHorizontal="16dp"
-                        android:paddingVertical="6dp"
+                        android:paddingVertical="3dp"
                         android:visibility="gone">
 
                         <TextView
@@ -403,7 +403,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Gộp 2 tháng liên tục"
-                            android:textSize="13sp"
+                            android:textSize="12.5sp"
                             android:textColor="@color/on_surface_variant" />
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -420,14 +420,14 @@
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
                         android:paddingHorizontal="16dp"
-                        android:paddingVertical="6dp">
+                        android:paddingVertical="3dp">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Thông báo và báo thức ngày Lễ"
-                            android:textSize="13sp"
+                            android:textSize="12.5sp"
                             android:textColor="@color/on_surface_variant" />
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -444,14 +444,14 @@
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
                         android:paddingHorizontal="16dp"
-                        android:paddingVertical="6dp">
+                        android:paddingVertical="3dp">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Tự động on MDM khi màn hình mở"
-                            android:textSize="13sp"
+                            android:textSize="12.5sp"
                             android:textColor="@color/on_surface_variant" />
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -469,9 +469,9 @@
                         android:gravity="center"
                         android:layout_gravity="center_horizontal"
                         android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="8dp"
+                        android:paddingVertical="4dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp"
                         android:alpha="0.65"
                         android:clickable="true"
                         android:focusable="true"
