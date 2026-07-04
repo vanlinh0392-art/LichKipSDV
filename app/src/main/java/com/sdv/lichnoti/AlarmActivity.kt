@@ -26,24 +26,28 @@ class AlarmActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Auto-send MDM khi màn hình đang mở & không khóa
+        // Auto-send MDM khi màn hình đang mở (không cần kiểm tra keyguard vì
+        // isInteractive=true đã đủ chứng minh user đang dùng phone)
         val prefsCheck = AppPreferences(this)
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        Log.d("AlarmActivity", "Auto-send check: " +
+            "autoSendMdmOnScreen=${prefsCheck.autoSendMdmOnScreen}, " +
+            "autoLockSamsung=${prefsCheck.autoLockSamsung}, " +
+            "canDrawOverlays=${Settings.canDrawOverlays(this)}, " +
+            "isInteractive=${pm.isInteractive}")
         if (prefsCheck.autoSendMdmOnScreen && prefsCheck.autoLockSamsung
-            && Settings.canDrawOverlays(this)) {
-            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-            val km = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-            if (pm.isInteractive && !km.isKeyguardLocked) {
-                Log.d("AlarmActivity", "Màn hình đang mở & không khóa → Auto-send MDM")
-                val serviceIntent = Intent(this, AlarmService::class.java)
-                stopService(serviceIntent)
-                sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
-                SamsungLockHelper.resetDebounce()
-                val success = SamsungLockHelper.sendLockIntent(this)
-                if (success) {
-                    Log.d("AlarmActivity", "Auto-send MDM thành công - skip AlarmActivity UI")
-                    finish()
-                    return
-                }
+            && Settings.canDrawOverlays(this) && pm.isInteractive) {
+            Log.d("AlarmActivity", "Màn hình đang mở → Auto-send MDM")
+            val serviceIntent = Intent(this, AlarmService::class.java)
+            stopService(serviceIntent)
+            sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
+            SamsungLockHelper.resetDebounce()
+            val success = SamsungLockHelper.sendLockIntent(this)
+            Log.d("AlarmActivity", "sendLockIntent result=$success")
+            if (success) {
+                Log.d("AlarmActivity", "Auto-send MDM thành công - skip AlarmActivity UI")
+                finish()
+                return
             }
         }
 
@@ -88,10 +92,16 @@ class AlarmActivity : AppCompatActivity() {
         val prefs = AppPreferences(this)
 
         // Tự động gửi Intent khóa sau 1.5 giây để dự phòng (khi màn hình vừa sáng lên)
+        // QUAN TRỌNG: Phải dừng AlarmService + finish Activity trước khi gửi MDM
+        // để onPause không re-launch AlarmActivity đè lên VSelfLock
         autoLockRunnable = Runnable {
             if (prefs.autoLockSamsung) {
-                Log.d("AlarmActivity", "Tự động gửi lock intent dự phòng sau 1.5 giây")
+                Log.d("AlarmActivity", "Tự động gửi lock intent dự phòng sau 1.5 giây — dừng service + finish")
+                val serviceIntent = Intent(this@AlarmActivity, AlarmService::class.java)
+                stopService(serviceIntent)
+                sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
                 SamsungLockHelper.sendLockIntentWithDelay(this@AlarmActivity)
+                finish()
             }
         }
         handler.postDelayed(autoLockRunnable!!, 1500)
@@ -160,7 +170,7 @@ class AlarmActivity : AppCompatActivity() {
         // Nếu AlarmService vẫn đang chạy (người dùng chưa bấm nút), tức là báo thức đang reo.
         // Nếu màn hình vẫn đang sáng và không có cuộc gọi điện thoại, tự động đưa AlarmActivity trở lại foreground.
         // Bỏ qua nếu Activity đang finish() (user đã bấm DỪNG) để tránh re-launch gây double-open MDM.
-        if (AlarmService.isRunning && !isFinishing) {
+        if (AlarmService.isRunning && !isFinishing && !SamsungLockHelper.isLockJustSent()) {
 
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             val isInteractive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
