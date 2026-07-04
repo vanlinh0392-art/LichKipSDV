@@ -66,6 +66,20 @@ class AlarmReceiver : BroadcastReceiver() {
                         val success = SamsungLockHelper.sendLockIntent(context)
                         if (success) {
                             Log.d(TAG, "Gửi MDM thành công trực tiếp từ Receiver, kết thúc luồng")
+                            // Rung phản hồi nhẹ (Haptic Feedback)
+                            try {
+                                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                    vibrator.vibrate(android.os.VibrationEffect.createOneShot(150, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    vibrator.vibrate(150)
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Không thể rung phản hồi: ${e.message}")
+                            }
+                            // Hiển thị Toast thông báo visual
+                            android.widget.Toast.makeText(context, "⏰ [Lịch Kíp] Tự động on MDM & Lên lịch ca tiếp theo", android.widget.Toast.LENGTH_SHORT).show()
                             return
                         }
                     }
