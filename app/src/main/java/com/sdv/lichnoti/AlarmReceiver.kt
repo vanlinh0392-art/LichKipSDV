@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.app.PendingIntent
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -54,6 +55,21 @@ class AlarmReceiver : BroadcastReceiver() {
 
                 // Chỉ chạy báo thức nếu kíp có ca làm thực tế (không phải ca nghỉ) và không cấu hình bỏ qua ngày Lễ
                 if (shiftInfo.type != ShiftCalculator.ShiftType.NGHI && !shouldSkipAlarm) {
+                    // ĐÁNH CHẶN KHI MÀN HÌNH ĐANG MỞ: Mở thẳng MDM mà không phát chuông reo
+                    val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                    val hasOverlay = Settings.canDrawOverlays(context)
+                    Log.d(TAG, "Đánh chặn kiểm tra: autoSendMdmOnScreen=${prefs.autoSendMdmOnScreen}, autoLockSamsung=${prefs.autoLockSamsung}, hasOverlay=$hasOverlay, isInteractive=${pm.isInteractive}")
+                    if (prefs.autoSendMdmOnScreen && prefs.autoLockSamsung && hasOverlay && pm.isInteractive) {
+                        Log.d(TAG, "Màn hình đang mở -> Kích hoạt thẳng MDM không phát chuông báo thức")
+                        NotificationScheduler.scheduleNext(context)
+                        SamsungLockHelper.resetDebounce()
+                        val success = SamsungLockHelper.sendLockIntent(context)
+                        if (success) {
+                            Log.d(TAG, "Gửi MDM thành công trực tiếp từ Receiver, kết thúc luồng")
+                            return
+                        }
+                    }
+
                     if (prefs.snoozeDuration == 0) {
                         // Người dùng cấu hình "Không" sử dụng báo thức full màn reo chuông
                         // Chỉ hiển thị notification nhắc nhở dán cam thông thường và lên lịch ca tiếp theo
