@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 
@@ -85,6 +86,13 @@ object SamsungLockHelper {
             return false
         }
 
+        // Kiểm tra quyền Overlay — lớp bảo vệ cuối cùng
+        if (!Settings.canDrawOverlays(context)) {
+            Log.w(TAG, "[FOREGROUND] Không có quyền Overlay — tự động tắt autoLockSamsung")
+            AppPreferences(context).autoLockSamsung = false
+            return false
+        }
+
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         Log.d(TAG, "[FOREGROUND] Gửi lock intent | isInteractive=${pm.isInteractive} | caller=${context.javaClass.simpleName}")
 
@@ -106,6 +114,13 @@ object SamsungLockHelper {
     fun sendLockIntentWithDelay(context: Context) {
         if (!isVSelfLockInstalled(context)) {
             Log.w(TAG, "VSelfLock chưa cài — bỏ qua")
+            return
+        }
+
+        // Kiểm tra quyền Overlay — lớp bảo vệ cuối cùng
+        if (!Settings.canDrawOverlays(context)) {
+            Log.w(TAG, "[BACKGROUND] Không có quyền Overlay — tự động tắt autoLockSamsung")
+            AppPreferences(context).autoLockSamsung = false
             return
         }
 

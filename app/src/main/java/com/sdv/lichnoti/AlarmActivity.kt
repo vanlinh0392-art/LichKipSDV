@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -27,7 +28,8 @@ class AlarmActivity : AppCompatActivity() {
 
         // Auto-send MDM khi màn hình đang mở & không khóa
         val prefsCheck = AppPreferences(this)
-        if (prefsCheck.autoSendMdmOnScreen && prefsCheck.autoLockSamsung) {
+        if (prefsCheck.autoSendMdmOnScreen && prefsCheck.autoLockSamsung
+            && Settings.canDrawOverlays(this)) {
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             val km = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
             if (pm.isInteractive && !km.isKeyguardLocked) {

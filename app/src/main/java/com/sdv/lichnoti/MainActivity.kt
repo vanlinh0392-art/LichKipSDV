@@ -47,6 +47,9 @@ class MainActivity : AppCompatActivity() {
     private var currentYear = 2026
     private var currentMonth = 6
 
+    // Flag đánh dấu đang chờ người dùng cấp quyền Overlay từ Settings
+    private var pendingOverlayPermission = false
+
     // Tự động kiểm tra pin khi quay lại app
     private lateinit var cardBatteryWarning: CardView
 
@@ -123,13 +126,36 @@ class MainActivity : AppCompatActivity() {
         // Đồng bộ trạng thái switch thông báo
         findViewById<SwitchMaterial>(R.id.switchNotificationDrawer).isChecked = prefs.notificationEnabled
 
-        // Đồng bộ trạng thái switch khóa Samsung (Kiểm tra và nhắc nhở quyền vẽ lên ứng dụng khác)
+        // Đồng bộ trạng thái switch khóa Samsung — TỰ ĐỘNG TẮT nếu mất quyền Overlay
         val hasOverlayPermission = Settings.canDrawOverlays(this)
         val switchAutoLockSamsung = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)
         if (switchAutoLockSamsung != null) {
-            switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
             if (prefs.autoLockSamsung && !hasOverlayPermission) {
-                Toast.makeText(this, "auto MDM cần cấp lại quyền 'Xuất hiện trên cùng'!", Toast.LENGTH_LONG).show()
+                // Quyền đã bị thu hồi → tắt auto MDM và thông báo cho người dùng
+                prefs.autoLockSamsung = false
+                switchAutoLockSamsung.isChecked = false
+                // Ẩn switch con "Tự động on MDM khi màn hình mở"
+                findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = View.GONE
+                Toast.makeText(
+                    this,
+                    "auto MDM đã tắt do bị thu hồi quyền 'Xuất hiện trên cùng'. Hãy bật lại và cấp quyền.",
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
+            }
+
+            // Xử lý khi quay về từ Settings cấp quyền Overlay
+            if (pendingOverlayPermission) {
+                pendingOverlayPermission = false
+                if (hasOverlayPermission) {
+                    prefs.autoLockSamsung = true
+                    switchAutoLockSamsung.isChecked = true
+                    findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = if (!prefs.calendarVisible) View.VISIBLE else View.GONE
+                    Toast.makeText(this, "Đã cấp quyền và bật auto MDM!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Chưa cấp quyền — auto MDM vẫn tắt", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -606,6 +632,12 @@ class MainActivity : AppCompatActivity() {
                         .setMessage("Để tự động gửi tín hiệu on mdm khi báo thức chạy nền hoặc khi màn hình đang tắt, ứng dụng cần quyền 'Xuất hiện trên cùng'. Vui lòng cấp quyền này ở màn hình tiếp theo.")
                         .setPositiveButton("Cấp quyền") { dialog, _ ->
                             dialog.dismiss()
+                            // Tạm tắt switch cho đến khi quay về từ Settings
+                            buttonView.setOnCheckedChangeListener(null)
+                            buttonView.isChecked = false
+                            buttonView.setOnCheckedChangeListener(autoLockListener)
+                            // Đánh dấu đang chờ cấp quyền — onResume sẽ xử lý khi quay về
+                            pendingOverlayPermission = true
                             try {
                                 val intent = Intent(
                                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -613,6 +645,7 @@ class MainActivity : AppCompatActivity() {
                                 )
                                 startActivity(intent)
                             } catch (e: Exception) {
+                                pendingOverlayPermission = false
                                 Toast.makeText(this@MainActivity, "Không thể mở màn hình cài đặt quyền", Toast.LENGTH_LONG).show()
                             }
                         }
