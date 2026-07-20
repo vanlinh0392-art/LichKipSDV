@@ -130,6 +130,7 @@
         setupSettings();
         setupNavigation();
         setupThemeToggle();
+        setupHeaderScrollBehavior();
     }
 
     // ── Apply Colors to CSS vars ─────────────────────
@@ -496,6 +497,62 @@
             
             container.appendChild(sw);
         });
+    }
+
+    function setupHeaderScrollBehavior() {
+        const header = document.querySelector('.app-header');
+        if (!header) return;
+
+        let lastScrollY = window.scrollY;
+        let touchStartY = 0;
+        let isHeaderHidden = false;
+
+        // 1. Dựa trên sự kiện cuộn trang (Scroll)
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            
+            // Chỉ ẩn khi cuộn xuống đáng kể (> 30px)
+            if (currentScrollY > 30 && currentScrollY > lastScrollY) {
+                if (!isHeaderHidden) {
+                    header.classList.add('header-hidden');
+                    isHeaderHidden = true;
+                }
+            } else if (currentScrollY < lastScrollY) {
+                if (isHeaderHidden) {
+                    header.classList.remove('header-hidden');
+                    isHeaderHidden = false;
+                }
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+
+        // 2. Dựa trên vuốt chạm (Touch) hỗ trợ cả màn hình không cuộn được
+        window.addEventListener('touchstart', e => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', e => {
+            const touchY = e.touches[0].clientY;
+            const diffY = touchStartY - touchY;
+
+            // Ngưỡng vuốt tối thiểu để tránh nhạy quá (15px)
+            if (Math.abs(diffY) > 15) {
+                if (diffY > 0) {
+                    // Vuốt lên (cuộn nội dung xuống) -> Ẩn header
+                    if (!isHeaderHidden) {
+                        header.classList.add('header-hidden');
+                        isHeaderHidden = true;
+                    }
+                } else {
+                    // Vuốt xuống (cuộn nội dung lên) -> Hiện header
+                    if (isHeaderHidden) {
+                        header.classList.remove('header-hidden');
+                        isHeaderHidden = false;
+                    }
+                }
+                touchStartY = touchY;
+            }
+        }, { passive: true });
     }
 
     // ── Start ────────────────────────────────────────
