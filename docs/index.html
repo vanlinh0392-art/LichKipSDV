@@ -27,44 +27,47 @@
             </div>
         </header>
 
-        <!-- Crew Selector -->
-        <div class="crew-selector">
-            <button class="crew-btn active" data-crew="A">Kíp A</button>
-            <button class="crew-btn" data-crew="B">Kíp B</button>
-            <button class="crew-btn" data-crew="C">Kíp C</button>
-            <button class="crew-btn" data-crew="HC">HC</button>
+        <!-- Main Content -->
+        <div class="app-content">
+            <!-- Crew Selector -->
+            <div class="crew-selector">
+                <button class="crew-btn active" data-crew="A">Kíp A</button>
+                <button class="crew-btn" data-crew="B">Kíp B</button>
+                <button class="crew-btn" data-crew="C">Kíp C</button>
+                <button class="crew-btn" data-crew="HC">HC</button>
+            </div>
+
+            <!-- HO Stats -->
+            <div class="ho-stats" id="hoStats"></div>
+
+            <!-- Month Navigation -->
+            <div class="month-nav">
+                <button id="btnPrev" class="btn-nav" aria-label="Tháng trước">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <h2 id="monthTitle" class="month-title"></h2>
+                <button id="btnNext" class="btn-nav" aria-label="Tháng sau">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-wrapper">
+                <div class="day-headers" id="dayHeaders"></div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item"><span class="legend-dot day"></span>Ca Ngày</div>
+                <div class="legend-item"><span class="legend-dot night"></span>Ca Đêm</div>
+                <div class="legend-item"><span class="legend-dot off"></span>Nghỉ</div>
+                <div class="legend-item"><span class="legend-dot ho"></span>Ngày HO / Lễ</div>
+            </div>
+
+            <!-- Today Button -->
+            <button id="btnToday" class="btn-today">Hôm Nay</button>
         </div>
-
-        <!-- HO Stats -->
-        <div class="ho-stats" id="hoStats"></div>
-
-        <!-- Month Navigation -->
-        <div class="month-nav">
-            <button id="btnPrev" class="btn-nav" aria-label="Tháng trước">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <h2 id="monthTitle" class="month-title"></h2>
-            <button id="btnNext" class="btn-nav" aria-label="Tháng sau">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
-        </div>
-
-        <!-- Calendar Grid -->
-        <div class="calendar-wrapper">
-            <div class="day-headers" id="dayHeaders"></div>
-            <div class="calendar-grid" id="calendarGrid"></div>
-        </div>
-
-        <!-- Legend -->
-        <div class="legend">
-            <div class="legend-item"><span class="legend-dot day"></span>Ca Ngày</div>
-            <div class="legend-item"><span class="legend-dot night"></span>Ca Đêm</div>
-            <div class="legend-item"><span class="legend-dot off"></span>Nghỉ</div>
-            <div class="legend-item"><span class="legend-dot ho"></span>Ngày HO / Lễ</div>
-        </div>
-
-        <!-- Today Button -->
-        <button id="btnToday" class="btn-today">Hôm Nay</button>
     </div>
 
     <!-- Settings Panel -->
