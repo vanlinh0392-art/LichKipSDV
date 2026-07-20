@@ -507,17 +507,26 @@
         let touchStartY = 0;
         let isHeaderHidden = false;
 
-        // 1. Dựa trên sự kiện cuộn trang (Scroll)
+        // 1. Dựa trên sự kiện cuộn trang (Scroll) - Mượt mà nhất cho thiết bị
         window.addEventListener('scroll', () => {
             const currentScrollY = window.scrollY;
             
-            // Chỉ ẩn khi cuộn xuống đáng kể (> 30px)
-            if (currentScrollY > 30 && currentScrollY > lastScrollY) {
-                if (!isHeaderHidden) {
-                    header.classList.add('header-hidden');
-                    isHeaderHidden = true;
+            if (currentScrollY > 20) {
+                if (currentScrollY > lastScrollY) {
+                    // Cuộn xuống -> Ẩn header
+                    if (!isHeaderHidden) {
+                        header.classList.add('header-hidden');
+                        isHeaderHidden = true;
+                    }
+                } else if (currentScrollY < lastScrollY - 5) { // Khoảng đệm 5px tránh nhạy quá
+                    // Cuộn lên -> Hiện header
+                    if (isHeaderHidden) {
+                        header.classList.remove('header-hidden');
+                        isHeaderHidden = false;
+                    }
                 }
-            } else if (currentScrollY < lastScrollY) {
+            } else {
+                // Ở sát trên cùng thì luôn hiện header
                 if (isHeaderHidden) {
                     header.classList.remove('header-hidden');
                     isHeaderHidden = false;
@@ -526,25 +535,33 @@
             lastScrollY = currentScrollY;
         }, { passive: true });
 
-        // 2. Dựa trên vuốt chạm (Touch) hỗ trợ cả màn hình không cuộn được
+        // 2. Dựa trên vuốt chạm (Touch) - Chỉ xử lý khi trang không cuộn được để tránh xung đột
         window.addEventListener('touchstart', e => {
             touchStartY = e.touches[0].clientY;
         }, { passive: true });
 
         window.addEventListener('touchmove', e => {
+            // Kiểm tra xem trang có thể cuộn thực tế hay không
+            const docHeight = document.documentElement.scrollHeight;
+            const winHeight = window.innerHeight;
+            const isScrollable = docHeight > winHeight + 10;
+
+            // Nếu trang có thể cuộn, hãy để sự kiện scroll xử lý để mượt mà nhất
+            if (isScrollable) return;
+
             const touchY = e.touches[0].clientY;
             const diffY = touchStartY - touchY;
 
-            // Ngưỡng vuốt tối thiểu để tránh nhạy quá (15px)
-            if (Math.abs(diffY) > 15) {
+            // Ngưỡng vuốt tối thiểu để trigger
+            if (Math.abs(diffY) > 25) {
                 if (diffY > 0) {
-                    // Vuốt lên (cuộn nội dung xuống) -> Ẩn header
+                    // Vuốt lên -> Ẩn header
                     if (!isHeaderHidden) {
                         header.classList.add('header-hidden');
                         isHeaderHidden = true;
                     }
                 } else {
-                    // Vuốt xuống (cuộn nội dung lên) -> Hiện header
+                    // Vuốt xuống -> Hiện header
                     if (isHeaderHidden) {
                         header.classList.remove('header-hidden');
                         isHeaderHidden = false;

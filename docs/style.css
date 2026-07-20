@@ -75,16 +75,15 @@ body {
 
 /* ── Header ───────────────────────────────────── */
 .app-header {
-    padding: 8px 0 6px;
+    padding: 6px 0;
     position: sticky;
     top: 0;
     z-index: 10;
     background: var(--bg-primary);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 }
 .app-header.header-hidden {
     transform: translateY(-100%);
-    margin-top: -54px;
     opacity: 0;
     pointer-events: none;
 }
@@ -94,7 +93,7 @@ body {
     justify-content: space-between;
 }
 .app-header h1 {
-    font-size: 22px;
+    font-size: 17px;
     font-weight: 800;
     background: linear-gradient(135deg, #a78bfa, #6366f1, #818cf8);
     -webkit-background-clip: text;
@@ -105,8 +104,8 @@ body {
     background: var(--bg-card);
     border: 1px solid var(--divider);
     color: var(--text-secondary);
-    border-radius: 10px;
-    width: 40px; height: 40px;
+    border-radius: 8px;
+    width: 34px; height: 34px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     transition: var(--transition);
