@@ -1234,14 +1234,70 @@
             </LinearLayout>
 
             <!-- HO Border Color Section -->
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🌸 Viền Ngày HO:"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface"
-                android:layout_marginBottom="4dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🌸 Viền Ngày HO:"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/border_width_bg"
+                    android:padding="2dp">
+
+                    <TextView
+                        android:id="@+id/btnBorderThin"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mảnh"
+                        android:textSize="11sp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/on_surface"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground" />
+
+                    <TextView
+                        android:id="@+id/btnBorderMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Vừa"
+                        android:textSize="11sp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/on_surface"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground" />
+
+                    <TextView
+                        android:id="@+id/btnBorderThick"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dày"
+                        android:textSize="11sp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/on_surface"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground" />
+                </LinearLayout>
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

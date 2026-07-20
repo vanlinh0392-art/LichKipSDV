@@ -373,6 +373,12 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnColorHo7).setOnClickListener { prefs.hoBorderColor = "#F97316"; updateColorSelectionIndicators(); onSettingsChanged() }
         findViewById<View>(R.id.btnColorHo8).setOnClickListener { prefs.hoBorderColor = "#14B8A6"; updateColorSelectionIndicators(); onSettingsChanged() }
 
+        // Kích thước viền HO Click Listeners
+        findViewById<View>(R.id.btnBorderThin).setOnClickListener { prefs.hoBorderWidth = 1; updateBorderWidthIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnBorderMedium).setOnClickListener { prefs.hoBorderWidth = 2; updateBorderWidthIndicators(); onSettingsChanged() }
+        findViewById<View>(R.id.btnBorderThick).setOnClickListener { prefs.hoBorderWidth = 3; updateBorderWidthIndicators(); onSettingsChanged() }
+        updateBorderWidthIndicators()
+
         // 5. About & Update Button
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             showAboutDialog()
@@ -451,6 +457,20 @@ class MainActivity : AppCompatActivity() {
         for (i in hoColors.indices) {
             findViewById<View>(hoIds[i]).alpha = if (prefs.hoBorderColor.equals(hoColors[i], ignoreCase = true)) 1.0f else 0.4f
         }
+    }
+
+    private fun updateBorderWidthIndicators() {
+        val currentWidth = prefs.hoBorderWidth
+        val btnThin = findViewById<android.widget.TextView>(R.id.btnBorderThin)
+        val btnMedium = findViewById<android.widget.TextView>(R.id.btnBorderMedium)
+        val btnThick = findViewById<android.widget.TextView>(R.id.btnBorderThick)
+        btnThin.alpha = if (currentWidth == 1) 1.0f else 0.4f
+        btnMedium.alpha = if (currentWidth == 2) 1.0f else 0.4f
+        btnThick.alpha = if (currentWidth == 3) 1.0f else 0.4f
+        // Bold nút đang chọn
+        btnThin.setTypeface(null, if (currentWidth == 1) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        btnMedium.setTypeface(null, if (currentWidth == 2) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        btnThick.setTypeface(null, if (currentWidth == 3) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
     }
 
     private fun onSettingsChanged() {
@@ -970,10 +990,11 @@ class MainActivity : AppCompatActivity() {
                 setStroke((2 * density).toInt(), ContextCompat.getColor(this@MainActivity, R.color.today_ring))
             } else if (!isOfficialHoliday && shiftInfo.isHoliday) {
                 val isDarkMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-                val strokePx = if (isDarkMode) {
-                    (0.5f * density).toInt().coerceAtLeast(1)
-                } else {
-                    Math.round(0.65f * density).coerceAtLeast(1)
+                val strokePx = when (prefs.hoBorderWidth) {
+                    1 -> if (isDarkMode) (0.5f * density).toInt().coerceAtLeast(1) else Math.round(0.65f * density).coerceAtLeast(1)
+                    2 -> (1.2f * density).toInt().coerceAtLeast(1)
+                    3 -> (2.0f * density).toInt().coerceAtLeast(2)
+                    else -> (0.5f * density).toInt().coerceAtLeast(1)
                 }
                 val hoColorHex = prefs.hoBorderColor
                 val hoColorVal = Color.parseColor(hoColorHex)

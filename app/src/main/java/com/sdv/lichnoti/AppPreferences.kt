@@ -21,6 +21,7 @@ class AppPreferences(context: Context) {
         private const val KEY_DAY_COLOR = "day_color"
         private const val KEY_NIGHT_COLOR = "night_color"
         private const val KEY_HO_BORDER_COLOR = "ho_border_color"
+        private const val KEY_HO_BORDER_WIDTH = "ho_border_width"
         private const val KEY_NOTIFICATION_CONTENT = "notification_content"
         private const val KEY_SNOOZE_DURATION = "snooze_duration"
         private const val KEY_LAST_UPDATE_CHECK_TIME = "last_update_check_time"
@@ -111,6 +112,11 @@ class AppPreferences(context: Context) {
     var hoBorderColor: String
         get() = prefs.getString(KEY_HO_BORDER_COLOR, "#EC4899") ?: "#EC4899"
         set(value) = prefs.edit().putString(KEY_HO_BORDER_COLOR, value).apply()
+
+    // Kích thước viền ngày HO: 1 = Mảnh, 2 = Vừa (mặc định), 3 = Dày
+    var hoBorderWidth: Int
+        get() = prefs.getInt(KEY_HO_BORDER_WIDTH, 1)
+        set(value) = prefs.edit().putInt(KEY_HO_BORDER_WIDTH, value).apply()
 
     var notificationContent: String
         get() = prefs.getString(KEY_NOTIFICATION_CONTENT, "Hãy dán cam hoặc mở app MDM") ?: "Hãy dán cam hoặc mở app MDM"
