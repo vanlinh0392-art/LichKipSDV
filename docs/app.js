@@ -9,13 +9,93 @@
     let currentMonth = today.getMonth(); // 0-indexed
     let currentYear = today.getFullYear();
 
+    // ── Bảng màu tùy chọn ─────────────────────────────
+    const LIGHT_COLORS = {
+        day: [
+            { bg: '#fef3c7', text: '#b45309' },
+            { bg: '#fee2e2', text: '#b91c1c' },
+            { bg: '#d1fae5', text: '#047857' },
+            { bg: '#dbeafe', text: '#1d4ed8' },
+            { bg: '#f3e8ff', text: '#6b21a8' },
+            { bg: '#fce7f3', text: '#be185d' },
+            { bg: '#ffedd5', text: '#c2410c' },
+            { bg: '#ccfbf1', text: '#0f766e' }
+        ],
+        night: [
+            { bg: '#e9d5ff', text: '#6b21a8' },
+            { bg: '#e0e7ff', text: '#3730a3' },
+            { bg: '#e0f2fe', text: '#0369a1' },
+            { bg: '#d1fae5', text: '#065f46' },
+            { bg: '#f1f5f9', text: '#334155' },
+            { bg: '#ffe4e6', text: '#9f1239' },
+            { bg: '#ffe4e6', text: '#be123c' },
+            { bg: '#ccfbf1', text: '#0d9488' }
+        ],
+        ho: [
+            { bg: '#fbcfe8', text: '#be185d' },
+            { bg: '#fecaca', text: '#b91c1c' },
+            { bg: '#fef3c7', text: '#b45309' },
+            { bg: '#a7f3d0', text: '#047857' },
+            { bg: '#bfdbfe', text: '#1d4ed8' },
+            { bg: '#ddd6fe', text: '#6b21a8' },
+            { bg: '#fed7aa', text: '#c2410c' },
+            { bg: '#99f6e4', text: '#0f766e' }
+        ]
+    };
+
+    const DARK_COLORS = {
+        day: [
+            { bg: '#D97706', text: '#ffffff' },
+            { bg: '#DC2626', text: '#ffffff' },
+            { bg: '#059669', text: '#ffffff' },
+            { bg: '#2563EB', text: '#ffffff' },
+            { bg: '#7C3AED', text: '#ffffff' },
+            { bg: '#DB2777', text: '#ffffff' },
+            { bg: '#EA580C', text: '#ffffff' },
+            { bg: '#0D9488', text: '#ffffff' }
+        ],
+        night: [
+            { bg: '#6D28D9', text: '#ffffff' },
+            { bg: '#1E3A8A', text: '#ffffff' },
+            { bg: '#3B82F6', text: '#ffffff' },
+            { bg: '#047857', text: '#ffffff' },
+            { bg: '#475569', text: '#ffffff' },
+            { bg: '#7F1D1D', text: '#ffffff' },
+            { bg: '#9F1239', text: '#ffffff' },
+            { bg: '#0F766E', text: '#ffffff' }
+        ],
+        ho: [
+            { bg: '#EC4899', text: '#ffffff' },
+            { bg: '#EF4444', text: '#ffffff' },
+            { bg: '#F59E0B', text: '#ffffff' },
+            { bg: '#10B981', text: '#ffffff' },
+            { bg: '#3B82F6', text: '#ffffff' },
+            { bg: '#8B5CF6', text: '#ffffff' },
+            { bg: '#F97316', text: '#ffffff' },
+            { bg: '#14B8A6', text: '#ffffff' }
+        ]
+    };
+
     // ── Preferences (localStorage) ───────────────────
     const STORAGE_KEY = 'lichkip_prefs';
     const defaults = {
         crew: 'A',
-        dayColor: '#D97706',
-        nightColor: '#6D28D9',
-        hoColor: '#EC4899',
+        theme: 'light', // Mặc định là ban ngày (Light Mode)
+        
+        // Màu sắc cho Light Mode (Mặc định nhạt pastel)
+        dayColorLight: '#fef3c7',
+        dayTextLight: '#b45309',
+        nightColorLight: '#f3e8ff',
+        nightTextLight: '#6b21a8',
+        hoColorLight: '#fbcfe8',
+        
+        // Màu sắc cho Dark Mode (Đậm)
+        dayColorDark: '#D97706',
+        dayTextDark: '#ffffff',
+        nightColorDark: '#6D28D9',
+        nightTextDark: '#ffffff',
+        hoColorDark: '#EC4899',
+        
         hoBorderWidth: 2,
         mergeMonths: true,
         hideHolidayShift: false
@@ -42,28 +122,71 @@
 
     // ── Init ─────────────────────────────────────────
     function init() {
-        applyColors();
+        applyTheme();
         renderDayHeaders();
         renderCrewSelector();
         renderCalendar();
         renderHOStats();
         setupSettings();
         setupNavigation();
+        setupThemeToggle();
     }
 
     // ── Apply Colors to CSS vars ─────────────────────
     function applyColors() {
         const root = document.documentElement.style;
-        root.setProperty('--day-color', prefs.dayColor);
-        root.setProperty('--night-color', prefs.nightColor);
-        root.setProperty('--ho-border', prefs.hoColor);
+        const isDark = prefs.theme === 'dark';
+        
+        const dayColor = isDark ? prefs.dayColorDark : prefs.dayColorLight;
+        const dayText = isDark ? prefs.dayTextDark : prefs.dayTextLight;
+        const nightColor = isDark ? prefs.nightColorDark : prefs.nightColorLight;
+        const nightText = isDark ? prefs.nightTextDark : prefs.nightTextLight;
+        const hoColor = isDark ? prefs.hoColorDark : prefs.hoColorLight;
+
+        root.setProperty('--day-color', dayColor);
+        root.setProperty('--day-text', dayText);
+        root.setProperty('--night-color', nightColor);
+        root.setProperty('--night-text', nightText);
+        root.setProperty('--ho-border', hoColor);
+        
         const widthMap = { 1: '1px', 2: '2px', 3: '3px' };
         root.setProperty('--ho-border-width', widthMap[prefs.hoBorderWidth] || '2px');
 
         // Update legend dots
-        document.querySelectorAll('.legend-dot.day').forEach(d => d.style.background = prefs.dayColor);
-        document.querySelectorAll('.legend-dot.night').forEach(d => d.style.background = prefs.nightColor);
-        document.querySelectorAll('.legend-dot.ho').forEach(d => d.style.borderColor = prefs.hoColor);
+        document.querySelectorAll('.legend-dot.day').forEach(d => d.style.background = dayColor);
+        document.querySelectorAll('.legend-dot.night').forEach(d => d.style.background = nightColor);
+        document.querySelectorAll('.legend-dot.ho').forEach(d => d.style.borderColor = hoColor);
+    }
+
+    // ── Apply Theme (Light/Dark) ──────────────────────
+    function applyTheme() {
+        const isDark = prefs.theme === 'dark';
+        document.body.classList.toggle('dark-theme', isDark);
+        
+        // Render icon
+        const toggleBtn = $('btnThemeToggle');
+        if (toggleBtn) {
+            if (isDark) {
+                // Biểu tượng mặt trời (khi click sẽ đổi sang Light)
+                toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+            } else {
+                // Biểu tượng mặt trăng (khi click sẽ đổi sang Dark)
+                toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+            }
+        }
+        
+        applyColors();
+        updateColorSwatchesUI();
+    }
+
+    function setupThemeToggle() {
+        $('btnThemeToggle').addEventListener('click', () => {
+            prefs.theme = prefs.theme === 'dark' ? 'light' : 'dark';
+            savePrefs(prefs);
+            applyTheme();
+            renderCalendar();
+            renderHOStats();
+        });
     }
 
     // ── Day Headers ──────────────────────────────────
@@ -310,12 +433,8 @@
             renderCalendar();
         });
 
-        // Day Colors
-        setupColorPicker('dayColors', 'dayColor');
-        // Night Colors
-        setupColorPicker('nightColors', 'nightColor');
-        // HO Colors
-        setupColorPicker('hoColors', 'hoColor');
+        // Khởi tạo các Swatches màu
+        updateColorSwatchesUI();
 
         // Border Width
         document.querySelectorAll('#borderWidthPicker .bw-btn').forEach(btn => {
@@ -332,18 +451,50 @@
         });
     }
 
-    function setupColorPicker(containerId, prefKey) {
-        const container = document.getElementById(containerId);
-        container.querySelectorAll('.color-swatch').forEach(sw => {
-            sw.classList.toggle('active', sw.dataset.color.toUpperCase() === prefs[prefKey].toUpperCase());
+    function updateColorSwatchesUI() {
+        const isDark = prefs.theme === 'dark';
+        const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
+        
+        // Cập nhật từng loại swatch
+        updateSwatches('dayColors', colors.day, isDark ? 'dayColorDark' : 'dayColorLight', isDark ? 'dayTextDark' : 'dayTextLight');
+        updateSwatches('nightColors', colors.night, isDark ? 'nightColorDark' : 'nightColorLight', isDark ? 'nightTextDark' : 'nightTextLight');
+        updateSwatches('hoColors', colors.ho, isDark ? 'hoColorDark' : 'hoColorLight');
+    }
+
+    function updateSwatches(containerId, colorList, prefKeyColor, prefKeyText = null) {
+        const container = $(containerId);
+        if (!container) return;
+        
+        container.innerHTML = '';
+        const activeColor = prefs[prefKeyColor];
+        
+        colorList.forEach(c => {
+            const sw = document.createElement('div');
+            sw.className = 'color-swatch';
+            sw.style.background = c.bg;
+            sw.dataset.color = c.bg;
+            if (c.text) {
+                sw.dataset.text = c.text;
+            }
+            
+            const isActive = activeColor.toUpperCase() === c.bg.toUpperCase();
+            sw.classList.toggle('active', isActive);
+            
             sw.addEventListener('click', () => {
-                prefs[prefKey] = sw.dataset.color;
+                prefs[prefKeyColor] = c.bg;
+                if (prefKeyText && c.text) {
+                    prefs[prefKeyText] = c.text;
+                }
                 savePrefs(prefs);
+                
                 container.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
                 sw.classList.add('active');
+                
                 applyColors();
                 renderCalendar();
             });
+            
+            container.appendChild(sw);
         });
     }
 

@@ -2,6 +2,37 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+    /* ☀️ Light Mode (Mặc định) */
+    --bg-primary: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-surface: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --accent: #4f46e5;
+    --accent-glow: rgba(79, 70, 229, 0.1);
+    
+    /* Màu sắc ca kíp Light Mode nhạt hơn (Pastel) */
+    --day-color: #fef3c7;
+    --day-text: #b45309;
+    --night-color: #f3e8ff;
+    --night-text: #6b21a8;
+    --off-color: #f1f5f9;
+    --off-text: #64748b;
+    
+    --ho-border: #fbcfe8;
+    --ho-border-width: 2px;
+    --today-ring: #4f46e5;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --divider: rgba(15, 23, 42, 0.06);
+    --lunar-first-color: #ea580c;
+}
+
+body.dark-theme {
+    /* 🌙 Dark Mode */
     --bg-primary: #0f0f17;
     --bg-card: #1a1a2e;
     --bg-surface: #16213e;
@@ -10,16 +41,20 @@
     --text-muted: #5a5a78;
     --accent: #6366f1;
     --accent-glow: rgba(99, 102, 241, 0.3);
+    
+    /* Màu sắc ca kíp Dark Mode đậm đà hơn */
     --day-color: #D97706;
+    --day-text: #ffffff;
     --night-color: #6D28D9;
+    --night-text: #ffffff;
     --off-color: #374151;
+    --off-text: #9ca3af;
+    
     --ho-border: #EC4899;
-    --ho-border-width: 2px;
     --today-ring: #6366f1;
-    --radius: 12px;
-    --radius-sm: 8px;
-    --shadow: 0 8px 32px rgba(0,0,0,0.3);
-    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --divider: rgba(255, 255, 255, 0.06);
+    --lunar-first-color: #fb923c;
 }
 
 body {
@@ -61,7 +96,7 @@ body {
 }
 .btn-icon {
     background: var(--bg-card);
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid var(--divider);
     color: var(--text-secondary);
     border-radius: 10px;
     width: 40px; height: 40px;
@@ -78,7 +113,7 @@ body {
     padding: 4px;
     background: var(--bg-card);
     border-radius: var(--radius);
-    border: 1px solid rgba(255,255,255,0.04);
+    border: 1px solid var(--divider);
     margin-bottom: 16px;
 }
 .crew-btn {
@@ -229,22 +264,22 @@ body {
     font-size: 8px;
     font-weight: 500;
     line-height: 1;
-    opacity: 0.55;
-    color: #fcd34d;
+    opacity: 0.65;
+    color: inherit;
     position: absolute;
-    bottom: 2px;
+    bottom: 2.5px;
     left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
 }
 .cal-cell .lunar-text.lunar-first {
-    opacity: 0.8;
-    font-weight: 700;
-    color: #fb923c;
+    opacity: 0.95;
+    font-weight: 800;
+    color: var(--lunar-first-color, #ea580c);
 }
-.cal-cell.shift-day { background: var(--day-color); color: #fff; }
-.cal-cell.shift-night { background: var(--night-color); color: #fff; }
-.cal-cell.shift-off { background: var(--off-color); color: #9ca3af; }
+.cal-cell.shift-day { background: var(--day-color); color: var(--day-text); }
+.cal-cell.shift-night { background: var(--night-color); color: var(--night-text); }
+.cal-cell.shift-off { background: var(--off-color); color: var(--off-text); }
 .cal-cell.today {
     outline: 2.5px solid var(--today-ring);
     outline-offset: 1px;
