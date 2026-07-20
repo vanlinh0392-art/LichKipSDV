@@ -12,67 +12,67 @@
     // ── Bảng màu tùy chọn ─────────────────────────────
     const LIGHT_COLORS = {
         day: [
-            { bg: '#fef3c7', text: '#b45309' },
-            { bg: '#fee2e2', text: '#b91c1c' },
-            { bg: '#d1fae5', text: '#047857' },
-            { bg: '#dbeafe', text: '#1d4ed8' },
-            { bg: '#f3e8ff', text: '#6b21a8' },
-            { bg: '#fce7f3', text: '#be185d' },
-            { bg: '#ffedd5', text: '#c2410c' },
-            { bg: '#ccfbf1', text: '#0f766e' }
+            { bg: '#fbbf24', text: '#78350f' },
+            { bg: '#f87171', text: '#7f1d1d' },
+            { bg: '#34d399', text: '#064e3b' },
+            { bg: '#60a5fa', text: '#1e3a8a' },
+            { bg: '#a78bfa', text: '#4c1d95' },
+            { bg: '#f472b6', text: '#9d174d' },
+            { bg: '#fb923c', text: '#7c2d12' },
+            { bg: '#2dd4bf', text: '#115e59' }
         ],
         night: [
-            { bg: '#e9d5ff', text: '#6b21a8' },
-            { bg: '#e0e7ff', text: '#3730a3' },
-            { bg: '#e0f2fe', text: '#0369a1' },
-            { bg: '#d1fae5', text: '#065f46' },
-            { bg: '#f1f5f9', text: '#334155' },
-            { bg: '#ffe4e6', text: '#9f1239' },
-            { bg: '#ffe4e6', text: '#be123c' },
-            { bg: '#ccfbf1', text: '#0d9488' }
+            { bg: '#a78bfa', text: '#4c1d95' },
+            { bg: '#818cf8', text: '#312e81' },
+            { bg: '#38bdf8', text: '#0369a1' },
+            { bg: '#34d399', text: '#064e3b' },
+            { bg: '#94a3b8', text: '#1e293b' },
+            { bg: '#f87171', text: '#7f1d1d' },
+            { bg: '#fda4af', text: '#881337' },
+            { bg: '#2dd4bf', text: '#115e59' }
         ],
         ho: [
-            { bg: '#fbcfe8', text: '#be185d' },
-            { bg: '#fecaca', text: '#b91c1c' },
-            { bg: '#fef3c7', text: '#b45309' },
-            { bg: '#a7f3d0', text: '#047857' },
-            { bg: '#bfdbfe', text: '#1d4ed8' },
-            { bg: '#ddd6fe', text: '#6b21a8' },
-            { bg: '#fed7aa', text: '#c2410c' },
-            { bg: '#99f6e4', text: '#0f766e' }
+            { bg: '#ec4899', text: '#ffffff' },
+            { bg: '#ef4444', text: '#ffffff' },
+            { bg: '#f59e0b', text: '#ffffff' },
+            { bg: '#10b981', text: '#ffffff' },
+            { bg: '#3b82f6', text: '#ffffff' },
+            { bg: '#8b5cf6', text: '#ffffff' },
+            { bg: '#f97316', text: '#ffffff' },
+            { bg: '#14b8a6', text: '#ffffff' }
         ]
     };
 
     const DARK_COLORS = {
         day: [
-            { bg: '#D97706', text: '#ffffff' },
-            { bg: '#DC2626', text: '#ffffff' },
-            { bg: '#059669', text: '#ffffff' },
-            { bg: '#2563EB', text: '#ffffff' },
-            { bg: '#7C3AED', text: '#ffffff' },
-            { bg: '#DB2777', text: '#ffffff' },
-            { bg: '#EA580C', text: '#ffffff' },
-            { bg: '#0D9488', text: '#ffffff' }
+            { bg: '#fb923c', text: '#ffffff' },
+            { bg: '#f87171', text: '#ffffff' },
+            { bg: '#34d399', text: '#ffffff' },
+            { bg: '#60a5fa', text: '#ffffff' },
+            { bg: '#a78bfa', text: '#ffffff' },
+            { bg: '#f472b6', text: '#ffffff' },
+            { bg: '#fbbf24', text: '#1f2937' },
+            { bg: '#2dd4bf', text: '#ffffff' }
         ],
         night: [
-            { bg: '#6D28D9', text: '#ffffff' },
-            { bg: '#1E3A8A', text: '#ffffff' },
-            { bg: '#3B82F6', text: '#ffffff' },
-            { bg: '#047857', text: '#ffffff' },
-            { bg: '#475569', text: '#ffffff' },
-            { bg: '#7F1D1D', text: '#ffffff' },
-            { bg: '#9F1239', text: '#ffffff' },
-            { bg: '#0F766E', text: '#ffffff' }
+            { bg: '#8b5cf6', text: '#ffffff' },
+            { bg: '#6366f1', text: '#ffffff' },
+            { bg: '#38bdf8', text: '#ffffff' },
+            { bg: '#10b981', text: '#ffffff' },
+            { bg: '#64748b', text: '#ffffff' },
+            { bg: '#f87171', text: '#ffffff' },
+            { bg: '#fb7185', text: '#ffffff' },
+            { bg: '#14b8a6', text: '#ffffff' }
         ],
         ho: [
-            { bg: '#EC4899', text: '#ffffff' },
-            { bg: '#EF4444', text: '#ffffff' },
-            { bg: '#F59E0B', text: '#ffffff' },
-            { bg: '#10B981', text: '#ffffff' },
-            { bg: '#3B82F6', text: '#ffffff' },
-            { bg: '#8B5CF6', text: '#ffffff' },
-            { bg: '#F97316', text: '#ffffff' },
-            { bg: '#14B8A6', text: '#ffffff' }
+            { bg: '#f472b6', text: '#ffffff' },
+            { bg: '#fca5a5', text: '#ffffff' },
+            { bg: '#fde047', text: '#ffffff' },
+            { bg: '#86efac', text: '#ffffff' },
+            { bg: '#93c5fd', text: '#ffffff' },
+            { bg: '#c084fc', text: '#ffffff' },
+            { bg: '#fdba74', text: '#ffffff' },
+            { bg: '#99f6e4', text: '#ffffff' }
         ]
     };
 
@@ -82,19 +82,19 @@
         crew: 'A',
         theme: 'light', // Mặc định là ban ngày (Light Mode)
         
-        // Màu sắc cho Light Mode (Mặc định nhạt pastel)
-        dayColorLight: '#fef3c7',
-        dayTextLight: '#b45309',
-        nightColorLight: '#f3e8ff',
-        nightTextLight: '#6b21a8',
-        hoColorLight: '#fbcfe8',
+        // Màu sắc cho Light Mode (Mặc định đậm đà, rõ ràng)
+        dayColorLight: '#fbbf24',
+        dayTextLight: '#78350f',
+        nightColorLight: '#a78bfa',
+        nightTextLight: '#4c1d95',
+        hoColorLight: '#ec4899',
         
-        // Màu sắc cho Dark Mode (Đậm)
-        dayColorDark: '#D97706',
+        // Màu sắc cho Dark Mode (Nhạt, dịu mắt, tránh chói)
+        dayColorDark: '#fb923c',
         dayTextDark: '#ffffff',
-        nightColorDark: '#6D28D9',
+        nightColorDark: '#8b5cf6',
         nightTextDark: '#ffffff',
-        hoColorDark: '#EC4899',
+        hoColorDark: '#f472b6',
         
         hoBorderWidth: 2,
         mergeMonths: true,

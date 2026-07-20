@@ -12,15 +12,15 @@
     --accent: #4f46e5;
     --accent-glow: rgba(79, 70, 229, 0.1);
     
-    /* Màu sắc ca kíp Light Mode nhạt hơn (Pastel) */
-    --day-color: #fef3c7;
-    --day-text: #b45309;
-    --night-color: #f3e8ff;
-    --night-text: #6b21a8;
-    --off-color: #f1f5f9;
-    --off-text: #64748b;
+    /* Màu sắc ca kíp Light Mode đậm đà hơn để hiển thị rõ nét */
+    --day-color: #fbbf24;
+    --day-text: #78350f;
+    --night-color: #a78bfa;
+    --night-text: #4c1d95;
+    --off-color: #cbd5e1;
+    --off-text: #334155;
     
-    --ho-border: #fbcfe8;
+    --ho-border: #ec4899;
     --ho-border-width: 2px;
     --today-ring: #4f46e5;
     --radius: 12px;
@@ -42,15 +42,15 @@ body.dark-theme {
     --accent: #6366f1;
     --accent-glow: rgba(99, 102, 241, 0.3);
     
-    /* Màu sắc ca kíp Dark Mode đậm đà hơn */
-    --day-color: #D97706;
+    /* Màu sắc ca kíp Dark Mode nhạt và dịu mắt hơn (tránh chói) */
+    --day-color: #fb923c;
     --day-text: #ffffff;
-    --night-color: #6D28D9;
+    --night-color: #8b5cf6;
     --night-text: #ffffff;
     --off-color: #374151;
     --off-text: #9ca3af;
     
-    --ho-border: #EC4899;
+    --ho-border: #f472b6;
     --today-ring: #6366f1;
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     --divider: rgba(255, 255, 255, 0.06);
