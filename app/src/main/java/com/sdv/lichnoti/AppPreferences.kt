@@ -115,7 +115,7 @@ class AppPreferences(context: Context) {
 
     // Kích thước viền ngày HO: 1 = Mảnh, 2 = Vừa (mặc định), 3 = Dày
     var hoBorderWidth: Int
-        get() = prefs.getInt(KEY_HO_BORDER_WIDTH, 1)
+        get() = prefs.getInt(KEY_HO_BORDER_WIDTH, 2)
         set(value) = prefs.edit().putInt(KEY_HO_BORDER_WIDTH, value).apply()
 
     var notificationContent: String

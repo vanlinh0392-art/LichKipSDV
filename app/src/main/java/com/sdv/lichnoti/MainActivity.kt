@@ -582,7 +582,11 @@ class MainActivity : AppCompatActivity() {
         switchMergeMonths?.isChecked = prefs.mergeMonths
         switchMergeMonths?.setOnCheckedChangeListener { _, isChecked ->
             prefs.mergeMonths = isChecked
-            setupCalendar()
+            if (isChecked) {
+                setCalendarExpanded(true)
+            } else {
+                setupCalendar()
+            }
         }
 
         // Phục hồi trạng thái switch báo thức ngày Lễ
@@ -599,16 +603,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnToggle.setOnClickListener {
-            val nextState = !prefs.calendarVisible
-            prefs.calendarVisible = nextState
-            layoutHideHolidayShift.visibility = if (nextState) View.GONE else View.VISIBLE
-            layoutMergeMonths?.visibility = if (nextState) View.GONE else View.VISIBLE
-            layoutHolidayAlert?.visibility = if (nextState) View.GONE else View.VISIBLE
-            layoutAutoSendMdm?.visibility = if (nextState || !prefs.autoLockSamsung) View.GONE else View.VISIBLE
-            layoutDonation?.visibility = if (nextState) View.GONE else View.VISIBLE
-            btnToggle.setImageResource(if (nextState) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
-            updateMonthDisplay()
-            setupCalendar()
+            setCalendarExpanded(!prefs.calendarVisible)
         }
 
         // Đăng ký sự kiện vuốt trên toàn bộ vùng lịch
@@ -707,6 +702,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
         switchAutoLockSamsung.setOnCheckedChangeListener(autoLockListener)
+    }
+
+    private fun setCalendarExpanded(expanded: Boolean) {
+        prefs.calendarVisible = expanded
+        val layoutHideHolidayShift = findViewById<View>(R.id.layoutHideHolidayShift)
+        val layoutMergeMonths = findViewById<View>(R.id.layoutMergeMonths)
+        val layoutHolidayAlert = findViewById<View>(R.id.layoutHolidayAlert)
+        val layoutAutoSendMdm = findViewById<View>(R.id.layoutAutoSendMdm)
+        val layoutDonation = findViewById<View>(R.id.layoutDonation)
+        val btnToggle = findViewById<ImageButton>(R.id.btnToggleCalendarView)
+
+        layoutHideHolidayShift?.visibility = if (expanded) View.GONE else View.VISIBLE
+        layoutMergeMonths?.visibility = if (expanded) View.GONE else View.VISIBLE
+        layoutHolidayAlert?.visibility = if (expanded) View.GONE else View.VISIBLE
+        layoutAutoSendMdm?.visibility = if (expanded || !prefs.autoLockSamsung) View.GONE else View.VISIBLE
+        layoutDonation?.visibility = if (expanded) View.GONE else View.VISIBLE
+        btnToggle?.setImageResource(if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
+
+        updateMonthDisplay()
+        setupCalendar()
     }
 
     // ── Điều hướng tháng trước / tháng sau ──────────────────────────────
