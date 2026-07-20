@@ -200,7 +200,7 @@ body {
     margin-bottom: 4px;
 }
 .cal-cell {
-    aspect-ratio: 1;
+    aspect-ratio: 1.2;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
@@ -209,16 +209,17 @@ body {
     position: relative;
     cursor: default;
     transition: var(--transition);
-    min-height: 44px;
+    min-height: 40px;
+    padding-bottom: 5px;
 }
 .cal-cell:not(.empty):hover { transform: scale(1.08); z-index: 2; }
 .cal-cell .day-num {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     line-height: 1.2;
 }
 .cal-cell .shift-label {
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 600;
     line-height: 1;
     margin-top: 1px;
