@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Kíp SDV</title>
+    <meta name="description" content="Lịch xem ca kíp SDV - Xem lịch trình ca Ngày, ca Đêm, ngày Nghỉ và ngày HO cho các kíp A, B, C, HC.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>📅 Lịch Kíp SDV</h1>
+                <button id="btnSettings" class="btn-icon" aria-label="Cài đặt">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Crew Selector -->
+        <div class="crew-selector">
+            <button class="crew-btn active" data-crew="A">Kíp A</button>
+            <button class="crew-btn" data-crew="B">Kíp B</button>
+            <button class="crew-btn" data-crew="C">Kíp C</button>
+            <button class="crew-btn" data-crew="HC">HC</button>
+        </div>
+
+        <!-- HO Stats -->
+        <div class="ho-stats" id="hoStats"></div>
+
+        <!-- Month Navigation -->
+        <div class="month-nav">
+            <button id="btnPrev" class="btn-nav" aria-label="Tháng trước">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <h2 id="monthTitle" class="month-title"></h2>
+            <button id="btnNext" class="btn-nav" aria-label="Tháng sau">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar-wrapper">
+            <div class="day-headers" id="dayHeaders"></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item"><span class="legend-dot day"></span>Ca Ngày</div>
+            <div class="legend-item"><span class="legend-dot night"></span>Ca Đêm</div>
+            <div class="legend-item"><span class="legend-dot off"></span>Nghỉ</div>
+            <div class="legend-item"><span class="legend-dot ho"></span>Ngày HO / Lễ</div>
+        </div>
+
+        <!-- Today Button -->
+        <button id="btnToday" class="btn-today">Hôm Nay</button>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h2>⚙️ Tuỳ chỉnh giao diện</h2>
+                <button id="btnCloseSettings" class="btn-close">&times;</button>
+            </div>
+            <div class="settings-body">
+                <!-- Merge months -->
+                <div class="setting-row">
+                    <span class="setting-label">📆 Gộp 2 tháng liên tục</span>
+                    <label class="switch">
+                        <input type="checkbox" id="switchMerge">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Day color -->
+                <div class="setting-section">
+                    <span class="setting-label">☀️ Màu ca Ngày:</span>
+                    <div class="color-picker" id="dayColors">
+                        <div class="color-swatch" data-color="#D97706" style="background:#D97706"></div>
+                        <div class="color-swatch" data-color="#DC2626" style="background:#DC2626"></div>
+                        <div class="color-swatch" data-color="#059669" style="background:#059669"></div>
+                        <div class="color-swatch" data-color="#2563EB" style="background:#2563EB"></div>
+                        <div class="color-swatch" data-color="#7C3AED" style="background:#7C3AED"></div>
+                        <div class="color-swatch" data-color="#DB2777" style="background:#DB2777"></div>
+                        <div class="color-swatch" data-color="#EA580C" style="background:#EA580C"></div>
+                        <div class="color-swatch" data-color="#0D9488" style="background:#0D9488"></div>
+                    </div>
+                </div>
+
+                <!-- Night color -->
+                <div class="setting-section">
+                    <span class="setting-label">🌙 Màu ca Đêm:</span>
+                    <div class="color-picker" id="nightColors">
+                        <div class="color-swatch" data-color="#6D28D9" style="background:#6D28D9"></div>
+                        <div class="color-swatch" data-color="#1E3A8A" style="background:#1E3A8A"></div>
+                        <div class="color-swatch" data-color="#3B82F6" style="background:#3B82F6"></div>
+                        <div class="color-swatch" data-color="#047857" style="background:#047857"></div>
+                        <div class="color-swatch" data-color="#475569" style="background:#475569"></div>
+                        <div class="color-swatch" data-color="#7F1D1D" style="background:#7F1D1D"></div>
+                        <div class="color-swatch" data-color="#9F1239" style="background:#9F1239"></div>
+                        <div class="color-swatch" data-color="#0F766E" style="background:#0F766E"></div>
+                    </div>
+                </div>
+
+                <!-- HO Border Color -->
+                <div class="setting-section">
+                    <div class="setting-row-inline">
+                        <span class="setting-label">🌸 Viền ngày HO:</span>
+                        <div class="border-width-picker" id="borderWidthPicker">
+                            <button class="bw-btn" data-width="1">Mảnh</button>
+                            <button class="bw-btn" data-width="2">Vừa</button>
+                            <button class="bw-btn" data-width="3">Dày</button>
+                        </div>
+                    </div>
+                    <div class="color-picker" id="hoColors">
+                        <div class="color-swatch" data-color="#EC4899" style="background:#EC4899"></div>
+                        <div class="color-swatch" data-color="#EF4444" style="background:#EF4444"></div>
+                        <div class="color-swatch" data-color="#F59E0B" style="background:#F59E0B"></div>
+                        <div class="color-swatch" data-color="#10B981" style="background:#10B981"></div>
+                        <div class="color-swatch" data-color="#3B82F6" style="background:#3B82F6"></div>
+                        <div class="color-swatch" data-color="#8B5CF6" style="background:#8B5CF6"></div>
+                        <div class="color-swatch" data-color="#F97316" style="background:#F97316"></div>
+                        <div class="color-swatch" data-color="#14B8A6" style="background:#14B8A6"></div>
+                    </div>
+                </div>
+
+                <!-- Hide Holiday Shift -->
+                <div class="setting-row">
+                    <span class="setting-label">🚫 Ẩn ca ngày Lễ</span>
+                    <label class="switch">
+                        <input type="checkbox" id="switchHideHoliday">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="shift-calculator.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
