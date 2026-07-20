@@ -169,9 +169,35 @@ body {
 .day-header.weekend { color: #f87171; }
 
 .calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.calendar-grid.single {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 3px;
+}
+.month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+.month-sep-label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #a78bfa;
+    padding: 10px 0 4px;
+    letter-spacing: 0.5px;
+}
+.month-sep-label:first-child {
+    padding-top: 2px;
+}
+.inline-day-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
 }
 .cal-cell {
     aspect-ratio: 1;
@@ -197,6 +223,23 @@ body {
     line-height: 1;
     margin-top: 1px;
     opacity: 0.85;
+}
+.cal-cell .lunar-text {
+    font-size: 8px;
+    font-weight: 500;
+    line-height: 1;
+    opacity: 0.55;
+    color: #fcd34d;
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+.cal-cell .lunar-text.lunar-first {
+    opacity: 0.8;
+    font-weight: 700;
+    color: #fb923c;
 }
 .cal-cell.shift-day { background: var(--day-color); color: #fff; }
 .cal-cell.shift-night { background: var(--night-color); color: #fff; }
@@ -226,7 +269,8 @@ body {
 .cal-cell.official-holiday::after {
     content: 'Lễ';
     position: absolute;
-    bottom: 2px;
+    top: 2px;
+    left: 3px;
     font-size: 7px;
     font-weight: 800;
     color: #fbbf24;

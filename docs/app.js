@@ -17,7 +17,7 @@
         nightColor: '#6D28D9',
         hoColor: '#EC4899',
         hoBorderWidth: 2,
-        mergeMonths: false,
+        mergeMonths: true,
         hideHolidayShift: false
     };
 
@@ -128,26 +128,71 @@
         updateMonthTitle();
         calendarGrid.innerHTML = '';
 
-        renderMonth(currentYear, currentMonth);
-
         if (prefs.mergeMonths) {
+            // Tháng 1
+            const label1 = document.createElement('div');
+            label1.className = 'month-sep-label';
+            label1.textContent = MONTH_NAMES[currentMonth];
+            calendarGrid.appendChild(label1);
+
+            const headers1 = createDayHeadersInGrid();
+            calendarGrid.appendChild(headers1);
+
+            const grid1 = document.createElement('div');
+            grid1.className = 'month-grid';
+            renderMonthInto(grid1, currentYear, currentMonth);
+            calendarGrid.appendChild(grid1);
+
+            // Tháng 2
             let nm = currentMonth + 1, ny = currentYear;
             if (nm > 11) { nm = 0; ny++; }
-            renderMonth(ny, nm);
+
+            const label2 = document.createElement('div');
+            label2.className = 'month-sep-label';
+            label2.textContent = MONTH_NAMES[nm];
+            calendarGrid.appendChild(label2);
+
+            const headers2 = createDayHeadersInGrid();
+            calendarGrid.appendChild(headers2);
+
+            const grid2 = document.createElement('div');
+            grid2.className = 'month-grid';
+            renderMonthInto(grid2, ny, nm);
+            calendarGrid.appendChild(grid2);
+
+            // Ẩn day-headers chính
+            dayHeaders.style.display = 'none';
+            calendarGrid.classList.remove('single');
+        } else {
+            dayHeaders.style.display = '';
+            calendarGrid.classList.add('single');
+            renderMonthInto(calendarGrid, currentYear, currentMonth);
         }
     }
 
-    function renderMonth(year, month) {
+    function createDayHeadersInGrid() {
+        const container = document.createElement('div');
+        container.className = 'inline-day-headers';
+        const headers = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+        headers.forEach((h, i) => {
+            const el = document.createElement('div');
+            el.className = 'day-header' + (i >= 5 ? ' weekend' : '');
+            el.textContent = h;
+            container.appendChild(el);
+        });
+        return container;
+    }
+
+    function renderMonthInto(container, year, month) {
         const firstDay = new Date(year, month, 1);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        // dayOfWeek: 1=Mon..7=Sun
         let startOffset = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
 
         // Empty cells
         for (let i = 0; i < startOffset; i++) {
             const empty = document.createElement('div');
             empty.className = 'cal-cell empty';
-            calendarGrid.appendChild(empty);
+            container.appendChild(empty);
         }
 
         // Day cells
@@ -165,28 +210,18 @@
             else if (info.type === 'DEM') cell.classList.add('shift-night');
             else cell.classList.add('shift-off');
 
-            // Today ring
             if (isToday) cell.classList.add('today');
-
-            // HO border (not for official holidays and not for today)
-            if (info.isHoliday && !isOfficialHol && !isToday) {
-                cell.classList.add('ho-border');
-            }
-
-            // Official holiday
+            if (info.isHoliday && !isOfficialHol && !isToday) cell.classList.add('ho-border');
             if (isOfficialHol) cell.classList.add('official-holiday');
 
-            // HO dot for non-official HO days
+            // HO dot
             if (info.isHoliday && !isOfficialHol) {
                 const dot = document.createElement('div');
                 dot.className = 'ho-dot';
                 cell.appendChild(dot);
             }
 
-            // Holiday tooltip
-            if (info.holidayName) {
-                cell.dataset.holiday = info.holidayName;
-            }
+            if (info.holidayName) cell.dataset.holiday = info.holidayName;
 
             // Day number
             const dayNum = document.createElement('div');
@@ -202,7 +237,14 @@
                 cell.appendChild(label);
             }
 
-            calendarGrid.appendChild(cell);
+            // Lunar date
+            const lunar = LunarCalendar.getLunarDate(date);
+            const lunarEl = document.createElement('div');
+            lunarEl.className = 'lunar-text' + (lunar.day === 1 ? ' lunar-first' : '');
+            lunarEl.textContent = lunar.dayText;
+            cell.appendChild(lunarEl);
+
+            container.appendChild(cell);
         }
     }
 
