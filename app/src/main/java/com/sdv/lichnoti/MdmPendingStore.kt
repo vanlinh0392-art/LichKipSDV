@@ -17,7 +17,7 @@ object MdmPendingStore {
 
     @Synchronized
     fun load(context: Context): PendingMdmState? {
-        val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = DirectBootStorage.preferences(context, PREFS_NAME)
         val eventId = prefs.getString(KEY_EVENT_ID, null)?.takeIf { it.isNotBlank() } ?: return null
         val createdAt = prefs.getLong(KEY_CREATED_AT, 0L)
         val expiresAt = prefs.getLong(KEY_EXPIRES_AT, 0L)
@@ -47,8 +47,7 @@ object MdmPendingStore {
 
     @Synchronized
     fun save(context: Context, state: PendingMdmState): Boolean {
-        val committed = context.applicationContext
-            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val committed = DirectBootStorage.preferences(context, PREFS_NAME)
             .edit()
             .putString(KEY_EVENT_ID, state.eventId)
             .putLong(KEY_CREATED_AT, state.createdAtMs)
@@ -65,8 +64,7 @@ object MdmPendingStore {
 
     @Synchronized
     fun clear(context: Context): Boolean {
-        return context.applicationContext
-            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return DirectBootStorage.preferences(context, PREFS_NAME)
             .edit()
             .clear()
             .commit()

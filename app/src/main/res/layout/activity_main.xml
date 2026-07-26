@@ -381,7 +381,7 @@
                             android:textSize="12.5sp"
                             android:textColor="@color/on_surface_variant" />
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <com.sdv.lichnoti.IosSwitchMaterial
                             android:id="@+id/switchHideHolidayShift"
                             style="@style/Widget.LichNoti.IosSwitch"
                             android:layout_width="wrap_content"
@@ -407,7 +407,7 @@
                             android:textSize="12.5sp"
                             android:textColor="@color/on_surface_variant" />
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <com.sdv.lichnoti.IosSwitchMaterial
                             android:id="@+id/switchMergeMonths"
                             style="@style/Widget.LichNoti.IosSwitch"
                             android:layout_width="wrap_content"
@@ -432,7 +432,7 @@
                             android:textSize="12.5sp"
                             android:textColor="@color/on_surface_variant" />
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <com.sdv.lichnoti.IosSwitchMaterial
                             android:id="@+id/switchHolidayAlert"
                             style="@style/Widget.LichNoti.IosSwitch"
                             android:layout_width="wrap_content"
@@ -457,7 +457,7 @@
                             android:textSize="12.5sp"
                             android:textColor="@color/on_surface_variant" />
 
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <com.sdv.lichnoti.IosSwitchMaterial
                             android:id="@+id/switchAutoSendMdm"
                             style="@style/Widget.LichNoti.IosSwitch"
                             android:layout_width="wrap_content"
@@ -573,7 +573,7 @@
                         android:textColor="@color/on_surface_variant"
                         android:layout_marginEnd="8dp" />
 
-                    <com.google.android.material.switchmaterial.SwitchMaterial
+                    <com.sdv.lichnoti.IosSwitchMaterial
                         android:id="@+id/switchAutoLockSamsung"
                         style="@style/Widget.LichNoti.IosSwitch"
                         android:layout_width="wrap_content"
@@ -722,7 +722,7 @@
                 android:layout_marginBottom="12dp" />
 
             <!-- Enable/Disable Notification -->
-            <com.google.android.material.switchmaterial.SwitchMaterial
+            <com.sdv.lichnoti.IosSwitchMaterial
                 android:id="@+id/switchNotificationDrawer"
                 style="@style/Widget.LichNoti.IosSwitch"
                 android:layout_width="match_parent"

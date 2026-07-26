@@ -64,30 +64,38 @@ class MdmPendingService : Service() {
             addAction(Intent.ACTION_USER_PRESENT)
             addAction(Intent.ACTION_SCREEN_ON)
         }
+        // USER_PRESENT / SCREEN_ON là protected system broadcast — vẫn nhận được với
+        // NOT_EXPORTED; không cần mở receiver cho app ngoài.
         ContextCompat.registerReceiver(
             this,
             unlockReceiver,
             filter,
-            ContextCompat.RECEIVER_EXPORTED
+            ContextCompat.RECEIVER_NOT_EXPORTED
         )
         receiverRegistered = true
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val state = MdmPendingStore.load(this)
-        if (state == null || MdmPendingPolicy.isExpired(state, System.currentTimeMillis())) {
-            if (state != null) MdmPendingCoordinator.expire(this, "service_start")
-            stopSelf()
-            return START_NOT_STICKY
-        }
 
-        val notification = buildNotification(state)
+        // LUÔN startForeground() TRƯỚC TIÊN: service này được khởi động bằng
+        // startForegroundService(), nếu stopSelf() mà chưa từng vào foreground thì hệ thống
+        // sẽ crash app với ForegroundServiceDidNotStartInTimeException (Android 8–15).
+        val notification = state?.let { buildNotification(it) } ?: buildIdleNotification()
         val serviceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
         } else {
             0
         }
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, serviceType)
+
+        if (state == null || MdmPendingPolicy.isExpired(state, System.currentTimeMillis())) {
+            if (state != null) MdmPendingCoordinator.expire(this, "service_start")
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         MdmRetryScheduler.scheduleNext(this, state)
 
         handler.removeCallbacks(expiryRunnable)
@@ -108,6 +116,18 @@ class MdmPendingService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    /** Notification tối thiểu khi service bị start mà không còn state — chỉ tồn tại
+     *  vài mili giây trước khi stopForeground(REMOVE), nhưng bắt buộc phải có để
+     *  thỏa hợp đồng startForegroundService(). */
+    private fun buildIdleNotification(): Notification {
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("Đang dừng tác vụ MDM")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOnlyAlertOnce(true)
+            .build()
+    }
 
     private fun buildNotification(state: PendingMdmState): Notification {
         val retryIntent = MdmPendingIntents.bridgePendingIntent(this, state.eventId, "notification_retry")

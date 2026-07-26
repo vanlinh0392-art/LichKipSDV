@@ -52,7 +52,7 @@
     <color name="switch_track_disabled">#B8BBC1</color>
     <color name="switch_thumb">#FFFFFF</color>
     <color name="switch_thumb_disabled">#F2F2F7</color>
-    <color name="switch_thumb_border">#52000000</color>
+    <color name="switch_thumb_shadow">#30000000</color>
     <color name="note_dot">#DC2626</color>
     <color name="note_close_red">#FF5F57</color>
     <color name="note_close_red_border">#E0443E</color>

@@ -20,6 +20,12 @@ object MdmPendingCoordinator {
         // Auto MDM is capability-based, not manufacturer-based. A VSelfLock/MDM package can
         // be installed on a non-Samsung device, so the resolved target package is the only gate.
         if (!prefs.autoLockSamsung) return null
+        // Không có app MDM/VSelfLock trên máy thì KHÔNG tạo pending: tránh chạy foreground
+        // service treo 4 giờ + chuỗi 7 alarm retry chắc chắn thất bại sau mỗi lần báo thức.
+        if (!SamsungLockHelper.isVSelfLockTargetAvailable(context)) {
+            Log.d(TAG, "Bỏ qua MDM pending: không tìm thấy VSelfLock target trên máy")
+            return null
+        }
 
         val existing = MdmPendingStore.load(context)
         if (existing != null && !MdmPendingPolicy.isExpired(existing, nowMs)) {
@@ -68,9 +74,18 @@ object MdmPendingCoordinator {
             if (!isBridgeFulfillingItsOwnRequest) return state.lastResult
         }
         if (!SamsungLockHelper.isVSelfLockTargetAvailable(context)) {
-            val result = persistAttempt(context, state, nowMs, trigger, MdmAttemptResult.TARGET_MISSING)
-            ensurePendingInfrastructure(context)
-            return result
+            // Ngay sau boot, app MDM trên bộ nhớ gắn ngoài có thể chưa mount xong —
+            // giữ pending để retry thay vì hủy nhầm (giữ hành vi cũ cho riêng nhánh boot).
+            if (trigger == "boot_completed") {
+                val result = persistAttempt(context, state, nowMs, trigger, MdmAttemptResult.TARGET_MISSING)
+                ensurePendingInfrastructure(context)
+                return result
+            }
+            // Còn lại: app MDM không (còn) trên máy — coi là kết thúc thay vì giữ FGS + retry
+            // vô ích. begin() đã gate từ đầu, nhánh này chỉ gặp khi app MDM bị gỡ giữa chừng.
+            Log.w(TAG, "MDM ${state.eventId}: target không khả dụng (trigger=$trigger) — hủy pending")
+            cancel(context, "target_missing")
+            return MdmAttemptResult.TARGET_MISSING
         }
         val launched = if (foregroundActivity != null) {
             SamsungLockHelper.sendLockIntent(foregroundActivity)

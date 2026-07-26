@@ -68,11 +68,13 @@ class AlarmService : Service() {
             addAction(Intent.ACTION_USER_PRESENT)
             addAction(Intent.ACTION_SCREEN_ON)
         }
+        // USER_PRESENT / SCREEN_ON là protected system broadcast — vẫn nhận được với
+        // NOT_EXPORTED; không cần mở receiver cho app ngoài.
         ContextCompat.registerReceiver(
             this,
             unlockReceiver,
             filter,
-            ContextCompat.RECEIVER_EXPORTED
+            ContextCompat.RECEIVER_NOT_EXPORTED
         )
         receiverRegistered = true
     }

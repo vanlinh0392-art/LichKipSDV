@@ -34,8 +34,7 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_SEND_MDM_ON_SCREEN = "auto_send_mdm_on_screen"
     }
 
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = DirectBootStorage.preferences(context, PREFS_NAME)
 
     var selectedCrew: String
         get() = prefs.getString(KEY_CREW, "A") ?: "A"

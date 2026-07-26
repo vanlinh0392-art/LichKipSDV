@@ -51,6 +51,10 @@ class MainActivity : AppCompatActivity() {
     // Flag đánh dấu đang chờ người dùng cấp quyền Overlay từ Settings
     private var pendingOverlayPermission = false
 
+    // Receiver chờ DownloadManager tải xong bản cập nhật (đăng ký động khi bấm "Tải về",
+    // giữ tham chiếu để chắc chắn unregister trong onDestroy — tránh leak Activity)
+    private var updateDownloadReceiver: android.content.BroadcastReceiver? = null
+
     // Tự động kiểm tra pin khi quay lại app
     private lateinit var cardBatteryWarning: CardView
     private val noteDates = mutableSetOf<LocalDate>()
@@ -1684,17 +1688,34 @@ class MainActivity : AppCompatActivity() {
             
             val downloadId = manager.enqueue(request)
             Toast.makeText(this, "Bắt đầu tải xuống bản cập nhật...", Toast.LENGTH_LONG).show()
-            
+
+            // Nếu còn receiver của lần tải trước thì gỡ ra trước khi đăng ký cái mới
+            unregisterUpdateDownloadReceiver()
             val onComplete = object : android.content.BroadcastReceiver() {
                 override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
                     val id = intent?.getLongExtra(android.app.DownloadManager.EXTRA_DOWNLOAD_ID, -1L) ?: -1L
-                    if (id == downloadId) {
-                        unregisterReceiver(this)
+                    if (id != downloadId) return
+                    unregisterUpdateDownloadReceiver()
+                    // ACTION_DOWNLOAD_COMPLETE phát cả khi tải THẤT BẠI/bị hủy —
+                    // phải hỏi lại DownloadManager trước khi mở màn hình cài đặt,
+                    // nếu không sẽ cài file cũ/dở dang tìm thấy theo tên.
+                    if (isDownloadSuccessful(manager, downloadId)) {
                         installApk(version)
+                    } else {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Tải bản cập nhật thất bại, vui lòng thử lại",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
             }
-            
+            updateDownloadReceiver = onComplete
+
+            // Phải là RECEIVER_EXPORTED: ACTION_DOWNLOAD_COMPLETE do app DownloadProvider
+            // (UID riêng, không phải system_server) gửi — NOT_EXPORTED sẽ KHÔNG nhận được
+            // trên Android 14+. An toàn vì onReceive đã đối chiếu downloadId và query lại
+            // DownloadManager xác nhận STATUS_SUCCESSFUL trước khi cài.
             ContextCompat.registerReceiver(
                 this,
                 onComplete,
@@ -1705,6 +1726,36 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Lỗi tải bản cập nhật: ${e.message}", Toast.LENGTH_LONG).show()
             e.printStackTrace()
         }
+    }
+
+    /** Kiểm tra download có thực sự thành công không — broadcast COMPLETE không đồng nghĩa tải xong. */
+    private fun isDownloadSuccessful(manager: android.app.DownloadManager, downloadId: Long): Boolean {
+        return try {
+            val query = android.app.DownloadManager.Query().setFilterById(downloadId)
+            manager.query(query)?.use { cursor ->
+                if (!cursor.moveToFirst()) return false
+                val statusIndex = cursor.getColumnIndex(android.app.DownloadManager.COLUMN_STATUS)
+                statusIndex >= 0 &&
+                    cursor.getInt(statusIndex) == android.app.DownloadManager.STATUS_SUCCESSFUL
+            } ?: false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    private fun unregisterUpdateDownloadReceiver() {
+        updateDownloadReceiver?.let { receiver ->
+            runCatching { unregisterReceiver(receiver) }
+            updateDownloadReceiver = null
+        }
+    }
+
+    override fun onDestroy() {
+        // Gỡ receiver download nếu Activity bị hủy trước khi tải xong (tránh leak).
+        // Bản tải dở vẫn tiếp tục dưới nền; lần mở app sau người dùng bấm tải lại nếu cần.
+        unregisterUpdateDownloadReceiver()
+        super.onDestroy()
     }
 
     private fun installApk(version: String) {
