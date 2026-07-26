@@ -41,9 +41,7 @@ class MdmDispatchActivity : AppCompatActivity() {
             foregroundActivity = this,
             force = true
         )
-        if (result == MdmAttemptResult.DISPATCHED) {
-            MdmPendingCoordinator.stopAlarmAfterDispatch(this, state.eventId)
-        } else if (MdmPendingCoordinator.currentState(this) != null) {
+        if (result != MdmAttemptResult.DISPATCHED && MdmPendingCoordinator.currentState(this) != null) {
             MdmPendingService.start(this)
         }
         finishWithoutAnimation()

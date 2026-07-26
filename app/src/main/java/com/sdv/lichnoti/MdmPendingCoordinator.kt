@@ -2,7 +2,6 @@ package com.sdv.lichnoti
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import java.util.UUID
@@ -144,14 +143,6 @@ object MdmPendingCoordinator {
         MdmRetryScheduler.cancel(context)
         MdmPendingService.stop(context)
         SamsungLockHelper.cancelMdmNotification(context)
-    }
-
-    fun stopAlarmAfterDispatch(context: Context, eventId: String) {
-        val intent = Intent(context, AlarmReceiver::class.java).apply {
-            action = AlarmReceiver.ACTION_STOP
-            putExtra(EXTRA_EVENT_ID, eventId)
-        }
-        context.sendBroadcast(intent)
     }
 
     private fun persistAttempt(

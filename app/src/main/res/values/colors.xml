@@ -43,4 +43,11 @@
     <color name="ho_ring">#80EC4899</color>
     <color name="card_shadow">#1A000000</color>
     <color name="status_bar">#0F766E</color>
+
+    <!-- iOS-style switches and date notes -->
+    <color name="switch_track_off">#C7CDD4</color>
+    <color name="switch_thumb">#FFFFFF</color>
+    <color name="note_dot">#DC2626</color>
+    <color name="note_close_red">#FF5F57</color>
+    <color name="note_close_red_border">#E0443E</color>
 </resources>

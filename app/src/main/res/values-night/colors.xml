@@ -37,4 +37,10 @@
     <color name="ho_ring">#80F472B6</color>
     <color name="card_shadow">#40000000</color>
     <color name="status_bar">#0F172A</color>
+
+    <color name="switch_track_off">#475569</color>
+    <color name="switch_thumb">#F8FAFC</color>
+    <color name="note_dot">#F87171</color>
+    <color name="note_close_red">#FF6961</color>
+    <color name="note_close_red_border">#E0524D</color>
 </resources>

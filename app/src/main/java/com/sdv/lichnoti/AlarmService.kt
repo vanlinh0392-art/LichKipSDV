@@ -14,9 +14,7 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -44,7 +42,6 @@ class AlarmService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
     private var vibrator: Vibrator? = null
-    private val handler = Handler(Looper.getMainLooper())
     private var audioManager: android.media.AudioManager? = null
     private var originalVolume = -1
     private var audioFocusRequest: android.media.AudioFocusRequest? = null
@@ -61,21 +58,6 @@ class AlarmService : Service() {
                     MdmPendingCoordinator.attempt(context, "alarm_screen_on", force = true)
             }
         }
-    }
-
-    private val autoSnoozeRunnable = Runnable {
-        val prefs = AppPreferences(this)
-        if (currentEventId != null && prefs.autoLockSamsung) {
-            MdmPendingCoordinator.attempt(this, "auto_timeout", force = true)
-            MdmPendingService.start(this)
-        }
-        stopRingingResources()
-        if (prefs.snoozeDuration == -1) {
-            sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP, manualSnooze = false)
-        } else {
-            sendBroadcastToReceiver(AlarmReceiver.ACTION_SNOOZE, manualSnooze = false)
-        }
-        stopSelf()
     }
 
     override fun onCreate() {
@@ -99,8 +81,12 @@ class AlarmService : Service() {
         isRunning = true
         val prefs = AppPreferences(this)
         currentEventId = intent?.getStringExtra(EXTRA_MDM_EVENT_ID)
-            ?: MdmPendingCoordinator.currentState(this)?.eventId
-            ?: MdmPendingCoordinator.begin(this, origin = "alarm_service")?.eventId
+            ?: if (prefs.autoLockSamsung) {
+                MdmPendingCoordinator.currentState(this)?.eventId
+                    ?: MdmPendingCoordinator.begin(this, origin = "alarm_service")?.eventId
+            } else {
+                null
+            }
 
         wakeScreen()
 
@@ -170,11 +156,11 @@ class AlarmService : Service() {
             0
         }
         ServiceCompat.startForeground(this, NOTIFICATION_ID, builder.build(), serviceType)
-        playRingtone()
-        startVibrator()
-        handler.removeCallbacks(autoSnoozeRunnable)
-        handler.postDelayed(autoSnoozeRunnable, 120_000L)
-        return START_NOT_STICKY
+        // Auto MDM không sở hữu vòng đời báo thức. Chính người dùng
+        // Stop/Snooze mới gửi ACTION_STOP/ACTION_SNOOZE và dừng service.
+        if (mediaPlayer == null) playRingtone()
+        if (vibrator == null) startVibrator()
+        return START_REDELIVER_INTENT
     }
 
     private fun wakeScreen() {
@@ -252,16 +238,7 @@ class AlarmService : Service() {
         }
     }
 
-    private fun sendBroadcastToReceiver(action: String, manualSnooze: Boolean) {
-        sendBroadcast(Intent(this, AlarmReceiver::class.java).apply {
-            this.action = action
-            putExtra(AlarmReceiver.EXTRA_MANUAL_SNOOZE, manualSnooze)
-            currentEventId?.let { putExtra(MdmPendingCoordinator.EXTRA_EVENT_ID, it) }
-        })
-    }
-
     private fun stopRingingResources() {
-        handler.removeCallbacks(autoSnoozeRunnable)
         runCatching { mediaPlayer?.stop() }
         mediaPlayer?.release()
         mediaPlayer = null
@@ -303,7 +280,8 @@ class AlarmService : Service() {
         if (MdmPendingCoordinator.currentState(this) != null) {
             MdmPendingService.start(this)
         }
-        stopSelf()
+        // Không dừng chuông khi task bị loại khỏi Recents; foreground service
+        // và START_REDELIVER_INTENT tiếp tục duy trì báo thức đến thao tác thủ công.
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

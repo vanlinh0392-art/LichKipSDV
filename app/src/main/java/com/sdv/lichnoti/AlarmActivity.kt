@@ -19,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity
 
 class AlarmActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
-    private var autoLockRunnable: Runnable? = null
     private var eventId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,23 +29,20 @@ class AlarmActivity : AppCompatActivity() {
         eventId = intent.getStringExtra(AlarmService.EXTRA_MDM_EVENT_ID)
             ?: MdmPendingCoordinator.currentState(this)?.eventId
 
-        if (prefs.autoSendMdmOnScreen &&
-            prefs.autoLockSamsung &&
-            MdmDeviceState.isUnlockedAndInteractive(this)
-        ) {
-            handleStopAndLock("alarm_activity_unlocked")
-            return
-        }
-
         if (intent.getBooleanExtra("EXTRA_AUTO_STOP_AND_LOCK", false)) {
             handleStopAndLock("notification_stop")
             return
         }
 
         setContentView(R.layout.activity_alarm)
-        scheduleAutomaticLock(prefs)
         bindAlarmContent(prefs)
         bindActions(prefs)
+        if (prefs.autoSendMdmOnScreen &&
+            prefs.autoLockSamsung &&
+            MdmDeviceState.isUnlockedAndInteractive(this)
+        ) {
+            window.decorView.post { attemptMdmWithoutStopping("alarm_activity_unlocked") }
+        }
     }
 
     private fun configureLockScreenWindow() {
@@ -65,15 +61,6 @@ class AlarmActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
                 WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
         )
-    }
-
-    private fun scheduleAutomaticLock(prefs: AppPreferences) {
-        autoLockRunnable = Runnable {
-            if (prefs.autoLockSamsung) {
-                handleStopAndLock("alarm_activity_timeout")
-            }
-        }
-        handler.postDelayed(autoLockRunnable!!, 1_500L)
     }
 
     private fun bindAlarmContent(prefs: AppPreferences) {
@@ -105,11 +92,9 @@ class AlarmActivity : AppCompatActivity() {
 
     private fun bindActions(prefs: AppPreferences) {
         findViewById<Button>(R.id.btnStopAlarm).setOnClickListener {
-            removeAutomaticLock()
             handleStopAndLock("manual_stop")
         }
         findViewById<Button>(R.id.btnSnoozeAlarm).setOnClickListener {
-            removeAutomaticLock()
             MdmPendingCoordinator.cancelForManualSnooze(this, eventId)
             sendAlarmAction(AlarmReceiver.ACTION_SNOOZE, manualSnooze = true)
             finish()
@@ -117,8 +102,9 @@ class AlarmActivity : AppCompatActivity() {
     }
 
     private fun handleStopAndLock(trigger: String) {
-        removeAutomaticLock()
-        stopService(Intent(this, AlarmService::class.java))
+        if (AlarmStopPolicy.shouldStopRinging(AlarmStopReason.MANUAL_STOP)) {
+            stopService(Intent(this, AlarmService::class.java))
+        }
         sendAlarmAction(AlarmReceiver.ACTION_STOP, manualSnooze = false)
 
         if (AppPreferences(this).autoLockSamsung && eventId != null) {
@@ -136,6 +122,20 @@ class AlarmActivity : AppCompatActivity() {
         finish()
     }
 
+    private fun attemptMdmWithoutStopping(trigger: String) {
+        if (eventId == null) return
+        val result = MdmPendingCoordinator.attempt(
+            context = this,
+            trigger = trigger,
+            foregroundActivity = this,
+            force = true
+        )
+        Log.d("AlarmActivity", "MDM attempt without stopping alarm $trigger -> $result")
+        if (MdmPendingCoordinator.currentState(this) != null) {
+            MdmPendingService.start(this)
+        }
+    }
+
     private fun sendAlarmAction(action: String, manualSnooze: Boolean) {
         sendBroadcast(Intent(this, AlarmReceiver::class.java).apply {
             this.action = action
@@ -144,13 +144,7 @@ class AlarmActivity : AppCompatActivity() {
         })
     }
 
-    private fun removeAutomaticLock() {
-        autoLockRunnable?.let { handler.removeCallbacks(it) }
-        autoLockRunnable = null
-    }
-
     override fun onDestroy() {
-        removeAutomaticLock()
         super.onDestroy()
     }
 

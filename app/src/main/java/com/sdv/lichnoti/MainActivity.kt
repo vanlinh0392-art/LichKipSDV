@@ -15,6 +15,7 @@ import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,6 +53,8 @@ class MainActivity : AppCompatActivity() {
 
     // Tự động kiểm tra pin khi quay lại app
     private lateinit var cardBatteryWarning: CardView
+    private val noteDates = mutableSetOf<LocalDate>()
+    private val noteRepository by lazy { DayNoteRepository.getInstance(applicationContext) }
 
     // Launcher xin quyền thông báo (Android 13+)
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -61,6 +64,18 @@ class MainActivity : AppCompatActivity() {
             NotificationHelper.createNotificationChannel(this)
             NotificationScheduler.scheduleNext(this)
         }
+    }
+
+    private val noteActivityLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != RESULT_OK) return@registerForActivityResult
+        val date = result.data?.getStringExtra(NoteActivity.EXTRA_DATE)
+            ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            ?: return@registerForActivityResult
+        val hasNote = result.data?.getBooleanExtra(NoteActivity.EXTRA_HAS_NOTE, false) == true
+        if (hasNote) noteDates += date else noteDates -= date
+        setupCalendar()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         setupNotificationToggle()
         setupBatteryOptimizationButtons()
         setupDarkModeToggle()
+        loadNoteDates()
 
         // Setup click copy STK
         val btnCopyStk = findViewById<View>(R.id.btnCopyStk)
@@ -923,6 +939,7 @@ class MainActivity : AppCompatActivity() {
         val isToday = date == today
         val isPast = date.isBefore(today)
         val isOfficialHoliday = ShiftCalculator.isHoliday(date)
+        val hasNote = date in noteDates
 
         val cellLayout = FrameLayout(this).apply {
             layoutParams = GridLayout.LayoutParams().apply {
@@ -1112,8 +1129,40 @@ class MainActivity : AppCompatActivity() {
         cellLayout.addView(shiftLabelTop)
         cellLayout.addView(tvLunar)
 
-        // Bấm vào ô -> hiện Toast thông tin ca chi tiết
+        if (hasNote) {
+            val noteDot = View(this).apply {
+                layoutParams = FrameLayout.LayoutParams(
+                    (6 * density).toInt(),
+                    (6 * density).toInt()
+                ).apply {
+                    gravity = Gravity.START or Gravity.BOTTOM
+                    leftMargin = (4 * density).toInt()
+                    bottomMargin = (3 * density).toInt()
+                }
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(ContextCompat.getColor(this@MainActivity, R.color.note_dot))
+                }
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }
+            cellLayout.addView(noteDot)
+        }
+
+        cellLayout.contentDescription = buildString {
+            append("Ngày ${date.dayOfMonth}/${date.monthValue}/${date.year}")
+            if (hasNote) {
+                append(", có ghi chú. Chạm để xem, nhấn giữ để sửa.")
+            } else {
+                append(". Nhấn giữ để thêm ghi chú.")
+            }
+        }
+
+        // Chạm ngày có note để xem; ngày trống giữ nguyên thông tin ca.
         cellLayout.setOnClickListener {
+            if (hasNote) {
+                openNote(date, NoteActivity.MODE_VIEW)
+                return@setOnClickListener
+            }
             val info = if (isOfficialHoliday) {
                 val subLabel = when (shiftInfo.type) {
                     ShiftCalculator.ShiftType.NGAY -> "Lễ ca Ngày (HO)"
@@ -1126,8 +1175,33 @@ class MainActivity : AppCompatActivity() {
             }
             Toast.makeText(this, info, Toast.LENGTH_SHORT).show()
         }
+        cellLayout.setOnLongClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            openNote(date, NoteActivity.MODE_EDIT)
+            true
+        }
 
         return cellLayout
+    }
+
+    private fun loadNoteDates() {
+        noteRepository.getAllNoteDates { result ->
+            if (isFinishing || isDestroyed) return@getAllNoteDates
+            result.onSuccess { dates ->
+                noteDates.clear()
+                noteDates.addAll(dates)
+                setupCalendar()
+            }.onFailure {
+                Toast.makeText(this, "Không thể tải danh sách ghi chú", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun openNote(date: LocalDate, mode: String) {
+        noteActivityLauncher.launch(Intent(this, NoteActivity::class.java).apply {
+            putExtra(NoteActivity.EXTRA_DATE, date.toString())
+            putExtra(NoteActivity.EXTRA_MODE, mode)
+        })
     }
 
     // ── Hiển thị thông tin alarm tiếp theo ──────────────────────────────
