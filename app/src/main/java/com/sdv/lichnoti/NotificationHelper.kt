@@ -2,7 +2,6 @@ package com.sdv.lichnoti
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
@@ -55,29 +54,26 @@ object NotificationHelper {
             "${shiftInfo.type.emoji} Ca ${shiftInfo.type.label}"
         }
 
-        val isMdmInstalled = try {
-            context.packageManager.getPackageInfo("com.samsung.s1.vselflock", 0)
-            true
-        } catch (e: Exception) {
-            false
-        }
-
-        val intent = if (prefs.autoLockSamsung && isMdmInstalled) {
-            Intent().apply {
-                component = android.content.ComponentName("com.samsung.s1.vselflock", "com.samsung.s1.vselflock.ui.MainActivity")
-                action = "lock"
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            }
+        val pendingState = MdmPendingCoordinator.currentState(context)
+        val pendingIntent = if (
+            prefs.autoLockSamsung &&
+            pendingState != null &&
+            SamsungLockHelper.isVSelfLockTargetAvailable(context)
+        ) {
+            MdmPendingIntents.bridgePendingIntent(
+                context,
+                pendingState.eventId,
+                "reminder_notification"
+            )
         } else {
-            Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
+            MdmPendingIntents.activityPendingIntent(
+                context,
+                0,
+                Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+            )
         }
-
-        val pendingIntent = PendingIntent.getActivity(
-            context, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
 
         val customContent = prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
 

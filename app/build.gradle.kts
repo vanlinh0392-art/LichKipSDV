@@ -11,8 +11,8 @@ android {
         applicationId = "com.sdv.lichnoti"
         minSdk = 26
         targetSdk = 35
-        versionCode = 81
-        versionName = "4.60"
+        versionCode = 82
+        versionName = "4.61"
 
         ndk {
             abiFilters += listOf("arm64-v8a")
@@ -50,4 +50,5 @@ dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("androidx.cardview:cardview:1.0.0")
+    testImplementation("junit:junit:4.13.2")
 }

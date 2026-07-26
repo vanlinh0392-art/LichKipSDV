@@ -11,3 +11,7 @@
 /app/build
 *.apk
 .kotlin
+.codegraph/
+firebase-service-account*.json
+service-account*.json
+.env

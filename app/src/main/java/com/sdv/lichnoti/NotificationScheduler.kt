@@ -114,10 +114,14 @@ object NotificationScheduler {
         alarmManager.cancel(pendingIntent)
     }
 
-    fun scheduleSnooze(context: Context, minutes: Int) {
+    fun scheduleSnooze(context: Context, minutes: Int, retainedMdmEventId: String? = null) {
         val triggerAtMillis = System.currentTimeMillis() + minutes * 60 * 1000
         val alarmManager = context.getSystemService(AlarmManager::class.java)
-        val intent = Intent(context, AlarmReceiver::class.java)
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            retainedMdmEventId?.let {
+                putExtra(MdmPendingCoordinator.EXTRA_EVENT_ID, it)
+            }
+        }
         val pendingIntent = PendingIntent.getBroadcast(
             context, ALARM_REQUEST_CODE, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
