@@ -31,18 +31,18 @@
     </style>
 
     <style name="Widget.LichNoti.IosSwitch" parent="Widget.Material3.CompoundButton.Switch">
-        <item name="android:minWidth">51dp</item>
+        <item name="android:minWidth">48dp</item>
         <item name="android:minHeight">48dp</item>
         <item name="android:gravity">center_vertical</item>
+        <item name="useMaterialThemeColors">false</item>
         <!-- SwitchMaterial is backed by AppCompat SwitchCompat: thumb/track are framework
              drawables, while the tint lists below are AppCompat support attributes. -->
         <item name="android:thumb">@drawable/ios_switch_thumb</item>
         <item name="android:track">@drawable/ios_switch_track</item>
-        <item name="thumbTint">@color/ios_switch_thumb_tint</item>
         <item name="trackTint">@color/ios_switch_track_tint</item>
         <item name="splitTrack">false</item>
         <item name="showText">false</item>
-        <item name="switchMinWidth">51dp</item>
+        <item name="switchMinWidth">48dp</item>
         <item name="thumbTextPadding">0dp</item>
     </style>
 </resources>

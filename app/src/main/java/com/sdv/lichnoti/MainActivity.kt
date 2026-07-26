@@ -1268,69 +1268,35 @@ class MainActivity : AppCompatActivity() {
                manufacturer.contains("poco", ignoreCase = true)
     }
 
-    private fun isXiaomiOpsPermissionAllowed(op: Int): Boolean {
-        return try {
-            val appOpsManager = getSystemService(android.content.Context.APP_OPS_SERVICE) as android.app.AppOpsManager
-            val method = android.app.AppOpsManager::class.java.getMethod(
-                "checkOpNoThrow",
-                Int::class.javaPrimitiveType,
-                Int::class.javaPrimitiveType,
-                String::class.java
-            )
-            val mode = method.invoke(
-                appOpsManager,
-                op,
-                android.os.Process.myUid(),
-                packageName
-            ) as Int
-            mode == android.app.AppOpsManager.MODE_ALLOWED
-        } catch (e: Exception) {
-            true
-        }
-    }
-
     private fun checkBatteryOptimization() {
-        val pm = getSystemService(POWER_SERVICE) as PowerManager
-        val isIgnoring = pm.isIgnoringBatteryOptimizations(packageName)
-        
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        val isBatteryUnrestricted = powerManager.isIgnoringBatteryOptimizations(packageName)
+        val guideButton = findViewById<Button>(R.id.btnBatteryGuide)
         val tvTitle = findViewById<TextView>(R.id.tvBatteryWarningTitle)
         val tvContent = findViewById<TextView>(R.id.tvBatteryWarningContent)
-        
-        if (isXiaomiDevice()) {
-            val isShowWhenLockedAllowed = isXiaomiOpsPermissionAllowed(10020)
-            val isBgStartAllowed = isXiaomiOpsPermissionAllowed(10021)
-            
-            val needsWarning = !isIgnoring || !isShowWhenLockedAllowed || !isBgStartAllowed
-            if (needsWarning) {
-                cardBatteryWarning.visibility = View.VISIBLE
-                findViewById<Button>(R.id.btnBatteryGuide).visibility = View.VISIBLE
-                
-                tvTitle.text = "⚠️ Yêu cầu cấp quyền Xiaomi"
-                val sb = java.lang.StringBuilder()
-                if (!isIgnoring) {
-                    sb.append("- Chưa tắt tối ưu hóa pin (Pin có thể bị đóng băng).\n")
-                }
-                if (!isShowWhenLockedAllowed || !isBgStartAllowed) {
-                    sb.append("- Thiếu quyền hiển thị trên màn hình khóa hoặc chạy nền.\n")
-                }
-                sb.append("Vui lòng bấm 'Cấu hình ngay' để thiết lập đầy đủ, giúp báo thức sáng màn hình khi reo.")
-                tvContent.text = sb.toString()
-            } else {
-                cardBatteryWarning.visibility = View.GONE
-                findViewById<Button>(R.id.btnBatteryGuide).visibility = View.GONE
+
+        // PowerManager is the stable Android API shared by Xiaomi, Samsung and other OEMs.
+        // Hidden Xiaomi AppOps IDs vary between MIUI/HyperOS versions and caused false warnings.
+        if (!BatteryOptimizationPolicy.shouldShowWarning(isBatteryUnrestricted)) {
+            cardBatteryWarning.visibility = View.GONE
+            guideButton.visibility = View.GONE
+            return
+        }
+
+        cardBatteryWarning.visibility = View.VISIBLE
+        guideButton.visibility = View.VISIBLE
+        when {
+            isXiaomiDevice() -> {
+                tvTitle.text = "⚠️ Tối ưu pin Xiaomi"
+                tvContent.text = "Hãy đặt Pin của ứng dụng thành Không hạn chế để báo thức và Auto MDM hoạt động ổn định trên MIUI/HyperOS."
             }
-        } else {
-            cardBatteryWarning.visibility = if (isIgnoring) View.GONE else View.VISIBLE
-            findViewById<Button>(R.id.btnBatteryGuide).visibility = if (isIgnoring) View.GONE else View.VISIBLE
-            
-            if (!isIgnoring) {
-                if (Build.MANUFACTURER.contains("samsung", ignoreCase = true)) {
-                    tvTitle.text = "⚠️ Tối ưu pin Samsung"
-                    tvContent.text = "Để báo thức hoạt động ổn định trên Samsung, vui lòng tắt tối ưu hóa pin (chọn Không hạn chế) cho ứng dụng này."
-                } else {
-                    tvTitle.text = "⚠️ Cảnh báo tối ưu pin!"
-                    tvContent.text = "Thiết bị có thể chặn thông báo chạy ngầm. Hãy tắt tối ưu hóa pin cho ứng dụng này để đảm bảo chuông báo thức hoạt động ổn định."
-                }
+            SamsungLockHelper.isSamsungDevice() -> {
+                tvTitle.text = "⚠️ Tối ưu pin Samsung"
+                tvContent.text = "Hãy đặt mức sử dụng pin thành Không hạn chế để báo thức và Auto MDM hoạt động ổn định trên One UI."
+            }
+            else -> {
+                tvTitle.text = "⚠️ Cảnh báo tối ưu pin"
+                tvContent.text = "Hãy cho phép ứng dụng sử dụng pin Không hạn chế để báo thức và Auto MDM hoạt động ổn định."
             }
         }
     }
@@ -1367,16 +1333,25 @@ class MainActivity : AppCompatActivity() {
             if (!alarmManager.canScheduleExactAlarms()) missing += "chưa cho phép báo thức chính xác"
         }
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
-        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+        val isBatteryUnrestricted = powerManager.isIgnoringBatteryOptimizations(packageName)
+        if (!isBatteryUnrestricted) {
             missing += "pin chưa đặt Không hạn chế"
         }
 
-        card.visibility = View.VISIBLE
-        findViewById<TextView>(R.id.tvMdmHealth).text = if (missing.isEmpty()) {
-            "✅ Các quyền hệ thống đã sẵn sàng. Hãy bảo đảm app nằm trong Never sleeping apps."
-        } else {
-            "Cần xử lý:\n• ${missing.joinToString("\n• ")}\nĐồng thời thêm app vào Never sleeping apps."
+        findViewById<Button>(R.id.btnMdmNeverSleep).visibility = if (
+            BatteryOptimizationPolicy.shouldShowSamsungNeverSleepingShortcut(
+                SamsungLockHelper.isSamsungDevice(),
+                isBatteryUnrestricted
+            )
+        ) View.VISIBLE else View.GONE
+
+        if (missing.isEmpty()) {
+            card.visibility = View.GONE
+            return
         }
+        card.visibility = View.VISIBLE
+        findViewById<TextView>(R.id.tvMdmHealth).text =
+            "Cần xử lý:\n• ${missing.joinToString("\n• ")}"
     }
 
     private fun openNextMissingMdmSetting() {
