@@ -27,6 +27,17 @@ object ShiftCalculator {
     // Anchor date: January 3, 2026
     private val ANCHOR_DATE = LocalDate.of(2026, 1, 3)
     private val ANCHOR_JDN = toJulianDayNumber(ANCHOR_DATE)
+    private const val VIETNAM_TIME_ZONE = 7.0
+
+    private data class DynamicHolidayDates(
+        val lunarNewYear: LocalDate?,
+        val hungKingsCommemoration: LocalDate?
+    )
+
+    private val holidayCacheLock = Any()
+    private val dynamicHolidayCache = mutableMapOf<Int, DynamicHolidayDates>()
+    private val holidayPrefixCache = mutableMapOf<Int, IntArray>()
+    private val holidaysBeforeYearCache = mutableMapOf(ANCHOR_DATE.year to 0)
 
     // Crew definitions with offsets from lichkipsdv.com
     val CREWS = listOf(
@@ -98,15 +109,7 @@ object ShiftCalculator {
         
         var curr = startDate
         while (!curr.isAfter(endDate)) {
-            val isOfficialHol = isHoliday(curr)
-            val actualShift = getActualShift(crewId, curr)
-            
-            val isSunday = curr.dayOfWeek.value == 7
-            val isSatWorkHO = isSaturdayHO(curr)
-
-            val isHOReal = (isSunday || isSatWorkHO) && actualShift != ShiftType.NGHI
-
-            if (isHOReal) {
+            if (isHODateForStats(crewId, curr)) {
                 total++
                 if (!curr.isBefore(today)) {
                     remaining++
@@ -115,6 +118,17 @@ object ShiftCalculator {
             curr = curr.plusDays(1)
         }
         return HOStats(total, remaining)
+    }
+
+    internal fun isHODateForStats(crewId: String, date: LocalDate): Boolean {
+        if (crewId == "HC") return false
+        val actualShift = getActualShift(crewId, date)
+        return if (isHoliday(date)) {
+            actualShift == ShiftType.NGAY
+        } else {
+            (date.dayOfWeek.value == 7 || isSaturdayHO(date)) &&
+                actualShift != ShiftType.NGHI
+        }
     }
 
     /**
@@ -294,7 +308,6 @@ object ShiftCalculator {
      * 30/4, 1/5, Quốc Khánh (1/9, 2/9), Ngày thành lập (24/11), và ngày cuối năm SDV Day (31/12).
      */
     fun isHoliday(date: LocalDate): Boolean {
-        val y = date.year
         val m = date.monthValue
         val d = date.dayOfMonth
 
@@ -306,49 +319,24 @@ object ShiftCalculator {
         if (m == 11 && d == 24) return true // Kỷ niệm ngày thành lập công ty (hiển thị nhãn Lễ)
         if (m == 12 && d == 31) return true // SDV Day (ngày cuối của mọi năm, hiển thị nhãn SDV)
 
-        // 2. Các ngày lễ âm lịch theo năm (Tết Nguyên Đán và Giỗ Tổ Hùng Vương)
-        return when (y) {
-            2025 -> {
-                (m == 1 && d in 28..31) || (m == 2 && d == 1) || (m == 4 && d == 7)
-            }
-            2026 -> {
-                (m == 2 && d in 16..20) || (m == 4 && d == 26)
-            }
-            2027 -> {
-                (m == 2 && d in 5..9) || (m == 4 && d == 16)
-            }
-            2028 -> {
-                (m == 1 && d in 25..29) || (m == 4 && d == 4)
-            }
-            2029 -> {
-                (m == 2 && d in 12..16) || (m == 4 && d == 23)
-            }
-            else -> false
-        }
+        // 2. Lễ âm lịch được tính động bằng VietCalendar, không có mốc hết hạn 2029.
+        return isLunarNewYear(date) || isHungKingsCommemoration(date)
     }
 
     /**
      * Kiểm tra xem ngày có thuộc 5 ngày nghỉ Tết Âm lịch hàng năm hay không.
      */
     fun isLunarNewYear(date: LocalDate): Boolean {
-        val y = date.year
-        val m = date.monthValue
-        val d = date.dayOfMonth
-        return when (y) {
-            2025 -> (m == 1 && d in 28..31) || (m == 2 && d == 1)
-            2026 -> m == 2 && d in 16..20
-            2027 -> m == 2 && d in 5..9
-            2028 -> m == 1 && d in 25..29
-            2029 -> m == 2 && d in 12..16
-            else -> false
-        }
+        val lunarNewYear = dynamicHolidayDates(date.year).lunarNewYear ?: return false
+        val firstDayOff = lunarNewYear.minusDays(1)
+        val dayAfterHoliday = lunarNewYear.plusDays(4)
+        return !date.isBefore(firstDayOff) && date.isBefore(dayAfterHoliday)
     }
 
     /**
      * Get holiday name if the date is a holiday.
      */
     fun getHolidayName(date: LocalDate): String? {
-        val y = date.year
         val m = date.monthValue
         val d = date.dayOfMonth
 
@@ -359,50 +347,90 @@ object ShiftCalculator {
             m == 9 && (d == 1 || d == 2) -> "Quốc khánh"
             m == 11 && d == 24 -> "Kỷ niệm ngày thành lập" // Bỏ chữ SDV để hiển thị nhãn "Lễ"
             m == 12 && d == 31 -> "SDV Day"
-            // Âm lịch
-            y == 2025 && ((m == 1 && d in 28..31) || (m == 2 && d == 1)) -> "Tết Nguyên Đán"
-            y == 2025 && m == 4 && d == 7 -> "Giỗ Tổ Hùng Vương"
-            
-            y == 2026 && (m == 2 && d in 16..20) -> "Tết Nguyên Đán"
-            y == 2026 && m == 4 && d == 26 -> "Giỗ Tổ Hùng Vương"
-            
-            y == 2027 && (m == 2 && d in 5..9) -> "Tết Nguyên Đán"
-            y == 2027 && m == 4 && d == 16 -> "Giỗ Tổ Hùng Vương"
-            
-            y == 2028 && (m == 1 && d in 25..29) -> "Tết Nguyên Đán"
-            y == 2028 && m == 4 && d == 4 -> "Giỗ Tổ Hùng Vương"
-            
-            y == 2029 && (m == 2 && d in 12..16) -> "Tết Nguyên Đán"
-            y == 2029 && m == 4 && d == 23 -> "Giỗ Tổ Hùng Vương"
+            isLunarNewYear(date) -> "Tết Nguyên Đán"
+            isHungKingsCommemoration(date) -> "Giỗ Tổ Hùng Vương"
             
             isHoliday(date) -> "Ngày lễ"
             else -> null
         }
     }
 
-    /**
-     * Count holidays strictly between two LocalDates using simple loops (extremely safe).
-     */
+    /** Count holidays with cached per-year prefixes; month rendering becomes O(cells), not O(days²). */
     private fun countHolidaysBetween(anchorDate: LocalDate, targetDate: LocalDate): Int {
-        var count = 0
-        if (targetDate.isAfter(anchorDate)) {
-            var curr = anchorDate.plusDays(1)
-            while (curr.isBefore(targetDate)) {
-                if (isHoliday(curr)) {
-                    count++
-                }
-                curr = curr.plusDays(1)
-            }
-        } else if (targetDate.isBefore(anchorDate)) {
-            var curr = targetDate.plusDays(1)
-            while (curr.isBefore(anchorDate) || curr == anchorDate) {
-                if (isHoliday(curr)) {
-                    count--
-                }
-                curr = curr.plusDays(1)
-            }
+        if (targetDate == anchorDate) return 0
+        return if (targetDate.isAfter(anchorDate)) {
+            holidaysBefore(targetDate) - holidaysBefore(anchorDate.plusDays(1))
+        } else {
+            -(holidaysBefore(anchorDate.plusDays(1)) - holidaysBefore(targetDate.plusDays(1)))
         }
-        return count
+    }
+
+    private fun isHungKingsCommemoration(date: LocalDate): Boolean {
+        return dynamicHolidayDates(date.year).hungKingsCommemoration == date
+    }
+
+    private fun dynamicHolidayDates(year: Int): DynamicHolidayDates = synchronized(holidayCacheLock) {
+        dynamicHolidayCache[year] ?: DynamicHolidayDates(
+            lunarNewYear = solarDateFromLunar(1, 1, year),
+            hungKingsCommemoration = solarDateFromLunar(10, 3, year)
+        ).also { dynamicHolidayCache[year] = it }
+    }
+
+    private fun solarDateFromLunar(day: Int, month: Int, year: Int): LocalDate? {
+        return runCatching {
+            val solar = VietCalendar.convertLunar2Solar(
+                day,
+                month,
+                year,
+                0,
+                VIETNAM_TIME_ZONE
+            )
+            LocalDate.of(solar[2], solar[1], solar[0])
+        }.getOrNull()
+    }
+
+    private fun holidaysBefore(date: LocalDate): Int {
+        val prefix = holidayPrefixForYear(date.year)
+        return holidaysBeforeYear(date.year) + prefix[date.dayOfYear - 1]
+    }
+
+    private fun holidayPrefixForYear(year: Int): IntArray = synchronized(holidayCacheLock) {
+        holidayPrefixCache[year] ?: run {
+            val dayCount = LocalDate.of(year, 12, 31).dayOfYear
+            val prefix = IntArray(dayCount + 1)
+            for (dayOfYear in 1..dayCount) {
+                prefix[dayOfYear] = prefix[dayOfYear - 1] +
+                    if (isHoliday(LocalDate.ofYearDay(year, dayOfYear))) 1 else 0
+            }
+            holidayPrefixCache[year] = prefix
+            prefix
+        }
+    }
+
+    private fun holidaysBeforeYear(year: Int): Int = synchronized(holidayCacheLock) {
+        holidaysBeforeYearCache[year]?.let { return@synchronized it }
+        val anchorYear = ANCHOR_DATE.year
+        if (year > anchorYear) {
+            var cursor = holidaysBeforeYearCache.keys.filter { it in anchorYear..year }.maxOrNull()
+                ?: anchorYear
+            var count = holidaysBeforeYearCache.getValue(cursor)
+            while (cursor < year) {
+                count += holidayPrefixForYear(cursor).last()
+                cursor++
+                holidaysBeforeYearCache[cursor] = count
+            }
+            count
+        } else {
+            var cursor = holidaysBeforeYearCache.keys.filter { it in year..anchorYear }.minOrNull()
+                ?: anchorYear
+            var count = holidaysBeforeYearCache.getValue(cursor)
+            while (cursor > year) {
+                cursor--
+                count -= holidayPrefixForYear(cursor).last()
+                holidaysBeforeYearCache[cursor] = count
+            }
+            count
+        }
     }
 
     /**

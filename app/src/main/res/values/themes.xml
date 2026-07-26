@@ -42,7 +42,7 @@
         <item name="trackTint">@color/ios_switch_track_tint</item>
         <item name="splitTrack">false</item>
         <item name="showText">false</item>
-        <item name="switchMinWidth">48dp</item>
+        <item name="switchMinWidth">46dp</item>
         <item name="thumbTextPadding">0dp</item>
     </style>
 </resources>

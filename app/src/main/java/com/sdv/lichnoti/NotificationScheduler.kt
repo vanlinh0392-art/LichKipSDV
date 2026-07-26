@@ -13,7 +13,10 @@ import java.time.ZoneId
 object NotificationScheduler {
 
     private const val TAG = "NotificationScheduler"
-    private const val ALARM_REQUEST_CODE = 2001
+    internal const val ALARM_REQUEST_CODE = 2001
+    internal const val SNOOZE_REQUEST_CODE = 2003
+    private const val ACTION_SHIFT_ALARM_TRIGGER = "com.sdv.lichnoti.ACTION_SHIFT_ALARM_TRIGGER"
+    private const val ACTION_SNOOZE_ALARM_TRIGGER = "com.sdv.lichnoti.ACTION_SNOOZE_ALARM_TRIGGER"
 
     fun scheduleNext(context: Context) {
         val prefs = AppPreferences(context)
@@ -73,7 +76,11 @@ object NotificationScheduler {
 
     private fun setExactAlarm(context: Context, triggerAtMillis: Long) {
         val alarmManager = context.getSystemService(AlarmManager::class.java)
-        val intent = Intent(context, AlarmReceiver::class.java)
+        // Remove the pre-v4.67 identity (same requestCode but no action) after an upgrade.
+        alarmManager.cancel(legacyShiftPendingIntent(context))
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_SHIFT_ALARM_TRIGGER
+        }
         val pendingIntent = PendingIntent.getBroadcast(
             context, ALARM_REQUEST_CODE, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -106,24 +113,36 @@ object NotificationScheduler {
 
     fun cancelAlarm(context: Context) {
         val alarmManager = context.getSystemService(AlarmManager::class.java)
-        val intent = Intent(context, AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, ALARM_REQUEST_CODE, intent,
+        val shiftIntent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_SHIFT_ALARM_TRIGGER
+        }
+        val shiftPendingIntent = PendingIntent.getBroadcast(
+            context, ALARM_REQUEST_CODE, shiftIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        alarmManager.cancel(pendingIntent)
+        val snoozeIntent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_SNOOZE_ALARM_TRIGGER
+        }
+        val snoozePendingIntent = PendingIntent.getBroadcast(
+            context, SNOOZE_REQUEST_CODE, snoozeIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.cancel(shiftPendingIntent)
+        alarmManager.cancel(snoozePendingIntent)
+        alarmManager.cancel(legacyShiftPendingIntent(context))
     }
 
     fun scheduleSnooze(context: Context, minutes: Int, retainedMdmEventId: String? = null) {
         val triggerAtMillis = System.currentTimeMillis() + minutes * 60 * 1000
         val alarmManager = context.getSystemService(AlarmManager::class.java)
         val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_SNOOZE_ALARM_TRIGGER
             retainedMdmEventId?.let {
                 putExtra(MdmPendingCoordinator.EXTRA_EVENT_ID, it)
             }
         }
         val pendingIntent = PendingIntent.getBroadcast(
-            context, ALARM_REQUEST_CODE, intent,
+            context, SNOOZE_REQUEST_CODE, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -150,6 +169,15 @@ object NotificationScheduler {
                 AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent
             )
         }
+    }
+
+    private fun legacyShiftPendingIntent(context: Context): PendingIntent {
+        return PendingIntent.getBroadcast(
+            context,
+            ALARM_REQUEST_CODE,
+            Intent(context, AlarmReceiver::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private const val LUNAR_ALARM_REQUEST_CODE = 2002

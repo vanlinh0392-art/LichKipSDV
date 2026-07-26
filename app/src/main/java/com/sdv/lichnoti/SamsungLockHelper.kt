@@ -27,7 +27,7 @@ object SamsungLockHelper {
     fun isVSelfLockInstalled(context: Context): Boolean {
         return try {
             @Suppress("DEPRECATION")
-            context.packageManager.getPackageInfo(VSELFLOCK_PACKAGE, 0)
+            context.packageManager.getPackageInfo(VSELFLOCK_PACKAGE, directBootMatchFlags())
             true
         } catch (_: PackageManager.NameNotFoundException) {
             false
@@ -98,10 +98,15 @@ object SamsungLockHelper {
             .firstOrNull { component ->
                 runCatching {
                     @Suppress("DEPRECATION")
-                    val info = packageManager.getActivityInfo(component, 0)
+                    val info = packageManager.getActivityInfo(component, directBootMatchFlags())
                     info.enabled && info.exported
                 }.getOrDefault(false)
             }
+    }
+
+    private fun directBootMatchFlags(): Int {
+        return PackageManager.MATCH_DIRECT_BOOT_AWARE or
+            PackageManager.MATCH_DIRECT_BOOT_UNAWARE
     }
 
     private fun buildLockIntent(target: ComponentName): Intent {
