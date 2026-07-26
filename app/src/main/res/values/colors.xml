@@ -45,8 +45,14 @@
     <color name="status_bar">#0F766E</color>
 
     <!-- iOS-style switches and date notes -->
-    <color name="switch_track_off">#C7CDD4</color>
+    <color name="switch_track_on">#34C759</color>
+    <color name="switch_track_on_pressed">#2FB651</color>
+    <color name="switch_track_off">#E9E9EB</color>
+    <color name="switch_track_off_pressed">#D1D1D6</color>
+    <color name="switch_track_disabled">#B8BBC1</color>
     <color name="switch_thumb">#FFFFFF</color>
+    <color name="switch_thumb_disabled">#F2F2F7</color>
+    <color name="switch_thumb_border">#22000000</color>
     <color name="note_dot">#DC2626</color>
     <color name="note_close_red">#FF5F57</color>
     <color name="note_close_red_border">#E0443E</color>

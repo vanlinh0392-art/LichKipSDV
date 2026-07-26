@@ -2,7 +2,6 @@ package com.sdv.lichnoti
 
 import android.app.Activity
 import android.content.Context
-import android.provider.Settings
 import android.util.Log
 import java.util.UUID
 
@@ -18,7 +17,9 @@ object MdmPendingCoordinator {
         nowMs: Long = System.currentTimeMillis()
     ): PendingMdmState? {
         val prefs = AppPreferences(context)
-        if (!prefs.autoLockSamsung || !SamsungLockHelper.isSamsungDevice()) return null
+        // Auto MDM is capability-based, not manufacturer-based. A VSelfLock/MDM package can
+        // be installed on a non-Samsung device, so the resolved target package is the only gate.
+        if (!prefs.autoLockSamsung) return null
 
         val existing = MdmPendingStore.load(context)
         if (existing != null && !MdmPendingPolicy.isExpired(existing, nowMs)) {
@@ -71,12 +72,6 @@ object MdmPendingCoordinator {
             ensurePendingInfrastructure(context)
             return result
         }
-        if (!Settings.canDrawOverlays(context)) {
-            val result = persistAttempt(context, state, nowMs, trigger, MdmAttemptResult.BLOCKED_PERMISSION)
-            ensurePendingInfrastructure(context)
-            return result
-        }
-
         val launched = if (foregroundActivity != null) {
             SamsungLockHelper.sendLockIntent(foregroundActivity)
         } else {
