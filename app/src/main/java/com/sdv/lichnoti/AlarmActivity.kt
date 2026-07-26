@@ -37,8 +37,7 @@ class AlarmActivity : AppCompatActivity() {
         setContentView(R.layout.activity_alarm)
         bindAlarmContent(prefs)
         bindActions(prefs)
-        if (prefs.autoSendMdmOnScreen &&
-            prefs.autoLockSamsung &&
+        if (prefs.autoLockSamsung &&
             MdmDeviceState.isUnlockedAndInteractive(this)
         ) {
             window.decorView.post { attemptMdmWithoutStopping("alarm_activity_unlocked") }
@@ -133,6 +132,17 @@ class AlarmActivity : AppCompatActivity() {
         Log.d("AlarmActivity", "MDM attempt without stopping alarm $trigger -> $result")
         if (MdmPendingCoordinator.currentState(this) != null) {
             MdmPendingService.start(this)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val prefs = AppPreferences(this)
+        if (eventId != null &&
+            prefs.autoLockSamsung &&
+            MdmDeviceState.isUnlockedAndInteractive(this)
+        ) {
+            window.decorView.post { attemptMdmWithoutStopping("alarm_activity_resume") }
         }
     }
 
