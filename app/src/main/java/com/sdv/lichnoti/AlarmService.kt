@@ -156,6 +156,11 @@ class AlarmService : Service() {
             0
         }
         ServiceCompat.startForeground(this, NOTIFICATION_ID, builder.build(), serviceType)
+        if (prefs.autoLockSamsung && currentEventId != null) {
+            // Thử ngay cả khi keyguard đang khóa. Nếu Android/Samsung chưa cho
+            // activity nền hiện, coordinator giữ pending và retry qua unlock/AlarmManager.
+            MdmPendingCoordinator.attempt(this, "alarm_started", force = true)
+        }
         // Auto MDM không sở hữu vòng đời báo thức. Chính người dùng
         // Stop/Snooze mới gửi ACTION_STOP/ACTION_SNOOZE và dừng service.
         if (mediaPlayer == null) playRingtone()
