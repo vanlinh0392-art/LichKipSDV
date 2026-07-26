@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
-import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -19,216 +18,172 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class AlarmActivity : AppCompatActivity() {
-
     private val handler = Handler(Looper.getMainLooper())
     private var autoLockRunnable: Runnable? = null
+    private var eventId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        configureLockScreenWindow()
 
-        // Auto-send MDM khi màn hình đang mở (không cần kiểm tra keyguard vì
-        // isInteractive=true đã đủ chứng minh user đang dùng phone)
-        val prefsCheck = AppPreferences(this)
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        Log.d("AlarmActivity", "Auto-send check: " +
-            "autoSendMdmOnScreen=${prefsCheck.autoSendMdmOnScreen}, " +
-            "autoLockSamsung=${prefsCheck.autoLockSamsung}, " +
-            "canDrawOverlays=${Settings.canDrawOverlays(this)}, " +
-            "isInteractive=${pm.isInteractive}")
-        if (prefsCheck.autoSendMdmOnScreen && prefsCheck.autoLockSamsung
-            && Settings.canDrawOverlays(this) && pm.isInteractive) {
-            Log.d("AlarmActivity", "Màn hình đang mở → Auto-send MDM")
-            val serviceIntent = Intent(this, AlarmService::class.java)
-            stopService(serviceIntent)
-            sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
-            SamsungLockHelper.resetDebounce()
-            val success = SamsungLockHelper.sendLockIntent(this)
-            Log.d("AlarmActivity", "sendLockIntent result=$success")
-            if (success) {
-                Log.d("AlarmActivity", "Auto-send MDM thành công - skip AlarmActivity UI")
-                finish()
-                return
-            }
-        }
+        val prefs = AppPreferences(this)
+        eventId = intent.getStringExtra(AlarmService.EXTRA_MDM_EVENT_ID)
+            ?: MdmPendingCoordinator.currentState(this)?.eventId
 
-        val autoStopAndLock = intent?.getBooleanExtra("EXTRA_AUTO_STOP_AND_LOCK", false) ?: false
-        if (autoStopAndLock) {
-            // Tắt nhạc chuông báo thức
-            val serviceIntent = Intent(this, AlarmService::class.java)
-            stopService(serviceIntent)
-            
-            // Gửi broadcast để NotificationScheduler lập lịch ca tiếp theo
-            sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
-            
-            // Mở VSelfLock để khóa thiết bị — gọi qua sendLockIntentWithDelay có fallback 3 lớp để tránh bị OS chặn
-            val prefs = AppPreferences(this)
-            if (prefs.autoLockSamsung) {
-                SamsungLockHelper.sendLockIntentWithDelay(this)
-            }
-            finish()
+        if (prefs.autoSendMdmOnScreen &&
+            prefs.autoLockSamsung &&
+            MdmDeviceState.isUnlockedAndInteractive(this)
+        ) {
+            handleStopAndLock("alarm_activity_unlocked")
             return
         }
 
-        // Cấu hình hiển thị trên màn hình khóa và đánh thức thiết bị
+        if (intent.getBooleanExtra("EXTRA_AUTO_STOP_AND_LOCK", false)) {
+            handleStopAndLock("notification_stop")
+            return
+        }
+
+        setContentView(R.layout.activity_alarm)
+        scheduleAutomaticLock(prefs)
+        bindAlarmContent(prefs)
+        bindActions(prefs)
+    }
+
+    private fun configureLockScreenWindow() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
         } else {
+            @Suppress("DEPRECATION")
             window.addFlags(
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                        or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                        or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
             )
         }
         window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-                    or WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
         )
+    }
 
-
-
-        setContentView(R.layout.activity_alarm)
-
-        val prefs = AppPreferences(this)
-
-        // Tự động gửi Intent khóa sau 1.5 giây để dự phòng (khi màn hình vừa sáng lên)
-        // QUAN TRỌNG: Phải dừng AlarmService + finish Activity trước khi gửi MDM
-        // để onPause không re-launch AlarmActivity đè lên VSelfLock
+    private fun scheduleAutomaticLock(prefs: AppPreferences) {
         autoLockRunnable = Runnable {
             if (prefs.autoLockSamsung) {
-                Log.d("AlarmActivity", "Tự động gửi lock intent dự phòng sau 1.5 giây — dừng service + finish")
-                val serviceIntent = Intent(this@AlarmActivity, AlarmService::class.java)
-                stopService(serviceIntent)
-                sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
-                SamsungLockHelper.sendLockIntentWithDelay(this@AlarmActivity)
-                finish()
+                handleStopAndLock("alarm_activity_timeout")
             }
         }
-        handler.postDelayed(autoLockRunnable!!, 1500)
+        handler.postDelayed(autoLockRunnable!!, 1_500L)
+    }
 
+    private fun bindAlarmContent(prefs: AppPreferences) {
         val crewId = intent.getStringExtra(AlarmService.EXTRA_CREW_ID) ?: "A"
         val shiftLabel = intent.getStringExtra(AlarmService.EXTRA_SHIFT_LABEL) ?: "Ngày"
         val shiftEmoji = intent.getStringExtra(AlarmService.EXTRA_SHIFT_EMOJI) ?: "☀️"
-
         val crewName = ShiftCalculator.CREWS.find { it.id == crewId }?.name ?: "Kíp $crewId"
 
-        // Set text
         findViewById<TextView>(R.id.tvAlarmCrew).text = crewName
         findViewById<TextView>(R.id.tvAlarmShift).text = "$shiftEmoji Ca $shiftLabel"
         findViewById<TextView>(R.id.tvAlarmMessage).text = prefs.notificationContent
 
-        val btnSnooze = findViewById<Button>(R.id.btnSnoozeAlarm)
+        val snoozeButton = findViewById<Button>(R.id.btnSnoozeAlarm)
         if (prefs.snoozeDuration == -1) {
-            btnSnooze.visibility = View.GONE
+            snoozeButton.visibility = View.GONE
         } else {
-            btnSnooze.visibility = View.VISIBLE
-            btnSnooze.text = "NHẮC LẠI SAU ${prefs.snoozeDuration} PHÚT"
+            snoozeButton.visibility = View.VISIBLE
+            snoozeButton.text = "NHẮC LẠI SAU ${prefs.snoozeDuration} PHÚT"
         }
 
-        // Đổi màu nền gradient động theo màu ca trực
-        val layoutRoot = findViewById<View>(R.id.layoutAlarmRoot)
-        val isDay = shiftLabel.contains("Ngày")
-        val colorHex = if (isDay) prefs.dayColor else prefs.nightColor
-        try {
-            val colorVal = Color.parseColor(colorHex)
-            val gd = GradientDrawable(
+        val colorHex = if (shiftLabel.contains("Ngày")) prefs.dayColor else prefs.nightColor
+        runCatching {
+            findViewById<View>(R.id.layoutAlarmRoot).background = GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(colorVal, Color.parseColor("#090D16"))
+                intArrayOf(Color.parseColor(colorHex), Color.parseColor("#090D16"))
             )
-            layoutRoot.background = gd
-        } catch (e: Exception) {
-            // Giữ background xml mặc định
         }
+    }
 
-        // Xử lý sự kiện click
+    private fun bindActions(prefs: AppPreferences) {
         findViewById<Button>(R.id.btnStopAlarm).setOnClickListener {
-            autoLockRunnable?.let { handler.removeCallbacks(it) }
-            sendBroadcastToReceiver(AlarmReceiver.ACTION_STOP)
-            
-            val prefs = AppPreferences(this)
-            if (prefs.autoLockSamsung) {
-                SamsungLockHelper.sendLockIntentWithDelay(this)
-            }
-
-            finish()
+            removeAutomaticLock()
+            handleStopAndLock("manual_stop")
         }
-
-        btnSnooze.setOnClickListener {
-            autoLockRunnable?.let { handler.removeCallbacks(it) }
-            sendBroadcastToReceiver(AlarmReceiver.ACTION_SNOOZE)
+        findViewById<Button>(R.id.btnSnoozeAlarm).setOnClickListener {
+            removeAutomaticLock()
+            MdmPendingCoordinator.cancelForManualSnooze(this, eventId)
+            sendAlarmAction(AlarmReceiver.ACTION_SNOOZE, manualSnooze = true)
             finish()
         }
     }
 
-    override fun onDestroy() {
+    private fun handleStopAndLock(trigger: String) {
+        removeAutomaticLock()
+        stopService(Intent(this, AlarmService::class.java))
+        sendAlarmAction(AlarmReceiver.ACTION_STOP, manualSnooze = false)
+
+        if (AppPreferences(this).autoLockSamsung && eventId != null) {
+            val result = MdmPendingCoordinator.attempt(
+                context = this,
+                trigger = trigger,
+                foregroundActivity = this,
+                force = true
+            )
+            Log.d("AlarmActivity", "MDM attempt $trigger -> $result")
+            if (MdmPendingCoordinator.currentState(this) != null) {
+                MdmPendingService.start(this)
+            }
+        }
+        finish()
+    }
+
+    private fun sendAlarmAction(action: String, manualSnooze: Boolean) {
+        sendBroadcast(Intent(this, AlarmReceiver::class.java).apply {
+            this.action = action
+            putExtra(AlarmReceiver.EXTRA_MANUAL_SNOOZE, manualSnooze)
+            eventId?.let { putExtra(MdmPendingCoordinator.EXTRA_EVENT_ID, it) }
+        })
+    }
+
+    private fun removeAutomaticLock() {
         autoLockRunnable?.let { handler.removeCallbacks(it) }
+        autoLockRunnable = null
+    }
+
+    override fun onDestroy() {
+        removeAutomaticLock()
         super.onDestroy()
     }
 
     override fun onPause() {
         super.onPause()
-        // Nếu AlarmService vẫn đang chạy (người dùng chưa bấm nút), tức là báo thức đang reo.
-        // Nếu màn hình vẫn đang sáng và không có cuộc gọi điện thoại, tự động đưa AlarmActivity trở lại foreground.
-        // Bỏ qua nếu Activity đang finish() (user đã bấm DỪNG) để tránh re-launch gây double-open MDM.
-        if (AlarmService.isRunning && !isFinishing && !SamsungLockHelper.isLockJustSent()) {
+        if (!AlarmService.isRunning || isFinishing || SamsungLockHelper.isLockJustSent()) return
 
-            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-            val isInteractive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-                pm.isInteractive
-            } else {
-                @Suppress("DEPRECATION")
-                pm.isScreenOn
-            }
-
-            // Kiểm tra trạng thái cuộc gọi
-            var isPhoneCallActive = false
-            try {
-                val tm = getSystemService(Context.TELEPHONY_SERVICE) as android.telephony.TelephonyManager
-                isPhoneCallActive = tm.callState != android.telephony.TelephonyManager.CALL_STATE_IDLE
-            } catch (e: Exception) {
-                // Mặc định là không có cuộc gọi nếu không thể kiểm tra
-            }
-
-            if (isInteractive && !isPhoneCallActive) {
-                Log.d("AlarmActivity", "AlarmActivity bị pause nhưng báo thức vẫn đang chạy -> Đưa lại lên foreground sau 500ms")
-                handler.postDelayed({
-                    if (AlarmService.isRunning) {
-                        val pm2 = getSystemService(Context.POWER_SERVICE) as PowerManager
-                        val isInteractive2 = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-                            pm2.isInteractive
-                        } else {
-                            @Suppress("DEPRECATION")
-                            pm2.isScreenOn
-                        }
-                        if (isInteractive2) {
-                            val reLaunchIntent = Intent(this, AlarmActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                            }
-                            startActivity(reLaunchIntent)
-                        }
-                    }
-                }, 500)
-            }
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        var phoneCallActive = false
+        runCatching {
+            val telephony = getSystemService(Context.TELEPHONY_SERVICE) as android.telephony.TelephonyManager
+            phoneCallActive = telephony.callState != android.telephony.TelephonyManager.CALL_STATE_IDLE
         }
-    }
-
-    private fun sendBroadcastToReceiver(actionStr: String) {
-        val intent = Intent(this, AlarmReceiver::class.java).apply {
-            action = actionStr
+        if (powerManager.isInteractive && !phoneCallActive) {
+            handler.postDelayed({
+                if (AlarmService.isRunning && !isFinishing) {
+                    startActivity(Intent(this, AlarmActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                        eventId?.let { putExtra(AlarmService.EXTRA_MDM_EVENT_ID, it) }
+                    })
+                }
+            }, 500L)
         }
-        sendBroadcast(intent)
     }
 
     @Suppress("DEPRECATION")
-    override fun onBackPressed() {
-        // Vô hiệu hóa nút back vật lý để người dùng buộc phải bấm Stop hoặc Snooze
-    }
+    @android.annotation.SuppressLint("MissingSuperCall")
+    override fun onBackPressed() = Unit
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        // Yêu cầu giải phóng keyguard tạm thời khi Activity đã gắn vào cửa sổ
-        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
             keyguardManager.requestDismissKeyguard(this, null)
         }
     }

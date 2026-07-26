@@ -46,12 +46,33 @@
             android:launchMode="singleInstance"
             android:theme="@style/Theme.LichNoti" />
 
+        <activity
+            android:name=".MdmDispatchActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.LichNoti.Transparent" />
+
         <service
             android:name=".AlarmService"
             android:foregroundServiceType="specialUse"
             android:exported="false">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_SERVICE_TYPE"
-                      android:value="Ứng dụng nhắc nhở lịch kíp SDV cần phát nhạc chuông và rung báo thức toàn màn hình chính xác khi màn hình tắt." />
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User scheduled shift alarm with audible ringing and vibration" />
+        </service>
+
+        <service
+            android:name=".MdmPendingService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keep a user enabled Samsung MDM action pending until first unlock" />
         </service>
 
 
@@ -61,11 +82,16 @@
             android:exported="false" />
 
         <receiver
+            android:name=".MdmRetryReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".BootReceiver"
             android:exported="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>

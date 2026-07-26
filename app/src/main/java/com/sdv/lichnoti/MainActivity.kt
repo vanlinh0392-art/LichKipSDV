@@ -122,6 +122,8 @@ class MainActivity : AppCompatActivity() {
         setupCalendar()
         setupNextAlarm()
         checkBatteryOptimization()
+        checkMdmHealth()
+        MdmPendingCoordinator.recover(this, "main_resume")
 
         // Đồng bộ trạng thái switch thông báo
         findViewById<SwitchMaterial>(R.id.switchNotificationDrawer).isChecked = prefs.notificationEnabled
@@ -130,20 +132,9 @@ class MainActivity : AppCompatActivity() {
         val hasOverlayPermission = Settings.canDrawOverlays(this)
         val switchAutoLockSamsung = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)
         if (switchAutoLockSamsung != null) {
-            if (prefs.autoLockSamsung && !hasOverlayPermission) {
-                // Quyền đã bị thu hồi → tắt auto MDM và thông báo cho người dùng
-                prefs.autoLockSamsung = false
-                switchAutoLockSamsung.isChecked = false
-                // Ẩn switch con "Tự động on MDM khi màn hình mở"
-                findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = View.GONE
-                Toast.makeText(
-                    this,
-                    "auto MDM đã tắt do bị thu hồi quyền 'Xuất hiện trên cùng'. Hãy bật lại và cấp quyền.",
-                    Toast.LENGTH_LONG
-                ).show()
-            } else {
-                switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
-            }
+            // Không tự tắt preference khi quyền tạm thời bị thu hồi. Pending MDM sẽ
+            // giữ trạng thái BLOCKED_PERMISSION và tiếp tục sau khi người dùng cấp lại.
+            switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
 
             // Xử lý khi quay về từ Settings cấp quyền Overlay
             if (pendingOverlayPermission) {
@@ -620,12 +611,20 @@ class MainActivity : AppCompatActivity() {
 
         // Setup switch auto MDM
         val switchAutoLockSamsung = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)
+        if (!SamsungLockHelper.isSamsungDevice()) {
+            prefs.autoLockSamsung = false
+            switchAutoLockSamsung.isChecked = false
+            findViewById<View>(R.id.layoutAutoLockSamsung)?.visibility = View.GONE
+            findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = View.GONE
+            findViewById<View>(R.id.cardMdmHealth)?.visibility = View.GONE
+            return
+        }
         switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
         var autoLockListener: android.widget.CompoundButton.OnCheckedChangeListener? = null
         autoLockListener = android.widget.CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 // Bước 1: Kiểm tra VSelfLock đã cài đặt chưa
-                if (!SamsungLockHelper.isVSelfLockInstalled(this@MainActivity)) {
+                if (!SamsungLockHelper.isVSelfLockTargetAvailable(this@MainActivity)) {
                     AlertDialog.Builder(this@MainActivity)
                         .setTitle("Chưa cài đặt VSelfLock")
                         .setMessage("Tính năng auto MDM yêu cầu app Samsung VSelfLock đã được cài đặt trên thiết bị. Vui lòng cài đặt app trước khi bật tính năng này.")
@@ -677,6 +676,7 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, "Đã bật auto MDM", Toast.LENGTH_SHORT).show()
                     // Hiện switch tự động on MDM khi bật autoLock
                     findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = if (!prefs.calendarVisible) View.VISIBLE else View.GONE
+                    checkMdmHealth()
                 }
             } else {
                 if (prefs.autoLockSamsung) {
@@ -685,10 +685,12 @@ class MainActivity : AppCompatActivity() {
                         .setMessage("Bạn có chắc chắn muốn tắt tính năng tự động gửi tín hiệu on mdm sau khi báo thức reo?")
                         .setPositiveButton("Tắt") { dialog, _ ->
                             prefs.autoLockSamsung = false
+                            MdmPendingCoordinator.cancel(this@MainActivity, "user_disabled")
                             dialog.dismiss()
                             Toast.makeText(this@MainActivity, "Đã tắt auto MDM", Toast.LENGTH_SHORT).show()
                             // Ẩn switch tự động on MDM khi tắt autoLock
                             findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = View.GONE
+                            checkMdmHealth()
                         }
                         .setNegativeButton("Hủy") { dialog, _ ->
                             dialog.dismiss()
@@ -1261,9 +1263,106 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun checkMdmHealth() {
+        val card = findViewById<CardView>(R.id.cardMdmHealth)
+        if (!SamsungLockHelper.isSamsungDevice() || !prefs.autoLockSamsung) {
+            card.visibility = View.GONE
+            return
+        }
+
+        val missing = mutableListOf<String>()
+        if (!SamsungLockHelper.isVSelfLockTargetAvailable(this)) {
+            missing += "VSelfLock chưa cài hoặc không mở được"
+        }
+        if (!Settings.canDrawOverlays(this)) {
+            missing += "chưa cấp quyền Xuất hiện trên cùng"
+        }
+        val notificationsEnabled = androidx.core.app.NotificationManagerCompat
+            .from(this)
+            .areNotificationsEnabled()
+        if (!notificationsEnabled ||
+            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+        ) {
+            missing += "thông báo đang bị tắt"
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val manager = getSystemService(android.app.NotificationManager::class.java)
+            if (!manager.canUseFullScreenIntent()) missing += "chưa cho phép thông báo toàn màn hình"
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(android.app.AlarmManager::class.java)
+            if (!alarmManager.canScheduleExactAlarms()) missing += "chưa cho phép báo thức chính xác"
+        }
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            missing += "pin chưa đặt Không hạn chế"
+        }
+
+        card.visibility = View.VISIBLE
+        findViewById<TextView>(R.id.tvMdmHealth).text = if (missing.isEmpty()) {
+            "✅ Các quyền hệ thống đã sẵn sàng. Hãy bảo đảm app nằm trong Never sleeping apps."
+        } else {
+            "Cần xử lý:\n• ${missing.joinToString("\n• ")}\nĐồng thời thêm app vào Never sleeping apps."
+        }
+    }
+
+    private fun openNextMissingMdmSetting() {
+        when {
+            !SamsungLockHelper.isVSelfLockTargetAvailable(this) -> {
+                Toast.makeText(this, "Hãy cài đúng Samsung VSelfLock trước", Toast.LENGTH_LONG).show()
+            }
+            !Settings.canDrawOverlays(this) -> {
+                pendingOverlayPermission = true
+                startActivity(
+                    Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    )
+                )
+            }
+            !androidx.core.app.NotificationManagerCompat.from(this).areNotificationsEnabled() -> {
+                startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                    putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                })
+            }
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                !getSystemService(android.app.NotificationManager::class.java).canUseFullScreenIntent() -> {
+                startActivity(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                    data = Uri.parse("package:$packageName")
+                })
+            }
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                !getSystemService(android.app.AlarmManager::class.java).canScheduleExactAlarms() -> {
+                startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                    data = Uri.parse("package:$packageName")
+                })
+            }
+            else -> openAppDetailsSettings()
+        }
+    }
+
+    private fun openSamsungNeverSleepingSettings() {
+        val samsungIntent = Intent("com.samsung.android.sm.ACTION_OPEN_CHECKABLE_LISTACTIVITY").apply {
+            setPackage("com.samsung.android.lool")
+            putExtra("activity_type", 2)
+        }
+        try {
+            startActivity(samsungIntent)
+        } catch (e: Exception) {
+            openAppDetailsSettings()
+        }
+    }
+
     private fun setupBatteryOptimizationButtons() {
         findViewById<Button>(R.id.btnDisableBatteryOptimization).setOnClickListener {
             triggerBatteryOptimizationSettings()
+        }
+        findViewById<Button>(R.id.btnMdmPermissions).setOnClickListener {
+            openNextMissingMdmSetting()
+        }
+        findViewById<Button>(R.id.btnMdmNeverSleep).setOnClickListener {
+            openSamsungNeverSleepingSettings()
         }
     }
 
@@ -1292,8 +1391,11 @@ class MainActivity : AppCompatActivity() {
                         "2. Chọn mục 'Pin' (Battery).\n" +
                         "3. Chọn 'Không hạn chế' (Unrestricted).\n\n" +
                         "Đồng thời đảm bảo app không bị đưa vào danh sách 'Ứng dụng ngủ sâu' (Deep sleeping apps) trong mục Chăm sóc thiết bị.")
-                .setPositiveButton("Đi đến Cài đặt") { _, _ ->
+                .setPositiveButton("Pin không hạn chế") { _, _ ->
                     openAppDetailsSettings()
+                }
+                .setNeutralButton("Never sleeping") { _, _ ->
+                    openSamsungNeverSleepingSettings()
                 }
                 .setNegativeButton("Đóng", null)
                 .show()
@@ -1436,10 +1538,18 @@ class MainActivity : AppCompatActivity() {
                     val json = org.json.JSONObject(response)
                     val tagName = json.getString("tag_name")
                     val assets = json.getJSONArray("assets")
-                    var downloadUrl = ""
-                    if (assets.length() > 0) {
-                        downloadUrl = assets.getJSONObject(0).getString("browser_download_url")
+                    val releaseAssets = mutableListOf<GithubReleaseAsset>()
+                    for (index in 0 until assets.length()) {
+                        val asset = assets.getJSONObject(index)
+                        releaseAssets += GithubReleaseAsset(
+                            name = asset.optString("name", ""),
+                            downloadUrl = asset.optString("browser_download_url", "")
+                        )
                     }
+                    val downloadUrl = ReleaseAssetSelector
+                        .select(tagName, releaseAssets)
+                        ?.downloadUrl
+                        .orEmpty()
                     val body = json.optString("body", "")
                     
                     val currentVerName = (try {
@@ -1538,18 +1648,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(
-                    onComplete, 
-                    android.content.IntentFilter(android.app.DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-                    android.content.Context.RECEIVER_EXPORTED
-                )
-            } else {
-                registerReceiver(
-                    onComplete, 
-                    android.content.IntentFilter(android.app.DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-                )
-            }
+            ContextCompat.registerReceiver(
+                this,
+                onComplete,
+                android.content.IntentFilter(android.app.DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+                ContextCompat.RECEIVER_EXPORTED
+            )
         } catch (e: java.lang.Exception) {
             Toast.makeText(this, "Lỗi tải bản cập nhật: ${e.message}", Toast.LENGTH_LONG).show()
             e.printStackTrace()

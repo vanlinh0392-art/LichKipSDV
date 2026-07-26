@@ -575,9 +575,62 @@
                         android:layout_height="wrap_content" />
                 </LinearLayout>
 
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardMdmHealth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/shift_holiday_bg"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="1dp">
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⚠️ Kiểm tra Auto MDM Samsung"
+                            android:textColor="@color/shift_holiday"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
 
+                        <TextView
+                            android:id="@+id/tvMdmHealth"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/on_surface"
+                            android:textSize="12sp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:gravity="end"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/btnMdmNeverSleep"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Never sleeping" />
+
+                            <Button
+                                android:id="@+id/btnMdmPermissions"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Sửa quyền" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
                 <!-- Battery Optimization Warning Card (Tối ưu pin) -->
                 <androidx.cardview.widget.CardView
