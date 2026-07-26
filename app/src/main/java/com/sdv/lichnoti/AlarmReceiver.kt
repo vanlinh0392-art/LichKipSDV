@@ -6,9 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import java.time.LocalDate
@@ -37,7 +35,9 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private fun handleStop(context: Context) {
         Log.d(TAG, "Dừng báo thức và lên lịch ca tiếp theo")
-        context.stopService(Intent(context, AlarmService::class.java))
+        if (AlarmStopPolicy.shouldStopRinging(AlarmStopReason.MANUAL_STOP)) {
+            context.stopService(Intent(context, AlarmService::class.java))
+        }
         NotificationScheduler.scheduleNext(context)
         if (MdmPendingCoordinator.currentState(context) != null) {
             MdmPendingService.start(context)
@@ -45,7 +45,9 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun handleSnooze(context: Context, intent: Intent) {
-        context.stopService(Intent(context, AlarmService::class.java))
+        if (AlarmStopPolicy.shouldStopRinging(AlarmStopReason.MANUAL_SNOOZE)) {
+            context.stopService(Intent(context, AlarmService::class.java))
+        }
         val prefs = AppPreferences(context)
         val eventId = intent.getStringExtra(MdmPendingCoordinator.EXTRA_EVENT_ID)
         val manual = intent.getBooleanExtra(EXTRA_MANUAL_SNOOZE, true)
@@ -81,29 +83,6 @@ class AlarmReceiver : BroadcastReceiver() {
             null
         }
 
-        val canFastDispatch = pendingState != null &&
-            prefs.autoSendMdmOnScreen &&
-            Settings.canDrawOverlays(context) &&
-            MdmDeviceState.isUnlockedAndInteractive(context)
-
-        if (canFastDispatch) {
-            NotificationScheduler.scheduleNext(context)
-            val result = MdmPendingCoordinator.attempt(
-                context,
-                trigger = "alarm_screen_unlocked",
-                force = true
-            )
-            if (result != MdmAttemptResult.BLOCKED_PERMISSION &&
-                result != MdmAttemptResult.TARGET_MISSING &&
-                result != MdmAttemptResult.LAUNCH_FAILED
-            ) {
-                MdmPendingService.start(context)
-                vibrateFeedback(context)
-                Toast.makeText(context, "⏰ Đang tự động on MDM", Toast.LENGTH_SHORT).show()
-                return
-            }
-        }
-
         if (prefs.snoozeDuration == 0) {
             NotificationHelper.showNotification(context)
             NotificationScheduler.scheduleNext(context)
@@ -134,23 +113,6 @@ class AlarmReceiver : BroadcastReceiver() {
             if (pendingState != null) {
                 MdmPendingCoordinator.attempt(context, "alarm_service_failed", force = true)
                 MdmPendingService.start(context)
-            }
-        }
-    }
-
-    private fun vibrateFeedback(context: Context) {
-        runCatching {
-            val vibrator = context.getSystemService(android.os.Vibrator::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(
-                    android.os.VibrationEffect.createOneShot(
-                        150,
-                        android.os.VibrationEffect.DEFAULT_AMPLITUDE
-                    )
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(150)
             }
         }
     }

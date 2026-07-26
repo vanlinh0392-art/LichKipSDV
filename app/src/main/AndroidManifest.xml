@@ -38,6 +38,13 @@
         </activity>
 
         <activity
+            android:name=".NoteActivity"
+            android:exported="false"
+            android:screenOrientation="unspecified"
+            android:theme="@style/Theme.LichNoti.Note"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".AlarmActivity"
             android:showOnLockScreen="true"
             android:showWhenLocked="true"

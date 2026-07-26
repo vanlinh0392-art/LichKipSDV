@@ -383,6 +383,7 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchHideHolidayShift"
+                            style="@style/Widget.LichNoti.IosSwitch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </LinearLayout>
@@ -408,6 +409,7 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchMergeMonths"
+                            style="@style/Widget.LichNoti.IosSwitch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </LinearLayout>
@@ -432,6 +434,7 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchHolidayAlert"
+                            style="@style/Widget.LichNoti.IosSwitch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </LinearLayout>
@@ -456,6 +459,7 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchAutoSendMdm"
+                            style="@style/Widget.LichNoti.IosSwitch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </LinearLayout>
@@ -571,6 +575,7 @@
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchAutoLockSamsung"
+                        style="@style/Widget.LichNoti.IosSwitch"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
                 </LinearLayout>
@@ -719,6 +724,7 @@
             <!-- Enable/Disable Notification -->
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchNotificationDrawer"
+                style="@style/Widget.LichNoti.IosSwitch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Bật thông báo nhắc nhở"
