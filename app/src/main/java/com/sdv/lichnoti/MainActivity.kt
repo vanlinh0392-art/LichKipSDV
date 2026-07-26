@@ -611,14 +611,9 @@ class MainActivity : AppCompatActivity() {
 
         // Setup switch auto MDM
         val switchAutoLockSamsung = findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoLockSamsung)
-        if (!SamsungLockHelper.isSamsungDevice()) {
-            prefs.autoLockSamsung = false
-            switchAutoLockSamsung.isChecked = false
-            findViewById<View>(R.id.layoutAutoLockSamsung)?.visibility = View.GONE
-            findViewById<View>(R.id.layoutAutoSendMdm)?.visibility = View.GONE
-            findViewById<View>(R.id.cardMdmHealth)?.visibility = View.GONE
-            return
-        }
+        // Luôn hiển thị Auto MDM trên mọi thiết bị. Khả năng VSelfLock sẽ được
+        // kiểm tra khi người dùng bật, thay vì ẩn nút hoặc tự ý xóa preference.
+        findViewById<View>(R.id.layoutAutoLockSamsung)?.visibility = View.VISIBLE
         switchAutoLockSamsung.isChecked = prefs.autoLockSamsung
         var autoLockListener: android.widget.CompoundButton.OnCheckedChangeListener? = null
         autoLockListener = android.widget.CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
