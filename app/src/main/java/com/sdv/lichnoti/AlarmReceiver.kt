@@ -108,7 +108,9 @@ class AlarmReceiver : BroadcastReceiver() {
             ContextCompat.startForegroundService(context, serviceIntent)
         } catch (e: Exception) {
             Log.e(TAG, "Không thể khởi chạy AlarmService", e)
-            NotificationHelper.showNotification(context)
+            // Kèm full-screen intent: dù không có chuông, màn hình khóa vẫn phóng
+            // được UI báo thức thay vì chỉ một thông báo nhỏ dễ bị bỏ lỡ.
+            NotificationHelper.showNotification(context, fullScreen = true)
             NotificationScheduler.scheduleNext(context)
             if (pendingState != null) {
                 MdmPendingCoordinator.attempt(context, "alarm_service_failed", force = true)

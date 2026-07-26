@@ -32,7 +32,12 @@ object NotificationHelper {
         notificationManager.createNotificationChannel(channel)
     }
 
-    fun showNotification(context: Context) {
+    /**
+     * @param fullScreen true = gắn thêm full-screen intent mở AlarmActivity (dùng cho
+     * nhánh fallback khi AlarmService không khởi động được — màn hình khóa vẫn hiện
+     * được UI báo thức dù không có chuông). KHÔNG bật cho chế độ "Không báo thức".
+     */
+    fun showNotification(context: Context, fullScreen: Boolean = false) {
         val prefs = AppPreferences(context)
         val crewId = prefs.selectedCrew
         val crewName = ShiftCalculator.CREWS.find { it.id == crewId }?.name ?: crewId
@@ -77,7 +82,7 @@ object NotificationHelper {
 
         val customContent = prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("⏰ Nhắc nhở $crewName - $shiftLabel")
             .setContentText(customContent)
@@ -89,9 +94,26 @@ object NotificationHelper {
             .setContentIntent(pendingIntent)
             .setVibrate(longArrayOf(0, 500, 200, 500))
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-            .build()
 
         val notificationManager = context.getSystemService(NotificationManager::class.java)
-        notificationManager.notify(NOTIFICATION_ID, notification)
+
+        if (fullScreen) {
+            val alarmIntent = Intent(context, AlarmActivity::class.java).apply {
+                putExtra(AlarmService.EXTRA_CREW_ID, crewId)
+                putExtra(AlarmService.EXTRA_SHIFT_LABEL, shiftInfo.type.label)
+                putExtra(AlarmService.EXTRA_SHIFT_EMOJI, shiftInfo.type.emoji)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            val fullScreenPendingIntent =
+                MdmPendingIntents.activityPendingIntent(context, 3, alarmIntent)
+            val canUseFullScreen = Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
+                notificationManager.canUseFullScreenIntent()
+            if (canUseFullScreen) {
+                builder.setFullScreenIntent(fullScreenPendingIntent, true)
+                builder.setCategory(NotificationCompat.CATEGORY_ALARM)
+            }
+        }
+
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 }

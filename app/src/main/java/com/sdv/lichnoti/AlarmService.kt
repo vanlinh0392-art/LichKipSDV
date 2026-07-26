@@ -15,7 +15,6 @@ import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.os.Build
 import android.os.IBinder
-import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -89,8 +88,6 @@ class AlarmService : Service() {
             } else {
                 null
             }
-
-        wakeScreen()
 
         val crewId = intent?.getStringExtra(EXTRA_CREW_ID) ?: "A"
         val shiftLabel = intent?.getStringExtra(EXTRA_SHIFT_LABEL) ?: "Ngày"
@@ -170,16 +167,10 @@ class AlarmService : Service() {
         return START_REDELIVER_INTENT
     }
 
-    private fun wakeScreen() {
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        @Suppress("DEPRECATION")
-        powerManager.newWakeLock(
-            PowerManager.FULL_WAKE_LOCK or
-                PowerManager.ACQUIRE_CAUSES_WAKEUP or
-                PowerManager.ON_AFTER_RELEASE,
-            "LichNoti:AlarmWakeLock"
-        ).acquire(15_000L)
-    }
+    // wakeScreen() đã bị bỏ CÓ CHỦ ĐÍCH: wakelock FULL_WAKE_LOCK bật màn hình sáng
+    // TRƯỚC khi notification full-screen intent được post, khiến hệ thống có thể coi là
+    // "đang dùng máy" và chỉ hiện heads-up thay vì phóng AlarmActivity toàn màn hình.
+    // Việc đánh thức màn hình do full-screen intent + turnScreenOn của AlarmActivity đảm nhiệm.
 
     private fun playRingtone() {
         try {

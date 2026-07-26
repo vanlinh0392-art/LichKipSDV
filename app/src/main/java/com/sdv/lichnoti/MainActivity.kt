@@ -55,6 +55,9 @@ class MainActivity : AppCompatActivity() {
     // giữ tham chiếu để chắc chắn unregister trong onDestroy — tránh leak Activity)
     private var updateDownloadReceiver: android.content.BroadcastReceiver? = null
 
+    // Chỉ nhắc quyền "Thông báo toàn màn hình" 1 lần mỗi lần mở app, tránh làm phiền
+    private var fullScreenPermissionDialogShown = false
+
     // Tự động kiểm tra pin khi quay lại app
     private lateinit var cardBatteryWarning: CardView
     private val noteDates = mutableSetOf<LocalDate>()
@@ -143,6 +146,7 @@ class MainActivity : AppCompatActivity() {
         setupNextAlarm()
         checkBatteryOptimization()
         checkMdmHealth()
+        checkFullScreenIntentPermission()
         MdmPendingCoordinator.recover(this, "main_resume")
 
         // Đồng bộ trạng thái switch thông báo
@@ -191,6 +195,46 @@ class MainActivity : AppCompatActivity() {
             prefs.lastUpdateCheckTime = System.currentTimeMillis()
             checkUpdate(isManual = false)
         }
+    }
+
+    // ── Cảnh báo khi quyền "Thông báo toàn màn hình" bị tắt (Android 14+) ──────
+    // Nếu quyền này tắt, AlarmService không thể phóng AlarmActivity toàn màn hình
+    // khi màn hình khóa — người dùng chỉ thấy thông báo nhỏ dù chuông vẫn reo.
+    private fun checkFullScreenIntentPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+        val nm = getSystemService(android.app.NotificationManager::class.java)
+        if (nm.canUseFullScreenIntent()) return
+        if (fullScreenPermissionDialogShown) return
+        fullScreenPermissionDialogShown = true
+        AlertDialog.Builder(this)
+            .setTitle("⚠️ Báo thức không thể hiện toàn màn hình")
+            .setMessage(
+                "Quyền \"Thông báo toàn màn hình\" của app đang TẮT.\n\n" +
+                    "Khi reo chuông lúc màn hình khóa, bạn sẽ chỉ thấy thông báo nhỏ " +
+                    "thay vì giao diện báo thức đầy đủ với nút DỪNG / NHẮC LẠI.\n\n" +
+                    "Hãy bật lại quyền này trong Cài đặt."
+            )
+            .setPositiveButton("Mở cài đặt") { _, _ ->
+                val opened = runCatching {
+                    startActivity(
+                        Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                            data = Uri.parse("package:$packageName")
+                        }
+                    )
+                }.isSuccess
+                if (!opened) {
+                    // Fallback: mở trang cài đặt thông báo của app
+                    runCatching {
+                        startActivity(
+                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                            }
+                        )
+                    }
+                }
+            }
+            .setNegativeButton("Để sau", null)
+            .show()
     }
 
     private fun getTargetCheckTimeMillis(): Long {
