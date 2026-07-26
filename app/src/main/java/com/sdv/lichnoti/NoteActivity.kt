@@ -24,6 +24,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.button.MaterialButton
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -64,6 +66,7 @@ class NoteActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         setContentView(R.layout.activity_note)
+        applySystemBarInsets()
 
         val rawDate = intent.getStringExtra(EXTRA_DATE)
         noteDate = runCatching { LocalDate.parse(rawDate) }.getOrElse {
@@ -77,6 +80,31 @@ class NoteActivity : AppCompatActivity() {
         bindActions()
         bindEditor()
         loadNote()
+    }
+
+    /**
+     * NoteActivity is translucent so the calendar remains visible behind its card. On Android 15
+     * (and on some Samsung One UI builds) that also means the content can be laid out under the
+     * status bar. Keep the existing breathing room and add the actual system-bar insets so the
+     * close button/header is always reachable and never covered by status icons.
+     */
+    private fun applySystemBarInsets() {
+        val root = findViewById<View>(R.id.noteRoot) ?: return
+        val baseLeft = root.paddingLeft
+        val baseTop = root.paddingTop
+        val baseRight = root.paddingRight
+        val baseBottom = root.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                baseLeft + bars.left,
+                baseTop + bars.top,
+                baseRight + bars.right,
+                baseBottom + bars.bottom
+            )
+            insets
+        }
+        ViewCompat.requestApplyInsets(root)
     }
 
     private fun bindViews() {
