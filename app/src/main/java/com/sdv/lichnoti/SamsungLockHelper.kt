@@ -21,7 +21,8 @@ object SamsungLockHelper {
     private var lastDispatchRequestedAtMs = 0L
 
     fun isSamsungDevice(): Boolean {
-        return Build.MANUFACTURER.equals("samsung", ignoreCase = true)
+        return Build.MANUFACTURER.contains("samsung", ignoreCase = true) ||
+            Build.BRAND.contains("samsung", ignoreCase = true)
     }
 
     fun isVSelfLockInstalled(context: Context): Boolean {
@@ -35,7 +36,9 @@ object SamsungLockHelper {
     }
 
     fun isVSelfLockTargetAvailable(context: Context): Boolean {
-        if (!isSamsungDevice() || !isVSelfLockInstalled(context)) return false
+        // Package/activity thực tế là tín hiệu tin cậy hơn chuỗi hãng máy.
+        // Việc này cũng tránh chặn nhầm Samsung có firmware tùy biến.
+        if (!isVSelfLockInstalled(context)) return false
         return try {
             @Suppress("DEPRECATION")
             val info = context.packageManager.getActivityInfo(
