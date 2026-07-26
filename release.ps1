@@ -128,7 +128,7 @@ Set-Content -Path $TempNotes -Value $ReleaseBody -Encoding UTF8
 
 $ghExists = Get-Command gh -ErrorAction SilentlyContinue
 if ($ghExists) {
-    & gh release create $Tag $ApkOut --title $Title --notes-file $TempNotes --clobber
+    & gh release create $Tag $ApkOut --title $Title --notes-file $TempNotes
     if ($LASTEXITCODE -eq 0) {
         Write-Host "DA PHAT HANH GITHUB RELEASE $Tag THANH CONG!" -ForegroundColor Green
         Write-Host "Link: https://github.com/vanlinh0392-art/LichKipSDV/releases/tag/$Tag" -ForegroundColor Yellow
