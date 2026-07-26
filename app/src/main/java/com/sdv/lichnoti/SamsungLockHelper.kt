@@ -6,10 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.provider.Settings
 import android.util.Log
 
-/** Samsung-only bridge to the VSelfLock activity. Pending/retry ownership lives in
+/** Bridge to the installed MDM/VSelfLock activity. Pending/retry ownership lives in
  * [MdmPendingCoordinator]; this helper performs one explicit foreground dispatch only. */
 object SamsungLockHelper {
     private const val TAG = "SamsungLockHelper"
@@ -37,36 +36,23 @@ object SamsungLockHelper {
 
     fun isVSelfLockTargetAvailable(context: Context): Boolean {
         // Package/activity thực tế là tín hiệu tin cậy hơn chuỗi hãng máy.
-        // Việc này cũng tránh chặn nhầm Samsung có firmware tùy biến.
-        if (!isVSelfLockInstalled(context)) return false
-        return try {
-            @Suppress("DEPRECATION")
-            val info = context.packageManager.getActivityInfo(
-                ComponentName(VSELFLOCK_PACKAGE, VSELFLOCK_ACTIVITY),
-                0
-            )
-            info.enabled && info.exported
-        } catch (e: Exception) {
-            Log.w(TAG, "Không resolve được VSelfLock MainActivity", e)
-            false
-        }
+        return resolveMdmComponent(context) != null
     }
 
     /** Must be called from a visible Activity. A non-throwing start only confirms dispatch. */
     fun sendLockIntent(context: Context): Boolean {
-        if (!isVSelfLockTargetAvailable(context)) {
+        val target = resolveMdmComponent(context)
+        if (target == null) {
             Log.w(TAG, "VSelfLock target không khả dụng")
             return false
         }
-        if (!Settings.canDrawOverlays(context)) {
-            Log.w(TAG, "Thiếu quyền overlay; giữ nguyên preference để người dùng sửa quyền")
-            return false
-        }
-
         lastDispatchRequestedAtMs = System.currentTimeMillis()
         return try {
-            context.startActivity(buildLockIntent())
-            Log.d(TAG, "Đã dispatch action=lock tới VSelfLock từ ${context.javaClass.simpleName}")
+            context.startActivity(buildLockIntent(target))
+            Log.d(
+                TAG,
+                "Đã dispatch action=lock tới ${target.flattenToShortString()} từ ${context.javaClass.simpleName}"
+            )
             true
         } catch (e: Exception) {
             Log.e(TAG, "Không thể dispatch action=lock tới VSelfLock", e)
@@ -98,9 +84,29 @@ object SamsungLockHelper {
         manager.cancel(LEGACY_MDM_NOTIFICATION_ID)
     }
 
-    private fun buildLockIntent(): Intent {
+    /**
+     * Prefer the known VSelfLock activity, then fall back to the package launcher activity.
+     * Some non-Samsung ROMs can install the same MDM package with a repackaged/renamed launcher.
+     */
+    private fun resolveMdmComponent(context: Context): ComponentName? {
+        if (!isVSelfLockInstalled(context)) return null
+        val packageManager = context.packageManager
+        val known = ComponentName(VSELFLOCK_PACKAGE, VSELFLOCK_ACTIVITY)
+        val launcher = packageManager.getLaunchIntentForPackage(VSELFLOCK_PACKAGE)?.component
+        return listOfNotNull(known, launcher)
+            .distinct()
+            .firstOrNull { component ->
+                runCatching {
+                    @Suppress("DEPRECATION")
+                    val info = packageManager.getActivityInfo(component, 0)
+                    info.enabled && info.exported
+                }.getOrDefault(false)
+            }
+    }
+
+    private fun buildLockIntent(target: ComponentName): Intent {
         return Intent().apply {
-            component = ComponentName(VSELFLOCK_PACKAGE, VSELFLOCK_ACTIVITY)
+            component = target
             action = "lock"
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)

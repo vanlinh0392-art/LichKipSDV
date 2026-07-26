@@ -38,8 +38,14 @@
     <color name="card_shadow">#40000000</color>
     <color name="status_bar">#0F172A</color>
 
-    <color name="switch_track_off">#475569</color>
+    <color name="switch_track_on">#30D158</color>
+    <color name="switch_track_on_pressed">#2BB94E</color>
+    <color name="switch_track_off">#39393D</color>
+    <color name="switch_track_off_pressed">#48484A</color>
+    <color name="switch_track_disabled">#2C2C2E</color>
     <color name="switch_thumb">#F8FAFC</color>
+    <color name="switch_thumb_disabled">#8E8E93</color>
+    <color name="switch_thumb_border">#40000000</color>
     <color name="note_dot">#F87171</color>
     <color name="note_close_red">#FF6961</color>
     <color name="note_close_red_border">#E0524D</color>

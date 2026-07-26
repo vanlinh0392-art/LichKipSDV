@@ -651,7 +651,10 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // Bước 2: Kiểm tra quyền Overlay (cần cho background lock)
-                if (!Settings.canDrawOverlays(this@MainActivity)) {
+                // Overlay is optional for an explicit foreground/bridge dispatch. Do not block
+                // Auto MDM on non-Samsung devices when the MDM package is installed.
+                if (!Settings.canDrawOverlays(this@MainActivity) &&
+                    !SamsungLockHelper.isVSelfLockTargetAvailable(this@MainActivity)) {
                     AlertDialog.Builder(this@MainActivity)
                         .setTitle("Cần cấp quyền hệ thống")
                         .setMessage("Để tự động gửi tín hiệu on mdm khi báo thức chạy nền hoặc khi màn hình đang tắt, ứng dụng cần quyền 'Xuất hiện trên cùng'. Vui lòng cấp quyền này ở màn hình tiếp theo.")
@@ -1334,7 +1337,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkMdmHealth() {
         val card = findViewById<CardView>(R.id.cardMdmHealth)
-        if (!SamsungLockHelper.isSamsungDevice() || !prefs.autoLockSamsung) {
+        if (!prefs.autoLockSamsung) {
             card.visibility = View.GONE
             return
         }
