@@ -70,7 +70,34 @@ class AlarmReceiver : BroadcastReceiver() {
         val shiftInfo = ShiftCalculator.getShiftInfo(crewId, today)
         val shouldSkipAlarm = ShiftCalculator.isHoliday(today) && !prefs.holidayAlertEnabled
 
-        if (shiftInfo.type == ShiftCalculator.ShiftType.NGHI || shouldSkipAlarm) {
+        val isRestDay = shiftInfo.type == ShiftCalculator.ShiftType.NGHI
+        if (isRestDay) {
+            if (!prefs.offDayAlarmEnabled) {
+                NotificationScheduler.scheduleNext(context)
+                return
+            }
+            val nowTime = java.time.LocalTime.now()
+            val yesterday = today.minusDays(1)
+            val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
+            if (isAfterNightShift && (nowTime.hour < 8 || (nowTime.hour == 8 && nowTime.minute == 0))) {
+                NotificationScheduler.scheduleNext(context)
+                return
+            }
+            val dayOfWeekVal = today.dayOfWeek.value
+            val activeTimesToday = prefs.getActiveOffDayAlarmTimesForDay(dayOfWeekVal)
+            val isMatchActiveTime = activeTimesToday.any { timeStr ->
+                val parts = timeStr.split(":")
+                if (parts.size != 2) return@any false
+                val h = parts[0].toIntOrNull() ?: return@any false
+                val m = parts[1].toIntOrNull() ?: return@any false
+                val diffMinutes = Math.abs((nowTime.hour * 60 + nowTime.minute) - (h * 60 + m))
+                diffMinutes <= 3
+            }
+            if (!isMatchActiveTime) {
+                NotificationScheduler.scheduleNext(context)
+                return
+            }
+        } else if (shouldSkipAlarm) {
             NotificationScheduler.scheduleNext(context)
             return
         }

@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Kíp SDV - PC Executive Studio (6 Style Presets)</title>
+    <style>
+        :root {
+            /* Default Tokens */
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.92);
+            --border-card: #e2e8f0;
+            --border-cell: #cbd5e1;
+
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --text-muted: #94a3b8;
+            --accent-primary: #4f46e5;
+
+            --day-bg: #fef3c7;
+            --day-text: #78350f;
+            --day-tag: #d97706;
+
+            --night-bg: #ede9fe;
+            --night-text: #4c1d95;
+            --night-tag: #7c3aed;
+
+            --off-bg: #f8fafc;
+            --off-text: #64748b;
+            --off-tag: #94a3b8;
+
+            --ho-border: #ec4899;
+            --ho-border-width: 2px;
+            --holiday-bg: #ffe4e6;
+            --holiday-border: #f43f5e;
+
+            --today-ring: #2563eb;
+            --lunar-1st: #ea580c;
+
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --radius-main: 14px;
+            --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.05);
+
+            --cell-height: 52px;
+            --cell-radius: 6px;
+            --cell-gap: 2px;
+            --row-gap: 6px;
+        }
+
+        body.dark-theme {
+            --bg-page: #0b0f19;
+            --bg-card: #151c2c;
+            --bg-glass: rgba(21, 28, 44, 0.92);
+            --border-card: #2a364f;
+            --border-cell: #334155;
+
+            --text-main: #f8fafc;
+            --text-sub: #cbd5e1;
+            --text-muted: #64748b;
+            --accent-primary: #6366f1;
+
+            --day-bg: #7c2d12;
+            --day-text: #ffedd5;
+            --day-tag: #fb923c;
+
+            --night-bg: #312e81;
+            --night-text: #e0e7ff;
+            --night-tag: #a5b4fc;
+
+            --off-bg: #151c2c;
+            --off-text: #94a3b8;
+            --off-tag: #64748b;
+
+            --ho-border: #f472b6;
+            --holiday-bg: #881337;
+            --holiday-border: #fb7185;
+
+            --today-ring: #60a5fa;
+            --lunar-1st: #fb923c;
+            --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ── PRESET 1: Minimalist Executive (Default) ──────────────── */
+
+        /* ── PRESET 2: Glassmorphic Glow ───────────────────────────── */
+        body.preset-glass {
+            --bg-page: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border-card: rgba(255, 255, 255, 0.12);
+            --cell-radius: 8px;
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.37);
+        }
+
+        /* ── PRESET 3: Ultra Compact Density ───────────────────────── */
+        body.preset-compact {
+            --cell-height: 42px;
+            --row-gap: 4px;
+            --cell-radius: 4px;
+        }
+        body.preset-compact .shift-pill-clean { padding: 1px 0; font-size: 10px; }
+        body.preset-compact .cell-top-bar { margin-bottom: 1px; }
+
+        /* ── PRESET 4: Soft Card Grid ───────────────────────────────── */
+        body.preset-card {
+            --cell-radius: 10px;
+            --cell-gap: 4px;
+            --row-gap: 12px;
+        }
+
+        /* ── PRESET 5: High Contrast Vivid ──────────────────────────── */
+        body.preset-contrast {
+            --day-bg: #f59e0b; --day-text: #ffffff; --day-tag: #b45309;
+            --night-bg: #6366f1; --night-text: #ffffff; --night-tag: #3730a3;
+            --off-bg: #94a3b8; --off-text: #ffffff; --off-tag: #475569;
+        }
+
+        /* ── PRESET 6: Classic Print Matrix ─────────────────────────── */
+        body.preset-classic {
+            --bg-page: #f1f5f9;
+            --bg-card: #ffffff;
+            --border-card: #94a3b8;
+            --border-cell: #94a3b8;
+            --cell-radius: 2px;
+            --row-gap: 8px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.35;
+            padding: 16px 20px;
+            min-width: 1350px;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* Glass Header */
+        .glass-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            padding: 10px 18px;
+            border-radius: var(--radius-main);
+            box-shadow: var(--shadow-card);
+            margin-bottom: 14px;
+            border: 1px solid var(--border-card);
+            position: sticky;
+            top: 8px;
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+
+        .brand-badge {
+            font-size: 10px;
+            font-weight: 800;
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--accent-primary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .control-block {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .segmented-group {
+            display: inline-flex;
+            background: var(--bg-page);
+            padding: 3px;
+            border-radius: 8px;
+            gap: 2px;
+            border: 1px solid var(--border-card);
+        }
+
+        .segmented-group button {
+            border: none;
+            background: transparent;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-sub);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .segmented-group button.active {
+            background: var(--bg-card);
+            color: var(--accent-primary);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-card);
+        }
+
+        .select-input {
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-card);
+            background: var(--bg-card);
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .btn-action {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+
+        /* KPI Summary Row */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-main);
+            padding: 10px 16px;
+            border: 1px solid var(--border-card);
+            box-shadow: var(--shadow-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .kpi-info h4 {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .kpi-info .kpi-value {
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        /* Single Unified Table Grid with Left Sticky Month Column */
+        .table-canvas {
+            background: var(--bg-card);
+            border-radius: var(--radius-main);
+            border: 1px solid var(--border-card);
+            box-shadow: var(--shadow-card);
+            overflow-x: auto;
+        }
+
+        table.dashboard-grid {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: var(--cell-gap);
+            table-layout: fixed;
+        }
+
+        th.th-month {
+            width: 110px;
+            background: var(--bg-page);
+            color: var(--text-sub);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 8px 10px;
+            text-align: left;
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            border-bottom: 2px solid var(--border-card);
+            border-right: 2px solid var(--border-card);
+        }
+
+        th.th-day {
+            width: calc((100% - 110px) / 31);
+            background: var(--bg-page);
+            color: var(--text-sub);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 6px 2px;
+            text-align: center;
+            border-bottom: 2px solid var(--border-card);
+            border-radius: 4px;
+        }
+
+        /* STICKY MONTH COLUMN ON THE LEFT */
+        td.cell-month-left {
+            background: var(--bg-page);
+            font-weight: 900;
+            font-size: 13px;
+            color: var(--text-main);
+            padding: 8px 12px;
+            text-align: left;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            border-right: 2px solid var(--border-card);
+            border-radius: 6px;
+        }
+
+        td.td-day-cell {
+            height: var(--cell-height);
+            vertical-align: top;
+            padding: 3px;
+            border-radius: var(--cell-radius);
+            border: 1px solid var(--border-card);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        td.td-day-cell:hover {
+            z-index: 30;
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+            border-color: var(--accent-primary) !important;
+        }
+
+        td.td-empty-cell {
+            background: var(--bg-page);
+            opacity: 0.25;
+            border: none;
+            cursor: default;
+        }
+
+        /* Day Cell Content (CLEAN - NO ICONS) */
+        .cell-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+
+        .solar-num {
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .dow-text {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 3px;
+            border-radius: 3px;
+            background: rgba(0,0,0,0.04);
+        }
+        .dow-sun { color: #ef4444; background: rgba(239, 68, 68, 0.12); }
+        .dow-sat { color: #2563eb; background: rgba(37, 99, 235, 0.12); }
+
+        .shift-pill-clean {
+            display: block;
+            text-align: center;
+            width: 100%;
+            padding: 2px 0;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            margin: 1px 0;
+            letter-spacing: -0.2px;
+        }
+
+        .lunar-num {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-align: right;
+        }
+        .lunar-first { color: var(--lunar-1st); font-weight: 900; }
+
+        /* Ca trực Colors */
+        td.shift-NGAY {
+            background-color: var(--day-bg);
+            color: var(--day-text);
+        }
+        td.shift-NGAY .shift-pill-clean {
+            background: var(--day-tag);
+            color: #ffffff;
+        }
+
+        td.shift-DEM {
+            background-color: var(--night-bg);
+            color: var(--night-text);
+        }
+        td.shift-DEM .shift-pill-clean {
+            background: var(--night-tag);
+            color: #ffffff;
+        }
+
+        td.shift-NGHI {
+            background-color: var(--off-bg);
+            color: var(--off-text);
+        }
+        td.shift-NGHI .shift-pill-clean {
+            background: var(--off-tag);
+            color: #ffffff;
+        }
+
+        /* Highlights */
+        td.is-ho-cell {
+            outline-style: dashed;
+            outline-color: var(--ho-border);
+            outline-width: var(--ho-border-width);
+            outline-offset: -2px;
+        }
+
+        td.is-holiday-cell {
+            background-color: var(--holiday-bg) !important;
+            border-color: var(--holiday-border) !important;
+        }
+
+        td.is-today-highlight {
+            box-shadow: inset 0 0 0 3px var(--today-ring) !important;
+            border-radius: 6px;
+        }
+
+        /* Tooltip */
+        .glass-tooltip {
+            position: fixed;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+            border: 1px solid var(--border-card);
+            line-height: 1.5;
+        }
+
+        /* Settings Overlay Modal */
+        .settings-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+
+        .settings-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .settings-card {
+            background: var(--bg-card);
+            width: 520px;
+            max-width: 92vw;
+            border-radius: var(--radius-main);
+            border: 1px solid var(--border-card);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            padding: 20px 24px;
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+        }
+
+        .settings-overlay.active .settings-card { transform: scale(1); }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-card);
+        }
+
+        .settings-header h3 { font-size: 16px; font-weight: 800; }
+        .btn-close { background: transparent; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; }
+
+        .setting-group { margin-bottom: 14px; }
+        .setting-title { font-size: 12px; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; text-transform: uppercase; }
+
+        .color-pickers { display: flex; gap: 8px; flex-wrap: wrap; }
+        .swatch { width: 30px; height: 30px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s ease; }
+        .swatch:hover { transform: scale(1.15); }
+        .swatch.active { border-color: var(--text-main); transform: scale(1.15); }
+
+        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; font-weight: 600; }
+
+        .toggle-switch { position: relative; width: 42px; height: 22px; display: inline-block; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-card); transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .border-btns { display: flex; gap: 6px; }
+        .border-btn { border: 1px solid var(--border-card); background: var(--bg-page); color: var(--text-sub); padding: 3px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; }
+        .border-btn.active { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+
+        .legend-bar {
+            display: flex; gap: 20px; justify-content: center; margin-top: 14px; padding: 10px;
+            background: var(--bg-card); border-radius: var(--radius-main); border: 1px solid var(--border-card); font-size: 12px; font-weight: 700;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-box { width: 16px; height: 16px; border-radius: 4px; }
+
+        @media print {
+            body { padding: 0; background: #fff; color: #000; min-width: auto; }
+            .glass-header, .segmented-group, .select-input, .theme-toggle-btn { display: none !important; }
+            td.td-day-cell { height: 40px; }
+            .table-canvas { border: none; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Glass Header -->
+    <header class="glass-header">
+        <div class="header-brand">
+            <div class="brand-title">📅 Lịch Kíp SDV</div>
+            <span class="brand-badge">Executive Studio</span>
+        </div>
+
+        <div class="header-controls">
+            <div class="control-block">
+                <span class="control-label">Kíp:</span>
+                <div class="segmented-group" id="crewGroup">
+                    <button class="active" data-crew="A">Kíp A</button>
+                    <button data-crew="B">Kíp B</button>
+                    <button data-crew="C">Kíp C</button>
+                    <button data-crew="HC">Hành Chính</button>
+                </div>
+            </div>
+
+            <div class="control-block">
+                <span class="control-label">Giao diện (6 Styles):</span>
+                <select id="presetSelect" class="select-input">
+                    <option value="minimalist" selected>1. Minimalist Executive (Tối giản)</option>
+                    <option value="glass">2. Glassmorphic Glow (Kính mờ)</option>
+                    <option value="compact">3. Ultra Compact (Cô đọng)</option>
+                    <option value="card">4. Soft Card Grid (Thẻ bo mềm)</option>
+                    <option value="contrast">5. High Contrast (Tương phản)</option>
+                    <option value="classic">6. Classic Print (Cổ điển)</option>
+                </select>
+            </div>
+
+            <div class="control-block">
+                <span class="control-label">Khung giờ:</span>
+                <div class="segmented-group" id="viewGroup">
+                    <button data-view="6a">6T Đầu</button>
+                    <button data-view="6b">6T Cuối</button>
+                    <button class="active" data-view="12">Cả Năm (12T)</button>
+                </div>
+            </div>
+
+            <div class="control-block">
+                <span class="control-label">Năm:</span>
+                <select id="yearSelect" class="select-input">
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028">2028</option>
+                </select>
+            </div>
+
+            <button id="btnOpenSettings" class="btn-action" title="Tuỳ chỉnh màu sắc & giao diện">
+                ⚙️ Cài đặt
+            </button>
+
+            <button id="btnThemeToggle" class="btn-action" title="Đổi giao diện Sáng/Tối">
+                🌙 Tối
+            </button>
+        </div>
+    </header>
+
+    <!-- KPI Summary Row -->
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <!-- Main Grid Canvas (Single Table with Left Month Column) -->
+    <div class="table-canvas">
+        <table class="dashboard-grid">
+            <thead>
+                <tr id="gridHeaderRow">
+                    <th class="th-month">Tháng</th>
+                </tr>
+            </thead>
+            <tbody id="gridBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Legend Footer -->
+    <footer class="legend-bar">
+        <div class="legend-item"><div class="legend-box" style="background:var(--day-tag)"></div> Ca Ngày</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--night-tag)"></div> Ca Đêm</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--off-tag)"></div> Nghỉ</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--ho-bg); border:2px dashed var(--ho-border)"></div> Ngày HO / Lễ đi làm</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--holiday-bg); border:1px solid var(--holiday-border)"></div> Ngày Lễ chính thức</div>
+    </footer>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="glass-tooltip"></div>
+
+    <!-- Settings Overlay Modal -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3>⚙️ Tuỳ chỉnh giao diện & màu sắc</h3>
+                <button id="btnCloseSettings" class="btn-close">&times;</button>
+            </div>
+            <div class="settings-body">
+                <!-- Preset select in settings -->
+                <div class="setting-group">
+                    <div class="setting-title">🎨 Chọn Style Presets (6 Kiểu):</div>
+                    <select id="modalPresetSelect" class="select-input" style="width:100%">
+                        <option value="minimalist">1. Minimalist Executive (Tối giản thanh lịch)</option>
+                        <option value="glass">2. Glassmorphic Glow (Kính mờ dạ quang)</option>
+                        <option value="compact">3. Ultra Compact (Cô đọng 12T không cuộn)</option>
+                        <option value="card">4. Soft Card Grid (Thẻ bo góc mượt)</option>
+                        <option value="contrast">5. High Contrast (Tương phản sắc nét)</option>
+                        <option value="classic">6. Classic Print (Cổ điển in ấn báo cáo)</option>
+                    </select>
+                </div>
+
+                <!-- Day color swatch -->
+                <div class="setting-group">
+                    <div class="setting-title">☀️ Màu ca Ngày:</div>
+                    <div class="color-pickers" id="dayColors"></div>
+                </div>
+
+                <!-- Night color swatch -->
+                <div class="setting-group">
+                    <div class="setting-title">🌙 Màu ca Đêm:</div>
+                    <div class="color-pickers" id="nightColors"></div>
+                </div>
+
+                <!-- HO color swatch -->
+                <div class="setting-group">
+                    <div class="setting-row">
+                        <span class="setting-title" style="margin:0">🌸 Viền ngày HO:</span>
+                        <div class="border-btns" id="borderBtns">
+                            <button class="border-btn" data-width="1">Mảnh</button>
+                            <button class="border-btn active" data-width="2">Vừa</button>
+                            <button class="border-btn" data-width="3">Dày</button>
+                        </div>
+                    </div>
+                    <div class="color-pickers" id="hoColors"></div>
+                </div>
+
+                <!-- Hide Holiday -->
+                <div class="setting-row">
+                    <span>🚫 Ẩn ca ngày Lễ chính thức</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="switchHideHoliday">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    
+const LunarCalendar = (() => {
+    const PI = Math.PI;
+    function floorInt(d) { return Math.floor(d); }
+
+    function jdFromDate(dd, mm, yy) {
+        const a = floorInt((14 - mm) / 12);
+        const y = yy + 4800 - a;
+        const m = mm + 12 * a - 3;
+        let jd = dd + floorInt((153 * m + 2) / 5) + 365 * y + floorInt(y / 4) - floorInt(y / 100) + floorInt(y / 400) - 32045;
+        if (jd < 2299161) jd = dd + floorInt((153 * m + 2) / 5) + 365 * y + floorInt(y / 4) - 32083;
+        return jd;
+    }
+
+    function jdToDate(jd) {
+        let a, b, c;
+        if (jd > 2299160) {
+            a = jd + 32044;
+            b = floorInt((4 * a + 3) / 146097);
+            c = a - floorInt(b * 146097 / 4);
+        } else {
+            b = 0; c = jd + 32082;
+        }
+        const d = floorInt((4 * c + 3) / 1461);
+        const e = c - floorInt(1461 * d / 4);
+        const m = floorInt((5 * e + 2) / 153);
+        const day = e - floorInt((153 * m + 2) / 5) + 1;
+        const month = m + 3 - 12 * floorInt(m / 10);
+        const year = b * 100 + d - 4800 + floorInt(m / 10);
+        return [day, month, year];
+    }
+
+    function sunLongitude(jdn) {
+        const julianTime = (jdn - 2451545.0) / 36525;
+        const squareJulianTime = julianTime * julianTime;
+        const dr = PI / 180;
+        const meanAnomaly = 357.52910 + 35999.05030 * julianTime - 0.0001559 * squareJulianTime - 0.00000048 * julianTime * squareJulianTime;
+        const meanLongitude = 280.46645 + 36000.76983 * julianTime + 0.0003032 * squareJulianTime;
+        let dl = (1.914600 - 0.004817 * julianTime - 0.000014 * squareJulianTime) * Math.sin(dr * meanAnomaly);
+        dl += (0.019993 - 0.000101 * julianTime) * Math.sin(dr * 2 * meanAnomaly) + 0.000290 * Math.sin(dr * 3 * meanAnomaly);
+        let trueLongitude = meanLongitude + dl;
+        trueLongitude -= 360 * floorInt(trueLongitude / 360);
+        return trueLongitude;
+    }
+
+    function newMoon(k) {
+        const julianTime = k / 1236.85;
+        const squareJulianTime = julianTime * julianTime;
+        const cubicJulianTime = squareJulianTime * julianTime;
+        const dr = PI / 180;
+        let jd1 = 2415020.75933 + 29.53058868 * k + 0.0001178 * squareJulianTime - 0.000000155 * cubicJulianTime;
+        jd1 += 0.00033 * Math.sin((166.56 + 132.87 * julianTime - 0.009173 * squareJulianTime) * dr);
+        const sunMeanAnomaly = 359.2242 + 29.10535608 * k - 0.0000333 * squareJulianTime - 0.00000347 * cubicJulianTime;
+        const moonMeanAnomaly = 306.0253 + 385.81691806 * k + 0.0107306 * squareJulianTime + 0.00001236 * cubicJulianTime;
+        const f = 21.2964 + 390.67050646 * k - 0.0016528 * squareJulianTime - 0.00000239 * cubicJulianTime;
+        let c1 = (0.1734 - 0.000393 * julianTime) * Math.sin(sunMeanAnomaly * dr) + 0.0021 * Math.sin(2 * dr * sunMeanAnomaly);
+        c1 = c1 - 0.4068 * Math.sin(moonMeanAnomaly * dr) + 0.0161 * Math.sin(dr * 2 * moonMeanAnomaly);
+        c1 -= 0.0004 * Math.sin(dr * 3 * moonMeanAnomaly);
+        c1 = c1 + 0.0104 * Math.sin(dr * 2 * f) - 0.0051 * Math.sin(dr * (sunMeanAnomaly + moonMeanAnomaly));
+        c1 = c1 - 0.0074 * Math.sin(dr * (sunMeanAnomaly - moonMeanAnomaly)) + 0.0004 * Math.sin(dr * (2 * f + sunMeanAnomaly));
+        c1 = c1 - 0.0004 * Math.sin(dr * (2 * f - sunMeanAnomaly)) - 0.0006 * Math.sin(dr * (2 * f + moonMeanAnomaly));
+        c1 += 0.0010 * Math.sin(dr * (2 * f - moonMeanAnomaly)) + 0.0005 * Math.sin(dr * (2 * moonMeanAnomaly + sunMeanAnomaly));
+        const deltAt = julianTime < -11 ? (0.001 + 0.000839 * julianTime + 0.0002261 * squareJulianTime - 0.00000845 * cubicJulianTime - 0.000000081 * julianTime * cubicJulianTime) : (-0.000278 + 0.000265 * julianTime + 0.000262 * squareJulianTime);
+        return jd1 + c1 - deltAt;
+    }
+
+    function getSunLongitude(dayNumber, timeZone) { return sunLongitude(dayNumber - 0.5 - timeZone / 24); }
+    function getNewMoonDay(k, timeZone) { return floorInt(newMoon(k) + 0.5 + timeZone / 24); }
+
+    function getLunarMonth11(yy, timeZone) {
+        const off = jdFromDate(31, 12, yy) - 2415021.076998695;
+        const k = floorInt(off / 29.530588853);
+        let nm = getNewMoonDay(k, timeZone);
+        const sunLong = floorInt(getSunLongitude(nm, timeZone) / 30);
+        if (sunLong >= 9) nm = getNewMoonDay(k - 1, timeZone);
+        return nm;
+    }
+
+    function getLeapMonthOffset(a11, timeZone) {
+        const k = floorInt(0.5 + (a11 - 2415021.076998695) / 29.530588853);
+        let last = 0, i = 1, arc = floorInt(getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone) / 30);
+        do { last = arc; i++; arc = floorInt(getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone) / 30); } while (arc !== last && i < 14);
+        return i - 1;
+    }
+
+    function convertSolar2Lunar(dd, mm, yy, timeZone = 7) {
+        const dayNumber = jdFromDate(dd, mm, yy);
+        const k = floorInt((dayNumber - 2415021.076998695) / 29.530588853);
+        let monthStart = getNewMoonDay(k + 1, timeZone);
+        if (monthStart > dayNumber) monthStart = getNewMoonDay(k, timeZone);
+        let a11 = getLunarMonth11(yy, timeZone), b11 = a11, lunarYear;
+        if (a11 >= monthStart) { lunarYear = yy; a11 = getLunarMonth11(yy - 1, timeZone); }
+        else { lunarYear = yy + 1; b11 = getLunarMonth11(yy + 1, timeZone); }
+        const lunarDay = dayNumber - monthStart + 1;
+        const diff = floorInt((monthStart - a11) / 29);
+        let lunarLeap = false, lunarMonth = diff + 11;
+        if (b11 - a11 > 365) {
+            const leapMonthDiff = getLeapMonthOffset(a11, timeZone);
+            if (diff >= leapMonthDiff) {
+                lunarMonth = diff + 10;
+                if (diff === leapMonthDiff) lunarLeap = true;
+            }
+        }
+        if (lunarMonth > 12) lunarMonth -= 12;
+        if (lunarMonth >= 11 && diff < 4) lunarYear -= 1;
+        return [lunarDay, lunarMonth, lunarYear, lunarLeap];
+    }
+
+    function convertLunar2Solar(lunarDay, lunarMonth, lunarYear, lunarLeap = 0, timeZone = 7) {
+        let a11, b11;
+        if (lunarMonth < 11) {
+            a11 = getLunarMonth11(lunarYear - 1, timeZone);
+            b11 = getLunarMonth11(lunarYear, timeZone);
+        } else {
+            a11 = getLunarMonth11(lunarYear, timeZone);
+            b11 = getLunarMonth11(lunarYear + 1, timeZone);
+        }
+        const k = floorInt(0.5 + (a11 - 2415021.076998695) / 29.530588853);
+        let off = lunarMonth - 11;
+        if (off < 0) off += 12;
+        if (b11 - a11 > 365) {
+            const leapOff = getLeapMonthOffset(a11, timeZone);
+            let leapMonth = leapOff - 2;
+            if (leapMonth < 0) leapMonth += 12;
+            if (lunarLeap !== 0 && lunarMonth !== leapMonth) return [0, 0, 0];
+            else if (lunarLeap !== 0 || off >= leapOff) off += 1;
+        }
+        const monthStart = getNewMoonDay(k + off, timeZone);
+        const [day, month, year] = jdToDate(monthStart + lunarDay - 1);
+        return new Date(year, month - 1, day);
+    }
+
+    function getLunarDate(date) {
+        const [day, month, year, isLeap] = convertSolar2Lunar(date.getDate(), date.getMonth() + 1, date.getFullYear(), 7);
+        return { day, month, year, isLeap, dayText: day === 1 ? `${day}/${month}` : `${day}` };
+    }
+
+    return { getLunarDate, convertSolar2Lunar, convertLunar2Solar };
+})();
+
+
+    
+const ShiftCalculator = (() => {
+    const ShiftType = { NGAY: 'NGAY', DEM: 'DEM', NGHI: 'NGHI' };
+    const SHIFT_LABELS = { NGAY: 'Ngày', DEM: 'Đêm', NGHI: 'Nghỉ' };
+    const CYCLE = [
+        ShiftType.NGAY, ShiftType.NGAY, ShiftType.NGAY, ShiftType.NGAY,
+        ShiftType.NGHI, ShiftType.NGHI,
+        ShiftType.DEM, ShiftType.DEM, ShiftType.DEM, ShiftType.DEM,
+        ShiftType.NGHI, ShiftType.NGHI
+    ];
+    const CREWS = [
+        { id: 'A', name: 'Kíp A', offset: 0 },
+        { id: 'B', name: 'Kíp B', offset: 8 },
+        { id: 'C', name: 'Kíp C', offset: 4 },
+        { id: 'HC', name: 'Hành Chính', offset: -1 }
+    ];
+
+    const ANCHOR = new Date(2026, 0, 3);
+    function toJDN(date) {
+        const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+        const a = Math.floor((14 - m) / 12), yy = y + 4800 - a, mm = m + 12 * a - 3;
+        return d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+    }
+    function mod(a, b) { return ((a % b) + b) % b; }
+    function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate() + n); return d; }
+    function dayOfWeek(date) { const d = date.getDay(); return d === 0 ? 7 : d; }
+
+    function isSaturdayHO(date) {
+        if (dayOfWeek(date) !== 6) return false;
+        const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+        if (y > 2026) return false;
+        if (y === 2026) {
+            return (m===1&&(d===3||d===17))||(m===2&&d===14)||(m===3&&(d===14||d===28))||
+                   (m===4&&(d===11||d===25))||(m===5&&(d===9||d===23))||(m===6&&(d===6||d===20))||
+                   (m===7&&d===4)||(m===8&&(d===15||d===29))||(m===9&&(d===12||d===26))||
+                   (m===10&&d===24)||(m===11&&d===7)||(m===12&&d===5);
+        }
+        const nth = Math.floor((d - 1) / 7) + 1;
+        return nth === 1 || nth === 3;
+    }
+
+    const holidayDynamicCache = {};
+
+    function getDynamicHolidays(year) {
+        if (holidayDynamicCache[year]) return holidayDynamicCache[year];
+        const lunarNewYear = LunarCalendar.convertLunar2Solar(1, 1, year, 0, 7);
+        const hungKings = LunarCalendar.convertLunar2Solar(10, 3, year, 0, 7);
+        const res = { lunarNewYear, hungKings };
+        holidayDynamicCache[year] = res;
+        return res;
+    }
+
+    function isLunarNewYear(date) {
+        const dyn = getDynamicHolidays(date.getFullYear());
+        if (!dyn.lunarNewYear) return false;
+        const firstDayOff = addDays(dyn.lunarNewYear, -1);
+        const dayAfterHoliday = addDays(dyn.lunarNewYear, 4);
+        return date >= firstDayOff && date < dayAfterHoliday;
+    }
+
+    function isHungKingsCommemoration(date) {
+        const dyn = getDynamicHolidays(date.getFullYear());
+        if (!dyn.hungKings) return false;
+        return date.getFullYear() === dyn.hungKings.getFullYear() &&
+               date.getMonth() === dyn.hungKings.getMonth() &&
+               date.getDate() === dyn.hungKings.getDate();
+    }
+
+    function isHoliday(date) {
+        const m = date.getMonth() + 1, d = date.getDate();
+        if (m===1&&d===1) return true;   // Tết Dương lịch
+        if (m===4&&d===30) return true;  // Giải phóng miền Nam
+        if (m===5&&d===1) return true;   // Quốc tế Lao động
+        if (m===9&&(d===1||d===2)) return true; // Quốc khánh
+        if (m===11&&d===24) return true; // Thành lập công ty
+        if (m===12&&d===31) return true; // SDV Day
+        return isLunarNewYear(date) || isHungKingsCommemoration(date);
+    }
+
+    function getHolidayName(date) {
+        const m = date.getMonth() + 1, d = date.getDate();
+        if (m===1&&d===1) return 'Tết Dương lịch';
+        if (m===4&&d===30) return 'Giải phóng miền Nam';
+        if (m===5&&d===1) return 'Quốc tế Lao động';
+        if (m===9&&(d===1||d===2)) return 'Quốc khánh';
+        if (m===11&&d===24) return 'Kỷ niệm ngày thành lập';
+        if (m===12&&d===31) return 'SDV Day';
+        if (isLunarNewYear(date)) return 'Tết Nguyên Đán';
+        if (isHungKingsCommemoration(date)) return 'Giỗ Tổ Hùng Vương';
+        if (isHoliday(date)) return 'Ngày lễ';
+        return null;
+    }
+
+    function countHolidaysBetween(anchor, target) {
+        let count = 0;
+        if (target > anchor) {
+            let curr = addDays(anchor, 1);
+            while (curr < target) { if (isHoliday(curr)) count++; curr = addDays(curr, 1); }
+        } else if (target < anchor) {
+            let curr = addDays(target, 1);
+            while (curr <= anchor) { if (isHoliday(curr)) count--; curr = addDays(curr, 1); }
+        }
+        return count;
+    }
+
+    function getShift(crewId, date) {
+        if (crewId === 'HC') return dayOfWeek(date) <= 5 ? ShiftType.NGAY : ShiftType.NGHI;
+        const crew = CREWS.find(c => c.id === crewId);
+        if (!crew) return ShiftType.NGHI;
+        const diff = toJDN(date) - toJDN(ANCHOR);
+        const holidayAdj = countHolidaysBetween(ANCHOR, date);
+        const idx = mod(crew.offset + diff - holidayAdj, CYCLE.length);
+        return CYCLE[idx];
+    }
+
+    const REAL_2026_HOLIDAYS = {
+        '1-1': { A: ShiftType.DEM, B: ShiftType.NGHI, C: ShiftType.NGAY },
+        '4-26': { A: ShiftType.NGAY, B: ShiftType.NGHI, C: ShiftType.DEM },
+        '4-30': { A: ShiftType.DEM, B: ShiftType.NGAY, C: ShiftType.NGHI },
+        '5-1': { A: ShiftType.NGHI, B: ShiftType.NGAY, C: ShiftType.DEM },
+        '9-1': { A: ShiftType.NGAY, B: ShiftType.DEM, C: ShiftType.NGHI },
+        '9-2': { A: ShiftType.NGAY, B: ShiftType.NGHI, C: ShiftType.DEM },
+        '11-24': { A: ShiftType.NGHI, B: ShiftType.NGAY, C: ShiftType.DEM },
+        '12-31': { A: ShiftType.NGAY, B: ShiftType.DEM, C: ShiftType.NGHI }
+    };
+
+    function getActualShift(crewId, date, hideHoliday = false) {
+        if (crewId === 'HC') return (isHoliday(date) || dayOfWeek(date) > 5) ? ShiftType.NGHI : ShiftType.NGAY;
+        if (isLunarNewYear(date)) return ShiftType.NGHI;
+        if (isHoliday(date)) {
+            if (hideHoliday) return ShiftType.NGHI;
+            const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+            if (y === 2026) {
+                const key = `${m}-${d}`;
+                const map = REAL_2026_HOLIDAYS[key];
+                if (map) return map[crewId] || ShiftType.NGHI;
+            }
+            const prevDay = addDays(date, -1), nextDay = addDays(date, 1);
+            const isPrevHol = isHoliday(prevDay) && !isLunarNewYear(prevDay);
+            const isNextHol = isHoliday(nextDay) && !isLunarNewYear(nextDay);
+            const baseShifts = { A: getShift('A', date), B: getShift('B', date), C: getShift('C', date) };
+            const entries = Object.entries(baseShifts);
+            const dayCrew = entries.find(e => e[1] === ShiftType.NGAY)?.[0];
+            const nightCrew = entries.find(e => e[1] === ShiftType.DEM)?.[0];
+            const offCrew = entries.find(e => e[1] === ShiftType.NGHI)?.[0];
+
+            if (isNextHol) {
+                if (crewId === offCrew) return ShiftType.NGAY;
+                if (crewId === dayCrew) return ShiftType.DEM;
+                if (crewId === nightCrew) return ShiftType.NGHI;
+            } else if (isPrevHol) {
+                const bsPrev = { A: getShift('A', prevDay), B: getShift('B', prevDay), C: getShift('C', prevDay) };
+                const eP = Object.entries(bsPrev);
+                const dc = eP.find(e => e[1] === ShiftType.NGAY)?.[0];
+                const nc = eP.find(e => e[1] === ShiftType.DEM)?.[0];
+                const oc = eP.find(e => e[1] === ShiftType.NGHI)?.[0];
+                if (crewId === oc) return ShiftType.NGAY;
+                if (crewId === dc) return ShiftType.NGHI;
+                if (crewId === nc) return ShiftType.DEM;
+            } else {
+                if (crewId === dayCrew) return ShiftType.NGAY;
+                if (crewId === nightCrew) return ShiftType.NGHI;
+                if (crewId === offCrew) return ShiftType.DEM;
+            }
+            return ShiftType.NGHI;
+        }
+        return getShift(crewId, date);
+    }
+
+    function getShiftInfo(crewId, date, hideHoliday = false) {
+        const actualShift = getActualShift(crewId, date, hideHoliday);
+        const isOfficialHol = isHoliday(date);
+        const holName = getHolidayName(date);
+        const isSundayWork = dayOfWeek(date) === 7 && actualShift !== ShiftType.NGHI;
+        const isSaturdayWork = isSaturdayHO(date) && actualShift !== ShiftType.NGHI;
+        const isHO = isOfficialHol || isSundayWork || isSaturdayWork;
+        let finalHolName = null;
+        if (isOfficialHol) finalHolName = holName;
+        else if (isSundayWork) finalHolName = 'Chủ Nhật đi làm (HO)';
+        else if (isSaturdayWork) finalHolName = 'Thứ Bảy đi làm (HO)';
+        return { type: actualShift, isHoliday: isHO, holidayName: finalHolName, isOfficialHoliday: isOfficialHol };
+    }
+
+    function isHODateForStats(crewId, date) {
+        if (crewId === 'HC') return false;
+        const actualShift = getActualShift(crewId, date);
+        if (isHoliday(date)) {
+            return actualShift === ShiftType.NGAY;
+        } else {
+            return (dayOfWeek(date) === 7 || isSaturdayHO(date)) && actualShift !== ShiftType.NGHI;
+        }
+    }
+
+    return { ShiftType, SHIFT_LABELS, CREWS, getShiftInfo, isHoliday, isHODateForStats };
+})();
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Generate Header 1..31
+        const gridHeaderRow = document.getElementById('gridHeaderRow');
+        for (let i = 1; i <= 31; i++) {
+            const th = document.createElement('th');
+            th.className = 'th-day';
+            th.textContent = i;
+            gridHeaderRow.appendChild(th);
+        }
+
+        const DAY_SWATCHES = [
+            { bg: '#fef3c7', text: '#78350f', tag: '#d97706' },
+            { bg: '#fee2e2', text: '#7f1d1d', tag: '#dc2626' },
+            { bg: '#d1fae5', text: '#064e3b', tag: '#059669' },
+            { bg: '#dbeafe', text: '#1e3a8a', tag: '#2563eb' },
+            { bg: '#ede9fe', text: '#4c1d95', tag: '#7c3aed' },
+            { bg: '#ffedd5', text: '#7c2d12', tag: '#ea580c' }
+        ];
+
+        const NIGHT_SWATCHES = [
+            { bg: '#ede9fe', text: '#4c1d95', tag: '#6366f1' },
+            { bg: '#e0e7ff', text: '#312e81', tag: '#4f46e5' },
+            { bg: '#e0f2fe', text: '#0369a1', tag: '#0284c7' },
+            { bg: '#d1fae5', text: '#064e3b', tag: '#10b981' },
+            { bg: '#f1f5f9', text: '#1e293b', tag: '#64748b' }
+        ];
+
+        const HO_SWATCHES = ['#ec4899', '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
+
+        let prefs = JSON.parse(localStorage.getItem('lich_pc_studio_prefs')) || {
+            crew: 'A',
+            year: 2026,
+            view: '12',
+            preset: 'minimalist',
+            theme: 'light',
+            dayColor: '#fef3c7',
+            dayTag: '#d97706',
+            nightColor: '#ede9fe',
+            nightTag: '#6366f1',
+            hoColor: '#ec4899',
+            hoBorderWidth: 2,
+            hideHoliday: false
+        };
+
+        function savePrefs() {
+            localStorage.setItem('lich_pc_studio_prefs', JSON.stringify(prefs));
+            applyCustomStyles();
+            renderDashboard();
+        }
+
+        function applyCustomStyles() {
+            document.body.className = '';
+            if (prefs.theme === 'dark') document.body.classList.add('dark-theme');
+            if (prefs.preset && prefs.preset !== 'minimalist') document.body.classList.add('preset-' + prefs.preset);
+
+            document.documentElement.style.setProperty('--day-bg', prefs.dayColor);
+            document.documentElement.style.setProperty('--day-tag', prefs.dayTag);
+            document.documentElement.style.setProperty('--night-bg', prefs.nightColor);
+            document.documentElement.style.setProperty('--night-tag', prefs.nightTag);
+            document.documentElement.style.setProperty('--ho-border', prefs.hoColor);
+            document.documentElement.style.setProperty('--ho-border-width', prefs.hoBorderWidth + 'px');
+        }
+
+        applyCustomStyles();
+
+        const crewButtons = document.querySelectorAll('#crewGroup button');
+        const viewButtons = document.querySelectorAll('#viewGroup button');
+        const yearSelect = document.getElementById('yearSelect');
+        const presetSelect = document.getElementById('presetSelect');
+        const modalPresetSelect = document.getElementById('modalPresetSelect');
+        const btnThemeToggle = document.getElementById('btnThemeToggle');
+
+        const gridBody = document.getElementById('gridBody');
+        const kpiRow = document.getElementById('kpiRow');
+        const tooltip = document.getElementById('tooltip');
+
+        const btnOpenSettings = document.getElementById('btnOpenSettings');
+        const btnCloseSettings = document.getElementById('btnCloseSettings');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const switchHideHoliday = document.getElementById('switchHideHoliday');
+
+        const DOW_SHORT = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+        if (prefs.theme === 'dark') btnThemeToggle.innerHTML = '☀️ Sáng';
+
+        btnThemeToggle.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-theme');
+            prefs.theme = isDark ? 'dark' : 'light';
+            btnThemeToggle.innerHTML = isDark ? '☀️ Sáng' : '🌙 Tối';
+            savePrefs();
+        });
+
+        // Set control states
+        crewButtons.forEach(b => b.classList.toggle('active', b.dataset.crew === prefs.crew));
+        viewButtons.forEach(b => b.classList.toggle('active', b.dataset.view === prefs.view));
+        yearSelect.value = prefs.year;
+        presetSelect.value = prefs.preset;
+        modalPresetSelect.value = prefs.preset;
+        switchHideHoliday.checked = prefs.hideHoliday;
+
+        crewButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                crewButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                prefs.crew = btn.dataset.crew;
+                savePrefs();
+            });
+        });
+
+        viewButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                prefs.view = btn.dataset.view;
+                savePrefs();
+            });
+        });
+
+        yearSelect.addEventListener('change', (e) => {
+            prefs.year = parseInt(e.target.value);
+            savePrefs();
+        });
+
+        function handlePresetChange(val) {
+            prefs.preset = val;
+            presetSelect.value = val;
+            modalPresetSelect.value = val;
+            savePrefs();
+        }
+
+        presetSelect.addEventListener('change', (e) => handlePresetChange(e.target.value));
+        modalPresetSelect.addEventListener('change', (e) => handlePresetChange(e.target.value));
+
+        switchHideHoliday.addEventListener('change', (e) => {
+            prefs.hideHoliday = e.target.checked;
+            savePrefs();
+        });
+
+        // Settings Modal events
+        btnOpenSettings.addEventListener('click', () => settingsOverlay.classList.add('active'));
+        btnCloseSettings.addEventListener('click', () => settingsOverlay.classList.remove('active'));
+        settingsOverlay.addEventListener('click', (e) => {
+            if (e.target === settingsOverlay) settingsOverlay.classList.remove('active');
+        });
+
+        // Swatches
+        const dayColorsDiv = document.getElementById('dayColors');
+        DAY_SWATCHES.forEach(s => {
+            const el = document.createElement('div');
+            el.className = 'swatch' + (prefs.dayColor === s.bg ? ' active' : '');
+            el.style.background = s.bg;
+            el.addEventListener('click', () => {
+                prefs.dayColor = s.bg; prefs.dayTag = s.tag;
+                document.querySelectorAll('#dayColors .swatch').forEach(x => x.classList.remove('active'));
+                el.classList.add('active');
+                savePrefs();
+            });
+            dayColorsDiv.appendChild(el);
+        });
+
+        const nightColorsDiv = document.getElementById('nightColors');
+        NIGHT_SWATCHES.forEach(s => {
+            const el = document.createElement('div');
+            el.className = 'swatch' + (prefs.nightColor === s.bg ? ' active' : '');
+            el.style.background = s.bg;
+            el.addEventListener('click', () => {
+                prefs.nightColor = s.bg; prefs.nightTag = s.tag;
+                document.querySelectorAll('#nightColors .swatch').forEach(x => x.classList.remove('active'));
+                el.classList.add('active');
+                savePrefs();
+            });
+            nightColorsDiv.appendChild(el);
+        });
+
+        const hoColorsDiv = document.getElementById('hoColors');
+        HO_SWATCHES.forEach(color => {
+            const el = document.createElement('div');
+            el.className = 'swatch' + (prefs.hoColor === color ? ' active' : '');
+            el.style.background = color;
+            el.addEventListener('click', () => {
+                prefs.hoColor = color;
+                document.querySelectorAll('#hoColors .swatch').forEach(x => x.classList.remove('active'));
+                el.classList.add('active');
+                savePrefs();
+            });
+            hoColorsDiv.appendChild(el);
+        });
+
+        const borderBtns = document.querySelectorAll('#borderBtns .border-btn');
+        borderBtns.forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.width) === prefs.hoBorderWidth);
+            btn.addEventListener('click', () => {
+                borderBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                prefs.hoBorderWidth = parseInt(btn.dataset.width);
+                savePrefs();
+            });
+        });
+
+        function getStartEndMonths() {
+            if (prefs.view === '6a') return [0, 5];
+            if (prefs.view === '6b') return [6, 11];
+            return [0, 11];
+        }
+
+        function renderDashboard() {
+            const today = new Date();
+            const [startMonth, endMonth] = getStartEndMonths();
+
+            let countDay = 0, countNight = 0, countOff = 0, countHO = 0;
+            let html = '';
+
+            for (let m = startMonth; m <= endMonth; m++) {
+                const daysInMonth = new Date(prefs.year, m + 1, 0).getDate();
+                html += '<tr>';
+                
+                // STICKY LEFT MONTH COLUMN
+                html += `<td class="cell-month-left">Tháng ${m + 1}</td>`;
+
+                for (let d = 1; d <= 31; d++) {
+                    if (d > daysInMonth) {
+                        html += '<td class="td-day-cell td-empty-cell"></td>';
+                    } else {
+                        const date = new Date(prefs.year, m, d);
+                        const dow = date.getDay();
+                        const shiftInfo = ShiftCalculator.getShiftInfo(prefs.crew, date, prefs.hideHoliday);
+                        const lunar = LunarCalendar.getLunarDate(date);
+                        const isToday = (date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() && date.getDate() === today.getDate());
+
+                        if (shiftInfo.type === ShiftCalculator.ShiftType.NGAY) countDay++;
+                        else if (shiftInfo.type === ShiftCalculator.ShiftType.DEM) countNight++;
+                        else countOff++;
+
+                        // 100% matched HO counting logic with ShiftCalculator.kt
+                        if (ShiftCalculator.isHODateForStats(prefs.crew, date)) {
+                            countHO++;
+                        }
+
+                        let cellClass = `td-day-cell shift-${shiftInfo.type}`;
+                        if (shiftInfo.isHoliday) cellClass += ' is-ho-cell';
+                        if (shiftInfo.isOfficialHoliday) cellClass += ' is-holiday-cell';
+                        if (isToday) cellClass += ' is-today-highlight';
+
+                        let dowClass = '';
+                        if (dow === 0) dowClass = 'dow-sun';
+                        else if (dow === 6) dowClass = 'dow-sat';
+
+                        // CLEAN PILL - NO ICONS
+                        let shiftText = 'Nghỉ';
+                        if (shiftInfo.type === ShiftCalculator.ShiftType.NGAY) shiftText = 'Ngày';
+                        else if (shiftInfo.type === ShiftCalculator.ShiftType.DEM) shiftText = 'Đêm';
+                        else shiftText = 'Nghỉ';
+
+                        let lunarClass = lunar.day === 1 ? 'lunar-num lunar-first' : 'lunar-num';
+
+                        const tooltipText = `<b>${DOW_SHORT[dow]}, ${d}/${m+1}/${prefs.year}</b> (Âm: ${lunar.dayText})<br>Ca: <b>${ShiftCalculator.SHIFT_LABELS[shiftInfo.type]}</b>${shiftInfo.holidayName ? '<br>🌸 ' + shiftInfo.holidayName : ''}`;
+
+                        html += `<td class="${cellClass}" data-tooltip="${encodeURIComponent(tooltipText)}">
+                            <div class="cell-top-bar">
+                                <span class="solar-num">${d}</span>
+                                <span class="dow-text ${dowClass}">${DOW_SHORT[dow]}</span>
+                            </div>
+                            <div class="shift-pill-clean">${shiftText}</div>
+                            <div class="${lunarClass}">${lunar.dayText}</div>
+                        </td>`;
+                    }
+                }
+
+                html += '</tr>';
+            }
+
+            gridBody.innerHTML = html;
+
+            // KPI Stats matching ShiftCalculator.kt
+            const totalDays = countDay + countNight + countOff;
+            const pctDay = Math.round((countDay / totalDays) * 100) || 0;
+            const pctNight = Math.round((countNight / totalDays) * 100) || 0;
+            const pctOff = Math.round((countOff / totalDays) * 100) || 0;
+
+            kpiRow.innerHTML = `
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h4>Ca Ngày</h4>
+                        <div class="kpi-value" style="color:var(--day-tag)">${countDay} <span style="font-size:12px; font-weight:700; color:var(--text-muted)">(${pctDay}%)</span></div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h4>Ca Đêm</h4>
+                        <div class="kpi-value" style="color:var(--night-tag)">${countNight} <span style="font-size:12px; font-weight:700; color:var(--text-muted)">(${pctNight}%)</span></div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h4>Ngày Nghỉ</h4>
+                        <div class="kpi-value" style="color:var(--off-tag)">${countOff} <span style="font-size:12px; font-weight:700; color:var(--text-muted)">(${pctOff}%)</span></div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h4>Ngày HO / Lễ Đi Làm</h4>
+                        <div class="kpi-value" style="color:var(--ho-border)">${countHO} <span style="font-size:12px; font-weight:700; color:var(--text-muted)">ngày</span></div>
+                    </div>
+                </div>
+            `;
+
+            document.querySelectorAll('td.td-day-cell[data-tooltip]').forEach(cell => {
+                cell.addEventListener('mouseenter', (e) => {
+                    const text = decodeURIComponent(cell.dataset.tooltip);
+                    tooltip.innerHTML = text;
+                    tooltip.style.display = 'block';
+                    positionTooltip(e);
+                });
+
+                cell.addEventListener('mousemove', (e) => positionTooltip(e));
+                cell.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+            });
+        }
+
+        function positionTooltip(e) {
+            tooltip.style.left = (e.clientX + 14) + 'px';
+            tooltip.style.top = (e.clientY + 14) + 'px';
+        }
+
+        renderDashboard();
+    });
+    </script>
+</body>
+</html>

@@ -67,7 +67,27 @@ object NotificationScheduler {
                     }
                 }
                 ShiftCalculator.ShiftType.NGHI -> {
-                    // Skip rest days
+                    if (prefs.offDayAlarmEnabled) {
+                        val yesterday = date.minusDays(1)
+                        val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
+
+                        val validTimes = prefs.getActiveOffDayAlarmTimesForDay(date.dayOfWeek.value).mapNotNull { timeStr ->
+                            val parts = timeStr.split(":")
+                            if (parts.size != 2) return@mapNotNull null
+                            val h = parts[0].toIntOrNull() ?: return@mapNotNull null
+                            val m = parts[1].toIntOrNull() ?: return@mapNotNull null
+
+                            // Không báo thức trong thời gian làm việc ca đêm sát ngày nghỉ (20h - 8h sáng hôm sau)
+                            if (isAfterNightShift && (h < 8 || (h == 8 && m == 0))) {
+                                return@mapNotNull null
+                            }
+                            date.atTime(h, m)
+                        }.filter { it.isAfter(now) }.sorted()
+
+                        if (validTimes.isNotEmpty()) {
+                            return validTimes.first()
+                        }
+                    }
                 }
             }
         }

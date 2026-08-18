@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Kíp SDV</title>
+    <meta name="description" content="Lịch xem ca kíp SDV - Xem lịch trình ca Ngày, ca Đêm, ngày Nghỉ và ngày HO cho các kíp A, B, C, HC.">
+    <style>
+/* ── Reset & Base ──────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    /* ☀️ Light Mode (Mặc định) */
+    --bg-primary: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-surface: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --accent: #4f46e5;
+    --accent-glow: rgba(79, 70, 229, 0.1);
+    
+    /* Màu sắc ca kíp Light Mode đậm đà hơn để hiển thị rõ nét */
+    --day-color: #fbbf24;
+    --day-text: #78350f;
+    --night-color: #a78bfa;
+    --night-text: #4c1d95;
+    --off-color: #cbd5e1;
+    --off-text: #334155;
+    
+    --ho-border: #ec4899;
+    --ho-border-width: 2px;
+    --today-ring: #4f46e5;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --divider: rgba(15, 23, 42, 0.06);
+    --lunar-first-color: #ea580c;
+}
+
+body.dark-theme {
+    /* 🌙 Dark Mode */
+    --bg-primary: #0f0f17;
+    --bg-card: #1a1a2e;
+    --bg-surface: #16213e;
+    --text-primary: #e8e8f0;
+    --text-secondary: #8b8ba3;
+    --text-muted: #5a5a78;
+    --accent: #6366f1;
+    --accent-glow: rgba(99, 102, 241, 0.3);
+    
+    /* Màu sắc ca kíp Dark Mode nhạt và dịu mắt hơn (tránh chói) */
+    --day-color: #fb923c;
+    --day-text: #ffffff;
+    --night-color: #8b5cf6;
+    --night-text: #ffffff;
+    --off-color: #374151;
+    --off-text: #9ca3af;
+    
+    --ho-border: #f472b6;
+    --today-ring: #6366f1;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --divider: rgba(255, 255, 255, 0.06);
+    --lunar-first-color: #fb923c;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── App Container ────────────────────────────── */
+.app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 16px 32px;
+    position: relative;
+}
+
+/* ── Header ───────────────────────────────────── */
+.app-header {
+    padding: 6px 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg-primary);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+.app-header.header-hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.app-header h1 {
+    font-size: 17px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa, #6366f1, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.btn-icon {
+    background: var(--bg-card);
+    border: 1px solid var(--divider);
+    color: var(--text-secondary);
+    border-radius: 8px;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-icon:hover { background: var(--bg-surface); color: var(--text-primary); transform: scale(1.05); }
+
+.app-content {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.app-header.header-hidden + .app-content {
+    transform: translateY(-46px);
+}
+
+/* ── Crew Selector ────────────────────────────── */
+.crew-selector {
+    display: flex;
+    gap: 8px;
+    padding: 4px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--divider);
+    margin-bottom: 16px;
+}
+.crew-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+}
+.crew-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+.crew-btn.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+/* ── HO Stats ─────────────────────────────────── */
+.ho-stats {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.06));
+    border: 1px solid rgba(99,102,241,0.15);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.ho-stats .ho-label { font-weight: 600; color: #a78bfa; }
+.ho-stats .ho-value { font-weight: 700; color: var(--text-primary); font-size: 15px; }
+
+/* ── Month Navigation ─────────────────────────── */
+.month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 0 4px;
+}
+.month-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    flex: 1;
+}
+.btn-nav {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-nav:hover { background: var(--bg-surface); color: var(--text-primary); }
+.btn-nav:active { transform: scale(0.92); }
+
+/* ── Calendar ─────────────────────────────────── */
+.calendar-wrapper {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid rgba(255,255,255,0.04);
+    padding: 12px 8px;
+    margin-bottom: 16px;
+}
+.day-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 6px;
+}
+.day-header {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 0;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+.day-header.weekend { color: #f87171; }
+
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.calendar-grid.single {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+.month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+.month-sep-label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #a78bfa;
+    padding: 10px 0 4px;
+    letter-spacing: 0.5px;
+}
+.month-sep-label:first-child {
+    padding-top: 2px;
+}
+.inline-day-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
+}
+.cal-cell {
+    aspect-ratio: 1.2;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: default;
+    transition: var(--transition);
+    min-height: 40px;
+    padding-bottom: 5px;
+}
+.cal-cell:not(.empty):hover { transform: scale(1.08); z-index: 2; }
+.cal-cell .day-num {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+.cal-cell .shift-label {
+    font-size: 8.5px;
+    font-weight: 600;
+    line-height: 1;
+    margin-top: 1px;
+    opacity: 0.85;
+}
+.cal-cell .lunar-text {
+    font-size: 8px;
+    font-weight: 500;
+    line-height: 1;
+    opacity: 0.65;
+    color: inherit;
+    position: absolute;
+    bottom: 2.5px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+.cal-cell .lunar-text.lunar-first {
+    opacity: 0.95;
+    font-weight: 800;
+    color: var(--lunar-first-color, #ea580c);
+}
+.cal-cell.shift-day { background: var(--day-color); color: var(--day-text); }
+.cal-cell.shift-night { background: var(--night-color); color: var(--night-text); }
+.cal-cell.shift-off { background: var(--off-color); color: var(--off-text); }
+.cal-cell.today {
+    outline: 2.5px solid var(--today-ring);
+    outline-offset: 1px;
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+.cal-cell.ho-border {
+    outline: var(--ho-border-width) solid var(--ho-border);
+    outline-offset: -1px;
+}
+.cal-cell.today.ho-border {
+    outline: 2.5px solid var(--today-ring);
+    outline-offset: 1px;
+}
+.cal-cell .ho-dot {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--ho-border);
+}
+.cal-cell.official-holiday { position: relative; }
+.cal-cell.official-holiday::after {
+    content: 'Lễ';
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    font-size: 7px;
+    font-weight: 800;
+    color: #fbbf24;
+    text-shadow: 0 0 4px rgba(0,0,0,0.5);
+}
+
+/* ── Legend ────────────────────────────────────── */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 4px;
+}
+.legend-dot.day { background: var(--day-color); }
+.legend-dot.night { background: var(--night-color); }
+.legend-dot.off { background: var(--off-color); }
+.legend-dot.ho {
+    background: transparent;
+    border: 2px solid var(--ho-border);
+}
+
+/* ── Today Button ─────────────────────────────── */
+.btn-today {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    box-shadow: 0 4px 20px var(--accent-glow);
+}
+.btn-today:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--accent-glow); }
+.btn-today:active { transform: translateY(0); }
+
+/* ── Settings Overlay ─────────────────────────── */
+.settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.settings-overlay.open { opacity: 1; pointer-events: all; }
+.settings-panel {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-card);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 36px;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 85vh;
+    overflow-y: auto;
+}
+.settings-overlay.open .settings-panel { transform: translateY(0); }
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+.settings-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+}
+.btn-close {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.06);
+    border: none;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 22px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-close:hover { background: rgba(255,255,255,0.12); color: var(--text-primary); }
+
+/* Setting Rows */
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.setting-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.setting-section {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.setting-section .setting-label { margin-bottom: 10px; display: block; }
+.setting-row-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+/* Color Picker */
+.color-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.color-swatch {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+    opacity: 0.4;
+    border: 2px solid transparent;
+}
+.color-swatch:hover { opacity: 0.8; transform: scale(1.15); }
+.color-swatch.active {
+    opacity: 1;
+    border-color: #fff;
+    box-shadow: 0 0 12px rgba(255,255,255,0.2);
+    transform: scale(1.1);
+}
+
+/* Border Width Picker */
+.border-width-picker {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 3px;
+}
+.bw-btn {
+    padding: 5px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+}
+.bw-btn:hover { color: var(--text-secondary); }
+.bw-btn.active {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Toggle Switch */
+.switch {
+    position: relative;
+    width: 48px; height: 26px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.08);
+    border-radius: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.slider::before {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    left: 3px; bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+input:checked + .slider { background: var(--accent); }
+input:checked + .slider::before { transform: translateX(22px); }
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 400px) {
+    .cal-cell .day-num { font-size: 12px; }
+    .cal-cell .shift-label { font-size: 8px; }
+    .crew-btn { font-size: 13px; padding: 8px 0; }
+}
+
+/* ── Tooltip for holiday names ────────────────── */
+.cal-cell[data-holiday]:hover::before {
+    content: attr(data-holiday);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e1e3a;
+    color: #fbbf24;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 20;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    pointer-events: none;
+}
+
+</style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>Lịch kíp SDV</h1>
+                <div class="header-actions">
+                    <button id="btnThemeToggle" class="btn-icon" aria-label="Đổi giao diện">
+                        <!-- Icon sẽ được cập nhật động bằng JS -->
+                    </button>
+                    <button id="btnSettings" class="btn-icon" aria-label="Cài đặt">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="app-content">
+            <!-- Crew Selector -->
+            <div class="crew-selector">
+                <button class="crew-btn active" data-crew="A">Kíp A</button>
+                <button class="crew-btn" data-crew="B">Kíp B</button>
+                <button class="crew-btn" data-crew="C">Kíp C</button>
+                <button class="crew-btn" data-crew="HC">HC</button>
+            </div>
+
+            <!-- HO Stats -->
+            <div class="ho-stats" id="hoStats"></div>
+
+            <!-- Month Navigation -->
+            <div class="month-nav">
+                <button id="btnPrev" class="btn-nav" aria-label="Tháng trước">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <h2 id="monthTitle" class="month-title"></h2>
+                <button id="btnNext" class="btn-nav" aria-label="Tháng sau">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-wrapper">
+                <div class="day-headers" id="dayHeaders"></div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item"><span class="legend-dot day"></span>Ca Ngày</div>
+                <div class="legend-item"><span class="legend-dot night"></span>Ca Đêm</div>
+                <div class="legend-item"><span class="legend-dot off"></span>Nghỉ</div>
+                <div class="legend-item"><span class="legend-dot ho"></span>Ngày HO / Lễ</div>
+            </div>
+
+            <!-- Today Button -->
+            <button id="btnToday" class="btn-today">Hôm Nay</button>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h2>⚙️ Tuỳ chỉnh giao diện</h2>
+                <button id="btnCloseSettings" class="btn-close">&times;</button>
+            </div>
+            <div class="settings-body">
+                <!-- Merge months -->
+                <div class="setting-row">
+                    <span class="setting-label">📆 Gộp 2 tháng liên tục</span>
+                    <label class="switch">
+                        <input type="checkbox" id="switchMerge">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Day color -->
+                <div class="setting-section">
+                    <span class="setting-label">☀️ Màu ca Ngày:</span>
+                    <div class="color-picker" id="dayColors">
+                        <div class="color-swatch" data-color="#D97706" style="background:#D97706"></div>
+                        <div class="color-swatch" data-color="#DC2626" style="background:#DC2626"></div>
+                        <div class="color-swatch" data-color="#059669" style="background:#059669"></div>
+                        <div class="color-swatch" data-color="#2563EB" style="background:#2563EB"></div>
+                        <div class="color-swatch" data-color="#7C3AED" style="background:#7C3AED"></div>
+                        <div class="color-swatch" data-color="#DB2777" style="background:#DB2777"></div>
+                        <div class="color-swatch" data-color="#EA580C" style="background:#EA580C"></div>
+                        <div class="color-swatch" data-color="#0D9488" style="background:#0D9488"></div>
+                    </div>
+                </div>
+
+                <!-- Night color -->
+                <div class="setting-section">
+                    <span class="setting-label">🌙 Màu ca Đêm:</span>
+                    <div class="color-picker" id="nightColors">
+                        <div class="color-swatch" data-color="#6D28D9" style="background:#6D28D9"></div>
+                        <div class="color-swatch" data-color="#1E3A8A" style="background:#1E3A8A"></div>
+                        <div class="color-swatch" data-color="#3B82F6" style="background:#3B82F6"></div>
+                        <div class="color-swatch" data-color="#047857" style="background:#047857"></div>
+                        <div class="color-swatch" data-color="#475569" style="background:#475569"></div>
+                        <div class="color-swatch" data-color="#7F1D1D" style="background:#7F1D1D"></div>
+                        <div class="color-swatch" data-color="#9F1239" style="background:#9F1239"></div>
+                        <div class="color-swatch" data-color="#0F766E" style="background:#0F766E"></div>
+                    </div>
+                </div>
+
+                <!-- HO Border Color -->
+                <div class="setting-section">
+                    <div class="setting-row-inline">
+                        <span class="setting-label">🌸 Viền ngày HO:</span>
+                        <div class="border-width-picker" id="borderWidthPicker">
+                            <button class="bw-btn" data-width="1">Mảnh</button>
+                            <button class="bw-btn" data-width="2">Vừa</button>
+                            <button class="bw-btn" data-width="3">Dày</button>
+                        </div>
+                    </div>
+                    <div class="color-picker" id="hoColors">
+                        <div class="color-swatch" data-color="#EC4899" style="background:#EC4899"></div>
+                        <div class="color-swatch" data-color="#EF4444" style="background:#EF4444"></div>
+                        <div class="color-swatch" data-color="#F59E0B" style="background:#F59E0B"></div>
+                        <div class="color-swatch" data-color="#10B981" style="background:#10B981"></div>
+                        <div class="color-swatch" data-color="#3B82F6" style="background:#3B82F6"></div>
+                        <div class="color-swatch" data-color="#8B5CF6" style="background:#8B5CF6"></div>
+                        <div class="color-swatch" data-color="#F97316" style="background:#F97316"></div>
+                        <div class="color-swatch" data-color="#14B8A6" style="background:#14B8A6"></div>
+                    </div>
+                </div>
+
+                <!-- Hide Holiday Shift -->
+                <div class="setting-row">
+                    <span class="setting-label">🚫 Ẩn ca ngày Lễ</span>
+                    <label class="switch">
+                        <input type="checkbox" id="switchHideHoliday">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+/**
+ * Lịch Âm Việt Nam - Chuyển đổi Dương lịch sang Âm lịch
+ * Dựa trên thuật toán của Hồ Ngọc Đức (https://www.informatik.uni-leipzig.de/~duc/amlich/)
+ * Hỗ trợ chính xác từ 1900-2100
+ */
+const LunarCalendar = (() => {
+    const PI = Math.PI;
+
+    function jdFromDate(dd, mm, yy) {
+        const a = Math.floor((14 - mm) / 12);
+        const y = yy + 4800 - a;
+        const m = mm + 12 * a - 3;
+        let jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+        if (jd < 2299161) {
+            jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 32083;
+        }
+        return jd;
+    }
+
+    function jdToDate(jd) {
+        let a, b, c, d, e, m;
+        if (jd > 2299160) {
+            a = jd + 32044;
+            b = Math.floor((4 * a + 3) / 146097);
+            c = a - Math.floor(146097 * b / 4);
+        } else {
+            b = 0;
+            c = jd + 32082;
+        }
+        d = Math.floor((4 * c + 3) / 1461);
+        e = c - Math.floor(1461 * d / 4);
+        m = Math.floor((5 * e + 2) / 153);
+        const day = e - Math.floor((153 * m + 2) / 5) + 1;
+        const month = m + 3 - 12 * Math.floor(m / 10);
+        const year = b * 100 + d - 4800 + Math.floor(m / 10);
+        return [day, month, year];
+    }
+
+    function newMoon(k) {
+        const T = k / 1236.85;
+        const T2 = T * T;
+        const T3 = T2 * T;
+        const dr = PI / 180;
+        let Jd1 = 2415020.75933 + 29.53058868 * k + 0.0001178 * T2 - 0.000000155 * T3;
+        Jd1 += 0.00033 * Math.sin((166.56 + 132.87 * T - 0.009173 * T2) * dr);
+        const M = 359.2242 + 29.10535608 * k - 0.0000333 * T2 - 0.00000347 * T3;
+        const Mpr = 306.0253 + 385.81691806 * k + 0.0107306 * T2 + 0.00001236 * T3;
+        const F = 21.2964 + 390.67050646 * k - 0.0016528 * T2 - 0.00000239 * T3;
+        let C1 = (0.1734 - 0.000393 * T) * Math.sin(M * dr) + 0.0021 * Math.sin(2 * dr * M);
+        C1 = C1 - 0.4068 * Math.sin(Mpr * dr) + 0.0161 * Math.sin(dr * 2 * Mpr);
+        C1 -= 0.0004 * Math.sin(dr * 3 * Mpr);
+        C1 += 0.0104 * Math.sin(dr * 2 * F) - 0.0051 * Math.sin(dr * (M + Mpr));
+        C1 -= 0.0074 * Math.sin(dr * (M - Mpr)) + 0.0004 * Math.sin(dr * (2 * F + M));
+        C1 -= 0.0004 * Math.sin(dr * (2 * F - M)) - 0.0006 * Math.sin(dr * (2 * F + Mpr));
+        C1 += 0.0010 * Math.sin(dr * (2 * F - Mpr)) + 0.0005 * Math.sin(dr * (2 * Mpr + M));
+        let deltat;
+        if (T < -11) {
+            deltat = 0.001 + 0.000839 * T + 0.0002261 * T2 - 0.00000845 * T3 - 0.000000081 * T * T3;
+        } else {
+            deltat = -0.000278 + 0.000265 * T + 0.000262 * T2;
+        }
+        return Jd1 + C1 - deltat;
+    }
+
+    function sunLongitude(jdn) {
+        const T = (jdn - 2451545.0) / 36525;
+        const T2 = T * T;
+        const dr = PI / 180;
+        const M = 357.5291 + 35999.0503 * T - 0.0001559 * T2 - 0.00000048 * T * T2;
+        const L0 = 280.46645 + 36000.76983 * T + 0.0003032 * T2;
+        let DL = (1.9146 - 0.004817 * T - 0.000014 * T2) * Math.sin(dr * M);
+        DL += (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.00029 * Math.sin(dr * 3 * M);
+        let L = L0 + DL;
+        L = L * dr;
+        L = L - PI * 2 * Math.floor(L / (PI * 2));
+        return L;
+    }
+
+    function getSunLongitude(dayNumber, timeZone) {
+        return Math.floor(sunLongitude(dayNumber - 0.5 - timeZone / 24) / PI * 6);
+    }
+
+    function getNewMoonDay(k, timeZone) {
+        return Math.floor(newMoon(k) + 0.5 + timeZone / 24);
+    }
+
+    function getLunarMonth11(yy, timeZone) {
+        const off = jdFromDate(31, 12, yy) - 2415021;
+        const k = Math.floor(off / 29.530588853);
+        let nm = getNewMoonDay(k, timeZone);
+        const sunLong = getSunLongitude(nm, timeZone);
+        if (sunLong >= 9) {
+            nm = getNewMoonDay(k - 1, timeZone);
+        }
+        return nm;
+    }
+
+    function getLeapMonthOffset(a11, timeZone) {
+        const k = Math.floor((a11 - 2415021.076998695) / 29.530588853 + 0.5);
+        let last = 0;
+        let i = 1;
+        let arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone);
+        do {
+            last = arc;
+            i++;
+            arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone);
+        } while (arc !== last && i < 14);
+        return i - 1;
+    }
+
+    /**
+     * Chuyển đổi ngày Dương lịch sang Âm lịch
+     * @param {number} dd - ngày
+     * @param {number} mm - tháng (1-12)
+     * @param {number} yy - năm
+     * @param {number} timeZone - múi giờ (7 cho Việt Nam)
+     * @returns {[number, number, number, boolean]} [lunarDay, lunarMonth, lunarYear, isLeapMonth]
+     */
+    function convertSolar2Lunar(dd, mm, yy, timeZone = 7) {
+        const dayNumber = jdFromDate(dd, mm, yy);
+        const k = Math.floor((dayNumber - 2415021.076998695) / 29.530588853);
+        let monthStart = getNewMoonDay(k + 1, timeZone);
+        if (monthStart > dayNumber) {
+            monthStart = getNewMoonDay(k, timeZone);
+        }
+        let a11 = getLunarMonth11(yy, timeZone);
+        let b11 = a11;
+        let lunarYear;
+        if (a11 >= monthStart) {
+            lunarYear = yy;
+            a11 = getLunarMonth11(yy - 1, timeZone);
+        } else {
+            lunarYear = yy + 1;
+            b11 = getLunarMonth11(yy + 1, timeZone);
+        }
+        const lunarDay = dayNumber - monthStart + 1;
+        const diff = Math.floor((monthStart - a11) / 29);
+        let lunarLeap = false;
+        let lunarMonth = diff + 11;
+        if (b11 - a11 > 365) {
+            const leapMonthDiff = getLeapMonthOffset(a11, timeZone);
+            if (diff >= leapMonthDiff) {
+                lunarMonth = diff + 10;
+                if (diff === leapMonthDiff) {
+                    lunarLeap = true;
+                }
+            }
+        }
+        if (lunarMonth > 12) {
+            lunarMonth -= 12;
+        }
+        if (lunarMonth >= 11 && diff < 4) {
+            lunarYear -= 1;
+        }
+        return [lunarDay, lunarMonth, lunarYear, lunarLeap];
+    }
+
+    /**
+     * Lấy thông tin âm lịch cho một ngày dương lịch
+     * @param {Date} date - đối tượng Date
+     * @returns {{ day: number, month: number, year: number, isLeap: boolean, dayText: string }}
+     */
+    function getLunarDate(date) {
+        const [day, month, year, isLeap] = convertSolar2Lunar(
+            date.getDate(), date.getMonth() + 1, date.getFullYear(), 7
+        );
+        // Hiển thị ngắn gọn: ngày âm, nếu là mùng 1 thì hiện cả tháng
+        let dayText;
+        if (day === 1) {
+            dayText = `${day}/${month}`;
+        } else {
+            dayText = `${day}`;
+        }
+        return { day, month, year, isLeap, dayText };
+    }
+
+    return { getLunarDate, convertSolar2Lunar };
+})();
+
+</script>
+<script>
+/**
+ * ShiftCalculator - Port trực tiếp từ ShiftCalculator.kt
+ * Logic tính ca kíp SDV cho web
+ */
+const ShiftCalculator = (() => {
+    const ShiftType = { NGAY: 'NGAY', DEM: 'DEM', NGHI: 'NGHI' };
+    const SHIFT_LABELS = { NGAY: 'Ngày', DEM: 'Đêm', NGHI: 'Nghỉ' };
+    const CYCLE = [
+        ShiftType.NGAY, ShiftType.NGAY, ShiftType.NGAY, ShiftType.NGAY,
+        ShiftType.NGHI, ShiftType.NGHI,
+        ShiftType.DEM, ShiftType.DEM, ShiftType.DEM, ShiftType.DEM,
+        ShiftType.NGHI, ShiftType.NGHI
+    ];
+    const CREWS = [
+        { id: 'A', name: 'Kíp A', offset: 0 },
+        { id: 'B', name: 'Kíp B', offset: 8 },
+        { id: 'C', name: 'Kíp C', offset: 4 },
+        { id: 'HC', name: 'Hành Chính', offset: -1 }
+    ];
+
+    // Anchor: Jan 3, 2026
+    const ANCHOR = new Date(2026, 0, 3);
+
+    function toJDN(date) {
+        const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+        const a = Math.floor((14 - m) / 12);
+        const yy = y + 4800 - a;
+        const mm = m + 12 * a - 3;
+        return d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+    }
+
+    function mod(a, b) { return ((a % b) + b) % b; }
+
+    function dateEqual(a, b) {
+        return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    }
+
+    function addDays(date, n) {
+        const d = new Date(date);
+        d.setDate(d.getDate() + n);
+        return d;
+    }
+
+    function dayOfWeek(date) {
+        const d = date.getDay();
+        return d === 0 ? 7 : d; // 1=Mon..7=Sun
+    }
+
+    function isSaturdayHO(date) {
+        if (dayOfWeek(date) !== 6) return false;
+        const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+        if (y > 2026) return false;
+        if (y === 2026) {
+            return (m===1&&(d===3||d===17))||(m===2&&d===14)||(m===3&&(d===14||d===28))||
+                   (m===4&&(d===11||d===25))||(m===5&&(d===9||d===23))||(m===6&&(d===6||d===20))||
+                   (m===7&&d===4)||(m===8&&(d===15||d===29))||(m===9&&(d===12||d===26))||
+                   (m===10&&d===24)||(m===11&&d===7)||(m===12&&d===5);
+        }
+        const nth = Math.floor((d - 1) / 7) + 1;
+        return nth === 1 || nth === 3;
+    }
+
+    function isHoliday(date) {
+        const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+        if (m===1&&d===1) return true;
+        if (m===4&&d===30) return true;
+        if (m===5&&d===1) return true;
+        if (m===9&&(d===1||d===2)) return true;
+        if (m===11&&d===24) return true;
+        if (m===12&&d===31) return true;
+        switch (y) {
+            case 2025: return (m===1&&d>=28&&d<=31)||(m===2&&d===1)||(m===4&&d===7);
+            case 2026: return (m===2&&d>=16&&d<=20)||(m===4&&d===26);
+            case 2027: return (m===2&&d>=5&&d<=9)||(m===4&&d===16);
+            case 2028: return (m===1&&d>=25&&d<=29)||(m===4&&d===4);
+            case 2029: return (m===2&&d>=12&&d<=16)||(m===4&&d===23);
+            default: return false;
+        }
+    }
+
+    function isLunarNewYear(date) {
+        const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+        switch (y) {
+            case 2025: return (m===1&&d>=28&&d<=31)||(m===2&&d===1);
+            case 2026: return m===2&&d>=16&&d<=20;
+            case 2027: return m===2&&d>=5&&d<=9;
+            case 2028: return m===1&&d>=25&&d<=29;
+            case 2029: return m===2&&d>=12&&d<=16;
+            default: return false;
+        }
+    }
+
+    function getHolidayName(date) {
+        const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+        if (m===1&&d===1) return 'Tết Dương lịch';
+        if (m===4&&d===30) return 'Giải phóng miền Nam';
+        if (m===5&&d===1) return 'Quốc tế Lao động';
+        if (m===9&&(d===1||d===2)) return 'Quốc khánh';
+        if (m===11&&d===24) return 'Kỷ niệm ngày thành lập';
+        if (m===12&&d===31) return 'SDV Day';
+        if (y===2025&&((m===1&&d>=28)||(m===2&&d===1))) return 'Tết Nguyên Đán';
+        if (y===2025&&m===4&&d===7) return 'Giỗ Tổ Hùng Vương';
+        if (y===2026&&m===2&&d>=16&&d<=20) return 'Tết Nguyên Đán';
+        if (y===2026&&m===4&&d===26) return 'Giỗ Tổ Hùng Vương';
+        if (y===2027&&m===2&&d>=5&&d<=9) return 'Tết Nguyên Đán';
+        if (y===2027&&m===4&&d===16) return 'Giỗ Tổ Hùng Vương';
+        if (y===2028&&m===1&&d>=25&&d<=29) return 'Tết Nguyên Đán';
+        if (y===2028&&m===4&&d===4) return 'Giỗ Tổ Hùng Vương';
+        if (y===2029&&m===2&&d>=12&&d<=16) return 'Tết Nguyên Đán';
+        if (y===2029&&m===4&&d===23) return 'Giỗ Tổ Hùng Vương';
+        if (isHoliday(date)) return 'Ngày lễ';
+        return null;
+    }
+
+    function countHolidaysBetween(anchor, target) {
+        let count = 0;
+        if (target > anchor) {
+            let curr = addDays(anchor, 1);
+            while (curr < target) {
+                if (isHoliday(curr)) count++;
+                curr = addDays(curr, 1);
+            }
+        } else if (target < anchor) {
+            let curr = addDays(target, 1);
+            while (curr <= anchor) {
+                if (isHoliday(curr)) count--;
+                curr = addDays(curr, 1);
+            }
+        }
+        return count;
+    }
+
+    function getShift(crewId, date) {
+        if (crewId === 'HC') {
+            return dayOfWeek(date) <= 5 ? ShiftType.NGAY : ShiftType.NGHI;
+        }
+        const crew = CREWS.find(c => c.id === crewId);
+        if (!crew) return ShiftType.NGHI;
+        const diff = toJDN(date) - toJDN(ANCHOR);
+        const holidayAdj = countHolidaysBetween(ANCHOR, date);
+        const idx = mod(crew.offset + diff - holidayAdj, CYCLE.length);
+        return CYCLE[idx];
+    }
+
+    // Bảng ca trực lễ năm 2026 thực tế
+    const REAL_2026_HOLIDAYS = {
+        '1-1': { A: ShiftType.DEM, B: ShiftType.NGHI, C: ShiftType.NGAY },
+        '4-26': { A: ShiftType.NGAY, B: ShiftType.NGHI, C: ShiftType.DEM },
+        '4-30': { A: ShiftType.DEM, B: ShiftType.NGAY, C: ShiftType.NGHI },
+        '5-1': { A: ShiftType.NGHI, B: ShiftType.NGAY, C: ShiftType.DEM },
+        '9-1': { A: ShiftType.NGAY, B: ShiftType.DEM, C: ShiftType.NGHI },
+        '9-2': { A: ShiftType.NGAY, B: ShiftType.NGHI, C: ShiftType.DEM },
+        '11-24': { A: ShiftType.NGHI, B: ShiftType.NGAY, C: ShiftType.DEM },
+        '12-31': { A: ShiftType.NGAY, B: ShiftType.DEM, C: ShiftType.NGHI }
+    };
+
+    function getActualShift(crewId, date) {
+        if (crewId === 'HC') {
+            return (isHoliday(date) || dayOfWeek(date) > 5) ? ShiftType.NGHI : ShiftType.NGAY;
+        }
+        if (isLunarNewYear(date)) return ShiftType.NGHI;
+        if (isHoliday(date)) {
+            const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+            if (y === 2026) {
+                const key = `${m}-${d}`;
+                const map = REAL_2026_HOLIDAYS[key];
+                if (map) return map[crewId] || ShiftType.NGHI;
+            }
+            const prevDay = addDays(date, -1);
+            const nextDay = addDays(date, 1);
+            const isPrevHol = isHoliday(prevDay) && !isLunarNewYear(prevDay);
+            const isNextHol = isHoliday(nextDay) && !isLunarNewYear(nextDay);
+            const baseShifts = { A: getShift('A', date), B: getShift('B', date), C: getShift('C', date) };
+            const entries = Object.entries(baseShifts);
+            const dayCrew = entries.find(e => e[1] === ShiftType.NGAY)?.[0];
+            const nightCrew = entries.find(e => e[1] === ShiftType.DEM)?.[0];
+            const offCrew = entries.find(e => e[1] === ShiftType.NGHI)?.[0];
+
+            if (isNextHol) {
+                if (crewId === offCrew) return ShiftType.NGAY;
+                if (crewId === dayCrew) return ShiftType.DEM;
+                if (crewId === nightCrew) return ShiftType.NGHI;
+            } else if (isPrevHol) {
+                const bsPrev = { A: getShift('A', prevDay), B: getShift('B', prevDay), C: getShift('C', prevDay) };
+                const eP = Object.entries(bsPrev);
+                const dc = eP.find(e => e[1] === ShiftType.NGAY)?.[0];
+                const nc = eP.find(e => e[1] === ShiftType.DEM)?.[0];
+                const oc = eP.find(e => e[1] === ShiftType.NGHI)?.[0];
+                if (crewId === oc) return ShiftType.NGAY;
+                if (crewId === dc) return ShiftType.NGHI;
+                if (crewId === nc) return ShiftType.DEM;
+            } else {
+                if (crewId === dayCrew) return ShiftType.NGAY;
+                if (crewId === nightCrew) return ShiftType.NGHI;
+                if (crewId === offCrew) return ShiftType.DEM;
+            }
+            return ShiftType.NGHI;
+        }
+        return getShift(crewId, date);
+    }
+
+    function getShiftInfo(crewId, date) {
+        const actualShift = getActualShift(crewId, date);
+        const isOfficialHol = isHoliday(date);
+        const holName = getHolidayName(date);
+        const isSundayWork = dayOfWeek(date) === 7 && actualShift !== ShiftType.NGHI;
+        const isSaturdayWork = isSaturdayHO(date) && actualShift !== ShiftType.NGHI;
+        const isHO = isOfficialHol || isSundayWork || isSaturdayWork;
+        let finalHolName = null;
+        if (isOfficialHol) finalHolName = holName;
+        else if (isSundayWork) finalHolName = 'Chủ Nhật đi làm (HO)';
+        else if (isSaturdayWork) finalHolName = 'Thứ Bảy đi làm (HO)';
+        return { type: actualShift, isHoliday: isHO, holidayName: finalHolName, isOfficialHoliday: isOfficialHol };
+    }
+
+    function getHOStats(crewId, year) {
+        if (crewId === 'HC') return { total: 0, remaining: 0 };
+        let total = 0, remaining = 0;
+        const today = new Date(); today.setHours(0,0,0,0);
+        let curr = new Date(year, 0, 1);
+        const end = new Date(year, 11, 31);
+        while (curr <= end) {
+            const actualShift = getActualShift(crewId, curr);
+            const isSunday = dayOfWeek(curr) === 7;
+            const isSatWork = isSaturdayHO(curr);
+            if ((isSunday || isSatWork) && actualShift !== ShiftType.NGHI) {
+                total++;
+                if (curr >= today) remaining++;
+            }
+            curr = addDays(curr, 1);
+        }
+        return { total, remaining };
+    }
+
+    return { ShiftType, SHIFT_LABELS, CREWS, getShiftInfo, getHOStats, isHoliday };
+})();
+
+</script>
+<script>
+/**
+ * App.js - Lịch Kíp SDV Web
+ */
+(() => {
+    'use strict';
+
+    // ── State ────────────────────────────────────────
+    const today = new Date(); today.setHours(0,0,0,0);
+    let currentMonth = today.getMonth(); // 0-indexed
+    let currentYear = today.getFullYear();
+
+    // ── Bảng màu tùy chọn ─────────────────────────────
+    const LIGHT_COLORS = {
+        day: [
+            { bg: '#fbbf24', text: '#78350f' },
+            { bg: '#f87171', text: '#7f1d1d' },
+            { bg: '#34d399', text: '#064e3b' },
+            { bg: '#60a5fa', text: '#1e3a8a' },
+            { bg: '#a78bfa', text: '#4c1d95' },
+            { bg: '#f472b6', text: '#9d174d' },
+            { bg: '#fb923c', text: '#7c2d12' },
+            { bg: '#2dd4bf', text: '#115e59' }
+        ],
+        night: [
+            { bg: '#a78bfa', text: '#4c1d95' },
+            { bg: '#818cf8', text: '#312e81' },
+            { bg: '#38bdf8', text: '#0369a1' },
+            { bg: '#34d399', text: '#064e3b' },
+            { bg: '#94a3b8', text: '#1e293b' },
+            { bg: '#f87171', text: '#7f1d1d' },
+            { bg: '#fda4af', text: '#881337' },
+            { bg: '#2dd4bf', text: '#115e59' }
+        ],
+        ho: [
+            { bg: '#ec4899', text: '#ffffff' },
+            { bg: '#ef4444', text: '#ffffff' },
+            { bg: '#f59e0b', text: '#ffffff' },
+            { bg: '#10b981', text: '#ffffff' },
+            { bg: '#3b82f6', text: '#ffffff' },
+            { bg: '#8b5cf6', text: '#ffffff' },
+            { bg: '#f97316', text: '#ffffff' },
+            { bg: '#14b8a6', text: '#ffffff' }
+        ]
+    };
+
+    const DARK_COLORS = {
+        day: [
+            { bg: '#fb923c', text: '#ffffff' },
+            { bg: '#f87171', text: '#ffffff' },
+            { bg: '#34d399', text: '#ffffff' },
+            { bg: '#60a5fa', text: '#ffffff' },
+            { bg: '#a78bfa', text: '#ffffff' },
+            { bg: '#f472b6', text: '#ffffff' },
+            { bg: '#fbbf24', text: '#1f2937' },
+            { bg: '#2dd4bf', text: '#ffffff' }
+        ],
+        night: [
+            { bg: '#8b5cf6', text: '#ffffff' },
+            { bg: '#6366f1', text: '#ffffff' },
+            { bg: '#38bdf8', text: '#ffffff' },
+            { bg: '#10b981', text: '#ffffff' },
+            { bg: '#64748b', text: '#ffffff' },
+            { bg: '#f87171', text: '#ffffff' },
+            { bg: '#fb7185', text: '#ffffff' },
+            { bg: '#14b8a6', text: '#ffffff' }
+        ],
+        ho: [
+            { bg: '#f472b6', text: '#ffffff' },
+            { bg: '#fca5a5', text: '#ffffff' },
+            { bg: '#fde047', text: '#ffffff' },
+            { bg: '#86efac', text: '#ffffff' },
+            { bg: '#93c5fd', text: '#ffffff' },
+            { bg: '#c084fc', text: '#ffffff' },
+            { bg: '#fdba74', text: '#ffffff' },
+            { bg: '#99f6e4', text: '#ffffff' }
+        ]
+    };
+
+    // ── Preferences (localStorage) ───────────────────
+    const STORAGE_KEY = 'lichkip_prefs';
+    const defaults = {
+        crew: 'A',
+        theme: 'light', // Mặc định là ban ngày (Light Mode)
+        
+        // Màu sắc cho Light Mode (Mặc định đậm đà, rõ ràng)
+        dayColorLight: '#fbbf24',
+        dayTextLight: '#78350f',
+        nightColorLight: '#a78bfa',
+        nightTextLight: '#4c1d95',
+        hoColorLight: '#ec4899',
+        
+        // Màu sắc cho Dark Mode (Nhạt, dịu mắt, tránh chói)
+        dayColorDark: '#fb923c',
+        dayTextDark: '#ffffff',
+        nightColorDark: '#8b5cf6',
+        nightTextDark: '#ffffff',
+        hoColorDark: '#f472b6',
+        
+        hoBorderWidth: 2,
+        mergeMonths: true,
+        hideHolidayShift: false
+    };
+
+    function loadPrefs() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            return { ...defaults, ...saved };
+        } catch { return { ...defaults }; }
+    }
+    function savePrefs(prefs) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+    }
+
+    let prefs = loadPrefs();
+
+    // ── DOM Elements ─────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const monthTitle = $('monthTitle');
+    const calendarGrid = $('calendarGrid');
+    const dayHeaders = $('dayHeaders');
+    const hoStatsEl = $('hoStats');
+
+    // ── Init ─────────────────────────────────────────
+    function init() {
+        applyTheme();
+        renderDayHeaders();
+        renderCrewSelector();
+        renderCalendar();
+        renderHOStats();
+        setupSettings();
+        setupNavigation();
+        setupThemeToggle();
+        setupHeaderScrollBehavior();
+    }
+
+    // ── Apply Colors to CSS vars ─────────────────────
+    function applyColors() {
+        const root = document.documentElement.style;
+        const isDark = prefs.theme === 'dark';
+        
+        const dayColor = isDark ? prefs.dayColorDark : prefs.dayColorLight;
+        const dayText = isDark ? prefs.dayTextDark : prefs.dayTextLight;
+        const nightColor = isDark ? prefs.nightColorDark : prefs.nightColorLight;
+        const nightText = isDark ? prefs.nightTextDark : prefs.nightTextLight;
+        const hoColor = isDark ? prefs.hoColorDark : prefs.hoColorLight;
+
+        root.setProperty('--day-color', dayColor);
+        root.setProperty('--day-text', dayText);
+        root.setProperty('--night-color', nightColor);
+        root.setProperty('--night-text', nightText);
+        root.setProperty('--ho-border', hoColor);
+        
+        const widthMap = { 1: '1px', 2: '2px', 3: '3px' };
+        root.setProperty('--ho-border-width', widthMap[prefs.hoBorderWidth] || '2px');
+
+        // Update legend dots
+        document.querySelectorAll('.legend-dot.day').forEach(d => d.style.background = dayColor);
+        document.querySelectorAll('.legend-dot.night').forEach(d => d.style.background = nightColor);
+        document.querySelectorAll('.legend-dot.ho').forEach(d => d.style.borderColor = hoColor);
+    }
+
+    // ── Apply Theme (Light/Dark) ──────────────────────
+    function applyTheme() {
+        const isDark = prefs.theme === 'dark';
+        document.body.classList.toggle('dark-theme', isDark);
+        
+        // Render icon
+        const toggleBtn = $('btnThemeToggle');
+        if (toggleBtn) {
+            if (isDark) {
+                // Biểu tượng mặt trời (khi click sẽ đổi sang Light)
+                toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+            } else {
+                // Biểu tượng mặt trăng (khi click sẽ đổi sang Dark)
+                toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+            }
+        }
+        
+        applyColors();
+        updateColorSwatchesUI();
+    }
+
+    function setupThemeToggle() {
+        $('btnThemeToggle').addEventListener('click', () => {
+            prefs.theme = prefs.theme === 'dark' ? 'light' : 'dark';
+            savePrefs(prefs);
+            applyTheme();
+            renderCalendar();
+            renderHOStats();
+        });
+    }
+
+    // ── Day Headers ──────────────────────────────────
+    function renderDayHeaders() {
+        dayHeaders.innerHTML = '';
+        const headers = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+        headers.forEach((h, i) => {
+            const el = document.createElement('div');
+            el.className = 'day-header' + (i >= 5 ? ' weekend' : '');
+            el.textContent = h;
+            dayHeaders.appendChild(el);
+        });
+    }
+
+    // ── Crew Selector ────────────────────────────────
+    function renderCrewSelector() {
+        document.querySelectorAll('.crew-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.crew === prefs.crew);
+            btn.addEventListener('click', () => {
+                prefs.crew = btn.dataset.crew;
+                savePrefs(prefs);
+                document.querySelectorAll('.crew-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderCalendar();
+                renderHOStats();
+            });
+        });
+    }
+
+    // ── HO Stats ─────────────────────────────────────
+    function renderHOStats() {
+        const stats = ShiftCalculator.getHOStats(prefs.crew, currentYear);
+        if (prefs.crew === 'HC') {
+            hoStatsEl.innerHTML = `<span class="ho-label">Hành Chính</span><span class="ho-value">Thứ 2 - Thứ 6</span>`;
+        } else {
+            hoStatsEl.innerHTML =
+                `<span><span class="ho-label">HO ${currentYear}</span></span>` +
+                `<span><span class="ho-value">${stats.remaining}</span> / ${stats.total} ngày còn lại</span>`;
+        }
+    }
+
+    // ── Month Title ──────────────────────────────────
+    const MONTH_NAMES = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6',
+                         'Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+
+    function updateMonthTitle() {
+        if (prefs.mergeMonths) {
+            const nm = currentMonth === 11 ? 0 : currentMonth + 1;
+            const ny = currentMonth === 11 ? currentYear + 1 : currentYear;
+            if (currentYear === ny) {
+                monthTitle.textContent = `${MONTH_NAMES[currentMonth]} - ${nm + 1} / ${currentYear}`;
+            } else {
+                monthTitle.textContent = `${MONTH_NAMES[currentMonth]}/${currentYear} - ${nm + 1}/${ny}`;
+            }
+        } else {
+            monthTitle.textContent = `${MONTH_NAMES[currentMonth]} / ${currentYear}`;
+        }
+    }
+
+    // ── Calendar Rendering ───────────────────────────
+    function renderCalendar() {
+        updateMonthTitle();
+        calendarGrid.innerHTML = '';
+
+        if (prefs.mergeMonths) {
+            // Tháng 1
+            const label1 = document.createElement('div');
+            label1.className = 'month-sep-label';
+            label1.textContent = MONTH_NAMES[currentMonth];
+            calendarGrid.appendChild(label1);
+
+            const headers1 = createDayHeadersInGrid();
+            calendarGrid.appendChild(headers1);
+
+            const grid1 = document.createElement('div');
+            grid1.className = 'month-grid';
+            renderMonthInto(grid1, currentYear, currentMonth);
+            calendarGrid.appendChild(grid1);
+
+            // Tháng 2
+            let nm = currentMonth + 1, ny = currentYear;
+            if (nm > 11) { nm = 0; ny++; }
+
+            const label2 = document.createElement('div');
+            label2.className = 'month-sep-label';
+            label2.textContent = MONTH_NAMES[nm];
+            calendarGrid.appendChild(label2);
+
+            const headers2 = createDayHeadersInGrid();
+            calendarGrid.appendChild(headers2);
+
+            const grid2 = document.createElement('div');
+            grid2.className = 'month-grid';
+            renderMonthInto(grid2, ny, nm);
+            calendarGrid.appendChild(grid2);
+
+            // Ẩn day-headers chính
+            dayHeaders.style.display = 'none';
+            calendarGrid.classList.remove('single');
+        } else {
+            dayHeaders.style.display = '';
+            calendarGrid.classList.add('single');
+            renderMonthInto(calendarGrid, currentYear, currentMonth);
+        }
+    }
+
+    function createDayHeadersInGrid() {
+        const container = document.createElement('div');
+        container.className = 'inline-day-headers';
+        const headers = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+        headers.forEach((h, i) => {
+            const el = document.createElement('div');
+            el.className = 'day-header' + (i >= 5 ? ' weekend' : '');
+            el.textContent = h;
+            container.appendChild(el);
+        });
+        return container;
+    }
+
+    function renderMonthInto(container, year, month) {
+        const firstDay = new Date(year, month, 1);
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        let startOffset = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+
+        // Empty cells
+        for (let i = 0; i < startOffset; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'cal-cell empty';
+            container.appendChild(empty);
+        }
+
+        // Day cells
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const info = ShiftCalculator.getShiftInfo(prefs.crew, date);
+            const isToday = date.getTime() === today.getTime();
+            const isOfficialHol = info.isOfficialHoliday;
+
+            const cell = document.createElement('div');
+            cell.className = 'cal-cell';
+
+            // Shift color class
+            if (info.type === 'NGAY') cell.classList.add('shift-day');
+            else if (info.type === 'DEM') cell.classList.add('shift-night');
+            else cell.classList.add('shift-off');
+
+            if (isToday) cell.classList.add('today');
+            if (info.isHoliday && !isOfficialHol && !isToday) cell.classList.add('ho-border');
+            if (isOfficialHol) cell.classList.add('official-holiday');
+
+            // HO dot
+            if (info.isHoliday && !isOfficialHol) {
+                const dot = document.createElement('div');
+                dot.className = 'ho-dot';
+                cell.appendChild(dot);
+            }
+
+            if (info.holidayName) cell.dataset.holiday = info.holidayName;
+
+            // Day number
+            const dayNum = document.createElement('div');
+            dayNum.className = 'day-num';
+            dayNum.textContent = day;
+            cell.appendChild(dayNum);
+
+            // Shift label
+            if (!prefs.hideHolidayShift || !isOfficialHol) {
+                const label = document.createElement('div');
+                label.className = 'shift-label';
+                label.textContent = ShiftCalculator.SHIFT_LABELS[info.type];
+                cell.appendChild(label);
+            }
+
+            // Lunar date
+            const lunar = LunarCalendar.getLunarDate(date);
+            const lunarEl = document.createElement('div');
+            lunarEl.className = 'lunar-text' + (lunar.day === 1 ? ' lunar-first' : '');
+            lunarEl.textContent = lunar.dayText;
+            cell.appendChild(lunarEl);
+
+            container.appendChild(cell);
+        }
+    }
+
+    // ── Navigation ───────────────────────────────────
+    function setupNavigation() {
+        $('btnPrev').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            renderCalendar();
+            renderHOStats();
+        });
+        $('btnNext').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            renderCalendar();
+            renderHOStats();
+        });
+        $('btnToday').addEventListener('click', () => {
+            currentMonth = today.getMonth();
+            currentYear = today.getFullYear();
+            renderCalendar();
+            renderHOStats();
+        });
+
+        // Swipe support
+        let touchStartX = 0;
+        const wrapper = document.querySelector('.calendar-wrapper');
+        wrapper.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+        wrapper.addEventListener('touchend', e => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 60) {
+                if (diff > 0) $('btnNext').click();
+                else $('btnPrev').click();
+            }
+        }, { passive: true });
+    }
+
+    // ── Settings ─────────────────────────────────────
+    function setupSettings() {
+        const overlay = $('settingsOverlay');
+
+        $('btnSettings').addEventListener('click', () => overlay.classList.add('open'));
+        $('btnCloseSettings').addEventListener('click', () => overlay.classList.remove('open'));
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) overlay.classList.remove('open');
+        });
+
+        // Merge Months
+        const switchMerge = $('switchMerge');
+        switchMerge.checked = prefs.mergeMonths;
+        switchMerge.addEventListener('change', () => {
+            prefs.mergeMonths = switchMerge.checked;
+            savePrefs(prefs);
+            renderCalendar();
+        });
+
+        // Hide Holiday Shift
+        const switchHide = $('switchHideHoliday');
+        switchHide.checked = prefs.hideHolidayShift;
+        switchHide.addEventListener('change', () => {
+            prefs.hideHolidayShift = switchHide.checked;
+            savePrefs(prefs);
+            renderCalendar();
+        });
+
+        // Khởi tạo các Swatches màu
+        updateColorSwatchesUI();
+
+        // Border Width
+        document.querySelectorAll('#borderWidthPicker .bw-btn').forEach(btn => {
+            const w = parseInt(btn.dataset.width);
+            btn.classList.toggle('active', w === prefs.hoBorderWidth);
+            btn.addEventListener('click', () => {
+                prefs.hoBorderWidth = w;
+                savePrefs(prefs);
+                document.querySelectorAll('#borderWidthPicker .bw-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                applyColors();
+                renderCalendar();
+            });
+        });
+    }
+
+    function updateColorSwatchesUI() {
+        const isDark = prefs.theme === 'dark';
+        const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
+        
+        // Cập nhật từng loại swatch
+        updateSwatches('dayColors', colors.day, isDark ? 'dayColorDark' : 'dayColorLight', isDark ? 'dayTextDark' : 'dayTextLight');
+        updateSwatches('nightColors', colors.night, isDark ? 'nightColorDark' : 'nightColorLight', isDark ? 'nightTextDark' : 'nightTextLight');
+        updateSwatches('hoColors', colors.ho, isDark ? 'hoColorDark' : 'hoColorLight');
+    }
+
+    function updateSwatches(containerId, colorList, prefKeyColor, prefKeyText = null) {
+        const container = $(containerId);
+        if (!container) return;
+        
+        container.innerHTML = '';
+        const activeColor = prefs[prefKeyColor];
+        
+        colorList.forEach(c => {
+            const sw = document.createElement('div');
+            sw.className = 'color-swatch';
+            sw.style.background = c.bg;
+            sw.dataset.color = c.bg;
+            if (c.text) {
+                sw.dataset.text = c.text;
+            }
+            
+            const isActive = activeColor.toUpperCase() === c.bg.toUpperCase();
+            sw.classList.toggle('active', isActive);
+            
+            sw.addEventListener('click', () => {
+                prefs[prefKeyColor] = c.bg;
+                if (prefKeyText && c.text) {
+                    prefs[prefKeyText] = c.text;
+                }
+                savePrefs(prefs);
+                
+                container.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                sw.classList.add('active');
+                
+                applyColors();
+                renderCalendar();
+            });
+            
+            container.appendChild(sw);
+        });
+    }
+
+    function setupHeaderScrollBehavior() {
+        const header = document.querySelector('.app-header');
+        if (!header) return;
+
+        let lastScrollY = window.scrollY;
+        let touchStartY = 0;
+        let isHeaderHidden = false;
+
+        // 1. Dựa trên sự kiện cuộn trang (Scroll) - Mượt mà nhất cho thiết bị
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            
+            if (currentScrollY > 20) {
+                if (currentScrollY > lastScrollY) {
+                    // Cuộn xuống -> Ẩn header
+                    if (!isHeaderHidden) {
+                        header.classList.add('header-hidden');
+                        isHeaderHidden = true;
+                    }
+                } else if (currentScrollY < lastScrollY - 5) { // Khoảng đệm 5px tránh nhạy quá
+                    // Cuộn lên -> Hiện header
+                    if (isHeaderHidden) {
+                        header.classList.remove('header-hidden');
+                        isHeaderHidden = false;
+                    }
+                }
+            } else {
+                // Ở sát trên cùng thì luôn hiện header
+                if (isHeaderHidden) {
+                    header.classList.remove('header-hidden');
+                    isHeaderHidden = false;
+                }
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+
+        // 2. Dựa trên vuốt chạm (Touch) - Chỉ xử lý khi trang không cuộn được để tránh xung đột
+        window.addEventListener('touchstart', e => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', e => {
+            // Kiểm tra xem trang có thể cuộn thực tế hay không
+            const docHeight = document.documentElement.scrollHeight;
+            const winHeight = window.innerHeight;
+            const isScrollable = docHeight > winHeight + 10;
+
+            // Nếu trang có thể cuộn, hãy để sự kiện scroll xử lý để mượt mà nhất
+            if (isScrollable) return;
+
+            const touchY = e.touches[0].clientY;
+            const diffY = touchStartY - touchY;
+
+            // Ngưỡng vuốt tối thiểu để trigger
+            if (Math.abs(diffY) > 25) {
+                if (diffY > 0) {
+                    // Vuốt lên -> Ẩn header
+                    if (!isHeaderHidden) {
+                        header.classList.add('header-hidden');
+                        isHeaderHidden = true;
+                    }
+                } else {
+                    // Vuốt xuống -> Hiện header
+                    if (isHeaderHidden) {
+                        header.classList.remove('header-hidden');
+                        isHeaderHidden = false;
+                    }
+                }
+                touchStartY = touchY;
+            }
+        }, { passive: true });
+    }
+
+    // ── Start ────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', init);
+})();
+
+</script>
+</body>
+</html>

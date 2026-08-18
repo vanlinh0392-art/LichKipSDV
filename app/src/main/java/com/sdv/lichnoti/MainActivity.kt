@@ -33,6 +33,8 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import java.time.LocalDate
+import android.app.AlarmManager
+import android.app.NotificationManager
 import android.app.TimePickerDialog
 
 /**
@@ -182,6 +184,10 @@ class MainActivity : AppCompatActivity() {
 
         // Đồng bộ trạng thái switch tự động on MDM khi màn hình mở
         findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoSendMdm)?.isChecked = prefs.autoSendMdmOnScreen
+
+        // Đồng bộ trạng thái switch báo thức ngày nghỉ
+        findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchOffDayAlarm)?.isChecked = prefs.offDayAlarmEnabled
+        updateOffDayAlarmTimesText()
 
 
         // Cập nhật icon Dark Mode ngoài màn hình chính
@@ -395,7 +401,11 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        // 4c. Tùy chọn màu sắc
+        // 4b-4. Báo thức riêng cho ngày nghỉ
+        setupOffDayAlarm()
+
+        // 4c. Tùy chọn màu sắc (Collapsible)
+        setupCollapsibleColorSettings()
         updateColorSelectionIndicators()
         
         // Ca Ngày Click Listeners
@@ -437,9 +447,6 @@ class MainActivity : AppCompatActivity() {
         // 5. About & Update Button
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             showAboutDialog()
-        }
-        findViewById<Button>(R.id.btnUserGuide).setOnClickListener {
-            showUserGuideDialog()
         }
     }
 
@@ -533,6 +540,7 @@ class MainActivity : AppCompatActivity() {
         setupHeader(today)
         setupCalendar()
         setupNextAlarm()
+        updateOffDayAlarmTimesText()
         if (prefs.notificationEnabled) {
             NotificationScheduler.scheduleNext(this)
         }
@@ -1267,23 +1275,60 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Tìm ngày làm việc tiếp theo trong 14 ngày tới
+        val dayNames = arrayOf("CN", "T2", "T3", "T4", "T5", "T6", "T7")
+
+        // Tìm mốc báo thức tiếp theo trong 14 ngày tới (kể cả ca làm việc và ngày nghỉ)
         for (dayOffset in 0..14) {
             val date = now.plusDays(dayOffset.toLong())
             val shift = ShiftCalculator.getActualShift(crewId, date)
-            if (shift != ShiftCalculator.ShiftType.NGHI) {
-                val hour = if (shift == ShiftCalculator.ShiftType.NGAY) prefs.dayNotificationHour else prefs.nightNotificationHour
-                val minute = if (shift == ShiftCalculator.ShiftType.NGAY) prefs.dayNotificationMinute else prefs.nightNotificationMinute
-                
-                val alarmDateTime = date.atTime(hour, minute)
-                if (alarmDateTime.isAfter(timeNow)) {
-                    val dayNames = arrayOf("CN", "T2", "T3", "T4", "T5", "T6", "T7")
-                    val dow = if (date.dayOfWeek.value == 7) 0 else date.dayOfWeek.value
-                    val timeStr = String.format("%02d:%02d", hour, minute)
-                    val isHol = ShiftCalculator.isHoliday(date)
-                    val labelSuffix = if (isHol) " (HO Lễ)" else ""
-                    tvNextAlarm.text = "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (${shift.emoji}$labelSuffix)"
-                    return
+            val dow = if (date.dayOfWeek.value == 7) 0 else date.dayOfWeek.value
+
+            when (shift) {
+                ShiftCalculator.ShiftType.NGAY -> {
+                    val alarmDateTime = date.atTime(prefs.dayNotificationHour, prefs.dayNotificationMinute)
+                    if (alarmDateTime.isAfter(timeNow)) {
+                        val timeStr = String.format("%02d:%02d", prefs.dayNotificationHour, prefs.dayNotificationMinute)
+                        val isHol = ShiftCalculator.isHoliday(date)
+                        val labelSuffix = if (isHol) " (HO Lễ)" else ""
+                        tvNextAlarm.text = "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (${shift.emoji}$labelSuffix)"
+                        return
+                    }
+                }
+                ShiftCalculator.ShiftType.DEM -> {
+                    val alarmDateTime = date.atTime(prefs.nightNotificationHour, prefs.nightNotificationMinute)
+                    if (alarmDateTime.isAfter(timeNow)) {
+                        val timeStr = String.format("%02d:%02d", prefs.nightNotificationHour, prefs.nightNotificationMinute)
+                        val isHol = ShiftCalculator.isHoliday(date)
+                        val labelSuffix = if (isHol) " (HO Lễ)" else ""
+                        tvNextAlarm.text = "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (${shift.emoji}$labelSuffix)"
+                        return
+                    }
+                }
+                ShiftCalculator.ShiftType.NGHI -> {
+                    if (prefs.offDayAlarmEnabled) {
+                        val yesterday = date.minusDays(1)
+                        val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
+
+                        val validTimes = prefs.getActiveOffDayAlarmTimesForDay(date.dayOfWeek.value).mapNotNull { timeStr ->
+                            val parts = timeStr.split(":")
+                            if (parts.size != 2) return@mapNotNull null
+                            val h = parts[0].toIntOrNull() ?: return@mapNotNull null
+                            val m = parts[1].toIntOrNull() ?: return@mapNotNull null
+
+                            // Không báo thức trong ca đêm sát ngày nghỉ (20h - 8h sáng hôm sau)
+                            if (isAfterNightShift && (h < 8 || (h == 8 && m == 0))) {
+                                return@mapNotNull null
+                            }
+                            date.atTime(h, m)
+                        }.filter { it.isAfter(timeNow) }.sorted()
+
+                        if (validTimes.isNotEmpty()) {
+                            val nextOffTime = validTimes.first()
+                            val timeStr = String.format("%02d:%02d", nextOffTime.hour, nextOffTime.minute)
+                            tvNextAlarm.text = "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (😴 Nghỉ)"
+                            return
+                        }
+                    }
                 }
             }
         }
@@ -1306,26 +1351,220 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ── Báo thức riêng cho ngày nghỉ ───────────────────────────────────────
+    private fun setupOffDayAlarm() {
+        val switchOffDay = findViewById<SwitchMaterial>(R.id.switchOffDayAlarm)
+        val tvOffDayTimes = findViewById<TextView>(R.id.tvOffDayAlarmTimes)
+        val layoutDetails = findViewById<View>(R.id.layoutOffDayTimesDetails)
 
+        switchOffDay?.isChecked = prefs.offDayAlarmEnabled
+        updateOffDayAlarmTimesText(tvOffDayTimes)
 
-    // ── Battery Optimization Check & Request ─────────────────────────────
-    private fun isXiaomiDevice(): Boolean {
-        val manufacturer = Build.MANUFACTURER
-        return manufacturer.contains("xiaomi", ignoreCase = true) ||
-               manufacturer.contains("redmi", ignoreCase = true) ||
-               manufacturer.contains("poco", ignoreCase = true)
+        switchOffDay?.setOnCheckedChangeListener { _, isChecked ->
+            prefs.offDayAlarmEnabled = isChecked
+            onSettingsChanged()
+        }
+
+        layoutDetails?.setOnClickListener {
+            showOffDayAlarmTimesDialog()
+        }
     }
+
+    private fun updateOffDayAlarmTimesText(tv: TextView? = null) {
+        val targetTv = tv ?: findViewById<TextView>(R.id.tvOffDayAlarmTimes) ?: return
+        val alarms = prefs.offDayAlarms
+        val active = alarms.filter { it.enabled }.map { it.time }
+        targetTv.text = when {
+            alarms.isEmpty() -> "Chưa có mốc giờ"
+            active.isEmpty() -> "Tất cả ${alarms.size} mốc đang tắt"
+            active.size == alarms.size -> "Mốc bật: ${active.joinToString(", ")}"
+            else -> "Mốc bật: ${active.joinToString(", ")} (${alarms.size - active.size} tắt)"
+        }
+    }
+
+    private fun showOffDayAlarmTimesDialog() {
+        val scroll = ScrollView(this)
+        val dialogView = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 16)
+        }
+        scroll.addView(dialogView)
+
+        val tvNote = TextView(this).apply {
+            text = "⚠️ Các mốc trước 08:00 sáng sẽ tự động bỏ qua vào ngày nghỉ đầu tiên sau ca Đêm để tránh làm phiền khi đang trong ca làm việc cuối cùng."
+            textSize = 12f
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface_variant))
+            setPadding(0, 0, 0, 24)
+        }
+        dialogView.addView(tvNote)
+
+        val timesContainer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        dialogView.addView(timesContainer)
+
+        fun renderTimesList() {
+            timesContainer.removeAllViews()
+            val alarms = prefs.offDayAlarms
+
+            if (alarms.isEmpty()) {
+                val emptyTv = TextView(this).apply {
+                    text = "Chưa có mốc giờ nào. Nhấn nút 'Thêm mốc mới ➕' bên dưới để đặt giờ báo thức."
+                    textSize = 13f
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface_variant))
+                    setPadding(0, 16, 0, 16)
+                }
+                timesContainer.addView(emptyTv)
+                return
+            }
+
+            for (item in alarms) {
+                val itemCard = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(0, 8, 0, 8)
+                }
+
+                val rowTop = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                }
+
+                val tvTime = TextView(this).apply {
+                    text = "🔔 ${item.time}"
+                    textSize = 16f
+                    setTypeface(null, Typeface.BOLD)
+                    setTextColor(
+                        if (item.enabled) ContextCompat.getColor(this@MainActivity, R.color.on_surface)
+                        else Color.parseColor("#9E9E9E")
+                    )
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                }
+                rowTop.addView(tvTime)
+
+                val switchItem = SwitchMaterial(this).apply {
+                    isChecked = item.enabled
+                    setOnCheckedChangeListener { _, isChecked ->
+                        prefs.toggleOffDayAlarm(item.time, isChecked)
+                        updateOffDayAlarmTimesText()
+                        onSettingsChanged()
+                        renderTimesList()
+                    }
+                }
+                rowTop.addView(switchItem)
+
+                val btnDelete = Button(this, null, android.R.attr.borderlessButtonStyle).apply {
+                    text = "🗑️"
+                    setTextColor(Color.parseColor("#EF4444"))
+                    textSize = 14f
+                    setOnClickListener {
+                        prefs.removeOffDayAlarm(item.time)
+                        updateOffDayAlarmTimesText()
+                        onSettingsChanged()
+                        renderTimesList()
+                        Toast.makeText(this@MainActivity, "Đã xóa mốc ${item.time}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                rowTop.addView(btnDelete)
+                itemCard.addView(rowTop)
+
+                // Row tùy chọn Bỏ qua Thứ 7 / Chủ Nhật
+                val rowOptions = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(0, 0, 0, 4)
+                }
+
+                val btnSkipSat = Button(this, null, android.R.attr.borderlessButtonStyle).apply {
+                    text = if (item.skipSaturday) "🔕 Bỏ qua T7" else "🔔 Reo T7"
+                    textSize = 12f
+                    setTextColor(if (item.skipSaturday) Color.parseColor("#EF4444") else Color.parseColor("#64748B"))
+                    setOnClickListener {
+                        prefs.toggleOffDayAlarmSkipSaturday(item.time, !item.skipSaturday)
+                        updateOffDayAlarmTimesText()
+                        onSettingsChanged()
+                        renderTimesList()
+                    }
+                }
+                rowOptions.addView(btnSkipSat)
+
+                val btnSkipSun = Button(this, null, android.R.attr.borderlessButtonStyle).apply {
+                    text = if (item.skipSunday) "🔕 Bỏ qua CN" else "🔔 Reo CN"
+                    textSize = 12f
+                    setTextColor(if (item.skipSunday) Color.parseColor("#EF4444") else Color.parseColor("#64748B"))
+                    setOnClickListener {
+                        prefs.toggleOffDayAlarmSkipSunday(item.time, !item.skipSunday)
+                        updateOffDayAlarmTimesText()
+                        onSettingsChanged()
+                        renderTimesList()
+                    }
+                }
+                rowOptions.addView(btnSkipSun)
+
+                itemCard.addView(rowOptions)
+                timesContainer.addView(itemCard)
+            }
+        }
+
+        renderTimesList()
+
+        AlertDialog.Builder(this)
+            .setTitle("⏰ Mốc báo thức ngày nghỉ")
+            .setView(scroll)
+            .setPositiveButton("Thêm mốc mới ➕") { _, _ ->
+                showTimePicker(7, 30, "Thêm mốc giờ ngày nghỉ") { h, m ->
+                    val formatted = String.format("%02d:%02d", h, m)
+                    prefs.addOffDayAlarm(formatted, enabled = true)
+                    updateOffDayAlarmTimesText()
+                    onSettingsChanged()
+                    Toast.makeText(this, "Đã thêm mốc $formatted", Toast.LENGTH_SHORT).show()
+                    showOffDayAlarmTimesDialog()
+                }
+            }
+            .setNegativeButton("Xóa tất cả 🗑️") { _, _ ->
+                if (prefs.offDayAlarms.isNotEmpty()) {
+                    prefs.offDayAlarms = emptyList()
+                    updateOffDayAlarmTimesText()
+                    onSettingsChanged()
+                    Toast.makeText(this, "Đã xóa toàn bộ mốc giờ ngày nghỉ", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNeutralButton("Đóng", null)
+            .show()
+    }
+
+    // ── Tùy chọn màu sắc thu gọn (Collapsible Color Settings) ───────────────
+    private var isColorSettingsExpanded = false
+
+    private fun setupCollapsibleColorSettings() {
+        val header = findViewById<View>(R.id.layoutColorSettingsHeader)
+        val content = findViewById<View>(R.id.layoutColorSettingsContent)
+        val ivArrow = findViewById<ImageView>(R.id.ivExpandColors)
+
+        header?.setOnClickListener {
+            isColorSettingsExpanded = !isColorSettingsExpanded
+            content?.visibility = if (isColorSettingsExpanded) View.VISIBLE else View.GONE
+            ivArrow?.setImageResource(if (isColorSettingsExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down)
+        }
+    }
+
+    // ── Battery Optimization & Alarm Health Check & Request ─────────────────────────────
+    private fun isXiaomiDevice(): Boolean = OemPermissionHelper.isXiaomi()
 
     private fun checkBatteryOptimization() {
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         val isBatteryUnrestricted = powerManager.isIgnoringBatteryOptimizations(packageName)
+        val hasExactAlarm = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+                getSystemService(AlarmManager::class.java).canScheduleExactAlarms()
+        val hasFullScreen = Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
+                getSystemService(NotificationManager::class.java).canUseFullScreenIntent()
+        val hasNotification = androidx.core.app.NotificationManagerCompat.from(this).areNotificationsEnabled()
+
         val guideButton = findViewById<Button>(R.id.btnBatteryGuide)
         val tvTitle = findViewById<TextView>(R.id.tvBatteryWarningTitle)
         val tvContent = findViewById<TextView>(R.id.tvBatteryWarningContent)
 
-        // PowerManager is the stable Android API shared by Xiaomi, Samsung and other OEMs.
-        // Hidden Xiaomi AppOps IDs vary between MIUI/HyperOS versions and caused false warnings.
-        if (!BatteryOptimizationPolicy.shouldShowWarning(isBatteryUnrestricted)) {
+        val isHealthy = isBatteryUnrestricted && hasExactAlarm && hasFullScreen && hasNotification
+        if (isHealthy) {
             cardBatteryWarning.visibility = View.GONE
             guideButton.visibility = View.GONE
             return
@@ -1333,20 +1572,16 @@ class MainActivity : AppCompatActivity() {
 
         cardBatteryWarning.visibility = View.VISIBLE
         guideButton.visibility = View.VISIBLE
-        when {
-            isXiaomiDevice() -> {
-                tvTitle.text = "⚠️ Tối ưu pin Xiaomi"
-                tvContent.text = "Hãy đặt Pin của ứng dụng thành Không hạn chế để báo thức và Auto MDM hoạt động ổn định trên MIUI/HyperOS."
-            }
-            SamsungLockHelper.isSamsungDevice() -> {
-                tvTitle.text = "⚠️ Tối ưu pin Samsung"
-                tvContent.text = "Hãy đặt mức sử dụng pin thành Không hạn chế để báo thức và Auto MDM hoạt động ổn định trên One UI."
-            }
-            else -> {
-                tvTitle.text = "⚠️ Cảnh báo tối ưu pin"
-                tvContent.text = "Hãy cho phép ứng dụng sử dụng pin Không hạn chế để báo thức và Auto MDM hoạt động ổn định."
-            }
-        }
+
+        val issues = mutableListOf<String>()
+        if (!isBatteryUnrestricted) issues += "Pin chưa đặt 'Không hạn chế'"
+        if (!hasExactAlarm) issues += "Chưa cấp quyền 'Báo thức chính xác'"
+        if (!hasFullScreen) issues += "Chưa cấp quyền 'Thông báo toàn màn hình'"
+        if (!hasNotification) issues += "Thông báo ứng dụng đang bị tắt"
+
+        tvTitle.text = "⚠️ Cảnh báo Báo thức (${OemPermissionHelper.getOemName()})"
+        val issueDetails = issues.joinToString("\n• ", prefix = "• ")
+        tvContent.text = "$issueDetails\n\nHãy cấu hình ngay để đảm bảo báo thức không bị tắt hoặc trễ sau khi khởi động lại máy."
     }
 
     private fun checkMdmHealth() {
@@ -1423,17 +1658,13 @@ class MainActivity : AppCompatActivity() {
             }
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
                 !getSystemService(android.app.NotificationManager::class.java).canUseFullScreenIntent() -> {
-                startActivity(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
-                    data = Uri.parse("package:$packageName")
-                })
+                OemPermissionHelper.openFullScreenIntentSettings(this)
             }
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                 !getSystemService(android.app.AlarmManager::class.java).canScheduleExactAlarms() -> {
-                startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                    data = Uri.parse("package:$packageName")
-                })
+                OemPermissionHelper.openExactAlarmSettings(this)
             }
-            else -> openAppDetailsSettings()
+            else -> OemPermissionHelper.openAppDetailsSettings(this)
         }
     }
 
@@ -1445,7 +1676,7 @@ class MainActivity : AppCompatActivity() {
         try {
             startActivity(samsungIntent)
         } catch (e: Exception) {
-            openAppDetailsSettings()
+            OemPermissionHelper.openAppDetailsSettings(this)
         }
     }
 
@@ -1462,35 +1693,56 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun triggerBatteryOptimizationSettings() {
-        if (isXiaomiDevice()) {
+        val alarmManager = getSystemService(AlarmManager::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            OemPermissionHelper.openExactAlarmSettings(this)
+            return
+        }
+
+        if (OemPermissionHelper.isXiaomi()) {
             android.app.AlertDialog.Builder(this)
-                .setTitle("Cấu hình quyền Xiaomi (MIUI/HyperOS)")
-                .setMessage("Để báo thức sáng màn hình và đổ chuông ổn định trên Xiaomi, vui lòng thực hiện đúng 3 bước sau:\n\n" +
-                        "1. Nhấn nút 'Đi đến Cài đặt' dưới đây.\n" +
-                        "2. Chọn mục **'Quyền khác'** (Other permissions).\n" +
-                        "3. Bật (Cho phép hiển thị màu xanh) các quyền sau:\n" +
-                        "   - **Hiển thị trên màn hình khóa** (Show on Lock screen)\n" +
-                        "   - **Bắt đầu trong nền** (Start in background)\n" +
-                        "   - **Hiển thị cửa sổ pop-up khi chạy trong nền** (Display pop-up windows)\n\n" +
-                        "Đồng thời tại mục **'Tiết kiệm pin'** (Battery saver), chọn **'Không hạn chế'** (No restrictions).")
-                .setPositiveButton("Đi đến Cài đặt") { _, _ ->
-                    openAppDetailsSettings()
+                .setTitle("Cấu hình Xiaomi (MIUI/HyperOS)")
+                .setMessage("Để chuông báo thức hoạt động sau khi khởi động lại máy, vui lòng thực hiện:\n\n" +
+                        "1. Bật **'Tự khởi chạy'** (Auto-start).\n" +
+                        "2. Trong mục **'Quyền khác'**, bật:\n" +
+                        "   • Hiển thị trên màn hình khóa\n" +
+                        "   • Bắt đầu trong nền\n" +
+                        "   • Hiển thị cửa sổ pop-up\n" +
+                        "3. Trong mục **'Tiết kiệm pin'**, chọn **'Không hạn chế'**.")
+                .setPositiveButton("Tự khởi chạy") { _, _ ->
+                    OemPermissionHelper.openAutoStartSettings(this)
+                }
+                .setNeutralButton("Cài đặt ứng dụng") { _, _ ->
+                    OemPermissionHelper.openAppDetailsSettings(this)
                 }
                 .setNegativeButton("Đóng", null)
                 .show()
-        } else if (Build.MANUFACTURER.contains("samsung", ignoreCase = true)) {
+        } else if (OemPermissionHelper.isSamsung()) {
             android.app.AlertDialog.Builder(this)
-                .setTitle("Cấu hình tối ưu pin Samsung (One UI)")
-                .setMessage("Để chuông báo thức KHÔNG bị trễ hoặc tắt trên máy Samsung, vui lòng:\n\n" +
-                        "1. Nhấn nút 'Đi đến Cài đặt' bên dưới.\n" +
-                        "2. Chọn mục 'Pin' (Battery).\n" +
-                        "3. Chọn 'Không hạn chế' (Unrestricted).\n\n" +
-                        "Đồng thời đảm bảo app không bị đưa vào danh sách 'Ứng dụng ngủ sâu' (Deep sleeping apps) trong mục Chăm sóc thiết bị.")
+                .setTitle("Cấu hình Samsung (One UI)")
+                .setMessage("Để chuông báo thức KHÔNG bị One UI tắt ngầm, vui lòng:\n\n" +
+                        "1. Chọn mục 'Pin' (Battery) ➔ Đặt **'Không hạn chế'** (Unrestricted).\n" +
+                        "2. Thêm app vào danh sách **'Ứng dụng không bao giờ nghỉ'** (Never sleeping apps).")
                 .setPositiveButton("Pin không hạn chế") { _, _ ->
-                    openAppDetailsSettings()
+                    OemPermissionHelper.openAppDetailsSettings(this)
                 }
                 .setNeutralButton("Never sleeping") { _, _ ->
                     openSamsungNeverSleepingSettings()
+                }
+                .setNegativeButton("Đóng", null)
+                .show()
+        } else if (OemPermissionHelper.isOppo() || OemPermissionHelper.isVivo() || OemPermissionHelper.isHuawei()) {
+            val oem = OemPermissionHelper.getOemName()
+            android.app.AlertDialog.Builder(this)
+                .setTitle("Cấu hình $oem")
+                .setMessage("Để báo thức hoạt động sau khi khởi động lại máy trên $oem:\n\n" +
+                        "1. Bật quyền **Tự khởi động / Khởi chạy trong nền** (Auto-launch / Autostart).\n" +
+                        "2. Đặt mức sử dụng pin thành **Không hạn chế / Cho phép chạy nền**.")
+                .setPositiveButton("Tự khởi chạy") { _, _ ->
+                    OemPermissionHelper.openAutoStartSettings(this)
+                }
+                .setNeutralButton("Cài đặt ứng dụng") { _, _ ->
+                    OemPermissionHelper.openAppDetailsSettings(this)
                 }
                 .setNegativeButton("Đóng", null)
                 .show()
@@ -1502,25 +1754,13 @@ class MainActivity : AppCompatActivity() {
             try {
                 startActivity(intent)
             } catch (e: Exception) {
-                // Fallback mở danh sách chung nếu bị chặn
                 val intentSettings = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                 try {
                     startActivity(intentSettings)
                 } catch (ex: Exception) {
-                    openAppDetailsSettings()
+                    OemPermissionHelper.openAppDetailsSettings(this)
                 }
             }
-        }
-    }
-
-    private fun openAppDetailsSettings() {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.parse("package:$packageName")
-        }
-        try {
-            startActivity(intent)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Không thể mở cài đặt ứng dụng", Toast.LENGTH_SHORT).show()
         }
     }
 

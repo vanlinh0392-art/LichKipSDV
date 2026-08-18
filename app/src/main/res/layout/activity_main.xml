@@ -1064,394 +1064,487 @@
                     android:padding="2dp" />
             </LinearLayout>
 
+            <!-- Off-Day Alarm Section (Báo thức riêng cho ngày nghỉ) -->
+            <LinearLayout
+                android:id="@+id/layoutOffDayAlarm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingVertical="6dp"
+                android:paddingHorizontal="6dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_clickable_setting">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🛌 Báo thức ngày nghỉ"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/on_surface" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchOffDayAlarm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="0dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutOffDayTimesDetails"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvOffDayAlarmTimes"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Mốc giờ: 07:30"
+                        android:textSize="12sp"
+                        android:textColor="@color/primary"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cài đặt ⚙️"
+                        android:textSize="11sp"
+                        android:textColor="@color/on_surface_variant"
+                        android:padding="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/divider"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Color Selection Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🎨 Tùy chọn màu sắc ngày/đêm"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface_variant"
-                android:layout_marginBottom="8dp" />
-
-            <!-- Day Color Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="☀️ Ca Ngày:"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface"
-                android:layout_marginBottom="4dp" />
-
+            <!-- Color Selection Section Header (Collapsible) -->
             <LinearLayout
+                android:id="@+id/layoutColorSettingsHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginBottom="10dp">
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorDay1"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#15803D"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorDay2"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#EF4444"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorDay3"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#F59E0B"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorDay4"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#EC4899"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorDay5"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#8B5CF6"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorDay6"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#F97316"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorDay7"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#14B8A6"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorDay8"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#06B6D4"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-            </LinearLayout>
-
-            <!-- Night Color Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🌙 Ca Đêm:"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface"
-                android:layout_marginBottom="4dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginBottom="10dp">
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorNight1"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#6D28D9"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorNight2"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#1E3A8A"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorNight3"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#3B82F6"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorNight4"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#047857"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorNight5"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#475569"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorNight6"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#7F1D1D"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorNight7"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#9F1239"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorNight8"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#0F766E"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
-            </LinearLayout>
-
-            <!-- HO Border Color Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="4dp">
+                android:orientation="horizontal"
+                android:paddingVertical="8dp"
+                android:paddingHorizontal="6dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/bg_clickable_setting"
+                android:clickable="true"
+                android:focusable="true">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="🌸 Viền Ngày HO:"
+                    android:text="🎨 Tùy chọn màu sắc ngày/đêm"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/on_surface" />
+                    android:textColor="@color/on_surface_variant" />
+
+                <ImageView
+                    android:id="@+id/ivExpandColors"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_arrow_down"
+                    app:tint="@color/on_surface_variant" />
+            </LinearLayout>
+
+            <!-- Collapsible Color Settings Content -->
+            <LinearLayout
+                android:id="@+id/layoutColorSettingsContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Day Color Section -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="☀️ Ca Ngày:"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface"
+                    android:layout_marginBottom="4dp" />
 
                 <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginBottom="10dp">
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorDay1"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#15803D"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorDay2"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#EF4444"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorDay3"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#F59E0B"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorDay4"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#EC4899"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorDay5"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#8B5CF6"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorDay6"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#F97316"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorDay7"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#14B8A6"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorDay8"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#06B6D4"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+                </LinearLayout>
+
+                <!-- Night Color Section -->
+                <TextView
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🌙 Ca Đêm:"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface"
+                    android:layout_marginBottom="4dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginBottom="10dp">
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorNight1"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#6D28D9"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorNight2"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#1E3A8A"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorNight3"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#3B82F6"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorNight4"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#047857"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorNight5"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#475569"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorNight6"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#7F1D1D"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorNight7"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#9F1239"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorNight8"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#0F766E"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+                </LinearLayout>
+
+                <!-- HO Border Color Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:background="@drawable/border_width_bg"
-                    android:padding="2dp">
+                    android:layout_marginBottom="4dp">
 
                     <TextView
-                        android:id="@+id/btnBorderThin"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Mảnh"
-                        android:textSize="11sp"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="4dp"
-                        android:textColor="@color/on_surface"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground" />
+                        android:layout_weight="1"
+                        android:text="🌸 Viền Ngày HO:"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/on_surface" />
 
-                    <TextView
-                        android:id="@+id/btnBorderMedium"
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Vừa"
-                        android:textSize="11sp"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="4dp"
-                        android:textColor="@color/on_surface"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/border_width_bg"
+                        android:padding="2dp">
 
-                    <TextView
-                        android:id="@+id/btnBorderThick"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Dày"
-                        android:textSize="11sp"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="4dp"
-                        android:textColor="@color/on_surface"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground" />
+                        <TextView
+                            android:id="@+id/btnBorderThin"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mảnh"
+                            android:textSize="11sp"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:textColor="@color/on_surface"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground" />
+
+                        <TextView
+                            android:id="@+id/btnBorderMedium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Vừa"
+                            android:textSize="11sp"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:textColor="@color/on_surface"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground" />
+
+                        <TextView
+                            android:id="@+id/btnBorderThick"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Dày"
+                            android:textSize="11sp"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:textColor="@color/on_surface"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginBottom="10dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginBottom="10dp">
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorHo1"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#EC4899"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorHo1"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#EC4899"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorHo2"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#EF4444"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorHo2"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#EF4444"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorHo3"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#F59E0B"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorHo3"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#F59E0B"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorHo4"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#10B981"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorHo4"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#10B981"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorHo5"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#3B82F6"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorHo5"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#3B82F6"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorHo6"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#8B5CF6"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorHo6"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#8B5CF6"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorHo7"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#F97316"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorHo7"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#F97316"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
 
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnColorHo8"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_margin="3dp"
-                    app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="#14B8A6"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground" />
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnColorHo8"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardBackgroundColor="#14B8A6"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+                </LinearLayout>
             </LinearLayout>
 
             <View
@@ -1479,17 +1572,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Giới thiệu ứng dụng"
-                android:textColor="@color/on_surface_variant"
-                android:textSize="12sp"
-                android:layout_marginBottom="4dp" />
-
-            <!-- User Guide Button (Hướng dẫn) -->
-            <Button
-                android:id="@+id/btnUserGuide"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Hướng dẫn &amp; Cấp quyền"
                 android:textColor="@color/on_surface_variant"
                 android:textSize="12sp"
                 android:layout_marginBottom="12dp" />

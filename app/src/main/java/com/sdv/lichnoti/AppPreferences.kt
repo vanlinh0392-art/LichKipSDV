@@ -3,6 +3,13 @@ package com.sdv.lichnoti
 import android.content.Context
 import android.content.SharedPreferences
 
+data class OffDayAlarmItem(
+    val time: String,
+    val enabled: Boolean = true,
+    val skipSaturday: Boolean = false,
+    val skipSunday: Boolean = false
+)
+
 class AppPreferences(context: Context) {
 
     companion object {
@@ -32,9 +39,28 @@ class AppPreferences(context: Context) {
         private const val KEY_LUNAR_REMINDER_MODE = "lunar_reminder_mode"
         private const val KEY_FORCE_MAX_VOLUME = "force_max_volume"
         private const val KEY_AUTO_SEND_MDM_ON_SCREEN = "auto_send_mdm_on_screen"
+        private const val KEY_OFF_DAY_ALARM_ENABLED = "off_day_alarm_enabled"
+        private const val KEY_OFF_DAY_ALARM_TIMES = "off_day_alarm_times"
     }
 
     private val prefs: SharedPreferences = DirectBootStorage.preferences(context, PREFS_NAME)
+
+    init {
+        // Tự động di chuyển dữ liệu off-day alarm nếu vô tình được lưu ở file prefs tạm
+        try {
+            val tempPrefs = DirectBootStorage.preferences(context, "sdv_lich_noti_prefs")
+            if (tempPrefs.contains(KEY_OFF_DAY_ALARM_ENABLED) || tempPrefs.contains(KEY_OFF_DAY_ALARM_TIMES)) {
+                val editor = prefs.edit()
+                if (!prefs.contains(KEY_OFF_DAY_ALARM_ENABLED) && tempPrefs.contains(KEY_OFF_DAY_ALARM_ENABLED)) {
+                    editor.putBoolean(KEY_OFF_DAY_ALARM_ENABLED, tempPrefs.getBoolean(KEY_OFF_DAY_ALARM_ENABLED, false))
+                }
+                if (!prefs.contains(KEY_OFF_DAY_ALARM_TIMES) && tempPrefs.contains(KEY_OFF_DAY_ALARM_TIMES)) {
+                    editor.putString(KEY_OFF_DAY_ALARM_TIMES, tempPrefs.getString(KEY_OFF_DAY_ALARM_TIMES, "07:30:1"))
+                }
+                editor.apply()
+            }
+        } catch (_: Exception) {}
+    }
 
     var selectedCrew: String
         get() = prefs.getString(KEY_CREW, "A") ?: "A"
@@ -112,7 +138,6 @@ class AppPreferences(context: Context) {
         get() = prefs.getString(KEY_HO_BORDER_COLOR, "#EC4899") ?: "#EC4899"
         set(value) = prefs.edit().putString(KEY_HO_BORDER_COLOR, value).apply()
 
-    // Kích thước viền ngày HO: 1 = Mảnh, 2 = Vừa (mặc định), 3 = Dày
     var hoBorderWidth: Int
         get() = prefs.getInt(KEY_HO_BORDER_WIDTH, 2)
         set(value) = prefs.edit().putInt(KEY_HO_BORDER_WIDTH, value).apply()
@@ -156,4 +181,123 @@ class AppPreferences(context: Context) {
     var autoSendMdmOnScreen: Boolean
         get() = prefs.getBoolean(KEY_AUTO_SEND_MDM_ON_SCREEN, true)
         set(value) = prefs.edit().putBoolean(KEY_AUTO_SEND_MDM_ON_SCREEN, value).apply()
+
+    var offDayAlarmEnabled: Boolean
+        get() = prefs.getBoolean(KEY_OFF_DAY_ALARM_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_OFF_DAY_ALARM_ENABLED, value).apply()
+
+    var offDayAlarms: List<OffDayAlarmItem>
+        get() {
+            val raw = prefs.getString(KEY_OFF_DAY_ALARM_TIMES, "07:30:1:0:0") ?: "07:30:1:0:0"
+            if (raw.isBlank()) return emptyList()
+            return raw.split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .mapNotNull { entry ->
+                    val parts = entry.split(":")
+                    when (parts.size) {
+                        2 -> {
+                            val time = "${parts[0]}:${parts[1]}"
+                            if (time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))) {
+                                OffDayAlarmItem(time, enabled = true, skipSaturday = false, skipSunday = false)
+                            } else null
+                        }
+                        3 -> {
+                            val time = "${parts[0]}:${parts[1]}"
+                            val isEnabled = parts[2] != "0"
+                            if (time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))) {
+                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = false, skipSunday = false)
+                            } else null
+                        }
+                        4 -> {
+                            val time = "${parts[0]}:${parts[1]}"
+                            val isEnabled = parts[2] != "0"
+                            val skipWeekend = parts[3] == "1"
+                            if (time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))) {
+                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = skipWeekend, skipSunday = skipWeekend)
+                            } else null
+                        }
+                        5 -> {
+                            val time = "${parts[0]}:${parts[1]}"
+                            val isEnabled = parts[2] != "0"
+                            val skipSat = parts[3] == "1"
+                            val skipSun = parts[4] == "1"
+                            if (time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))) {
+                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = skipSat, skipSunday = skipSun)
+                            } else null
+                        }
+                        else -> null
+                    }
+                }
+                .distinctBy { it.time }
+                .sortedBy { it.time }
+        }
+        set(value) {
+            val formatted = value.distinctBy { it.time }
+                .sortedBy { it.time }
+                .joinToString(",") { 
+                    "${it.time}:${if (it.enabled) "1" else "0"}:${if (it.skipSaturday) "1" else "0"}:${if (it.skipSunday) "1" else "0"}" 
+                }
+            prefs.edit().putString(KEY_OFF_DAY_ALARM_TIMES, formatted).apply()
+        }
+
+    var offDayAlarmTimes: List<String>
+        get() = offDayAlarms.map { it.time }
+        set(value) {
+            offDayAlarms = value.map { OffDayAlarmItem(it, true) }
+        }
+
+    fun getActiveOffDayAlarmTimes(): List<String> {
+        return offDayAlarms.filter { it.enabled }.map { it.time }
+    }
+
+    fun getActiveOffDayAlarmTimesForDay(dayOfWeekValue: Int): List<String> {
+        return offDayAlarms.filter { item ->
+            if (!item.enabled) return@filter false
+            if (dayOfWeekValue == 6 && item.skipSaturday) return@filter false
+            if (dayOfWeekValue == 7 && item.skipSunday) return@filter false
+            true
+        }.map { it.time }
+    }
+
+    fun addOffDayAlarm(time: String, enabled: Boolean = true, skipSat: Boolean = false, skipSun: Boolean = false) {
+        val current = offDayAlarms.toMutableList()
+        current.removeAll { it.time == time }
+        current.add(OffDayAlarmItem(time, enabled, skipSat, skipSun))
+        offDayAlarms = current
+    }
+
+    fun toggleOffDayAlarm(time: String, enabled: Boolean) {
+        val current = offDayAlarms.map {
+            if (it.time == time) it.copy(enabled = enabled) else it
+        }
+        offDayAlarms = current
+    }
+
+    fun toggleOffDayAlarmSkipSaturday(time: String, skipSaturday: Boolean) {
+        val current = offDayAlarms.map {
+            if (it.time == time) it.copy(skipSaturday = skipSaturday) else it
+        }
+        offDayAlarms = current
+    }
+
+    fun toggleOffDayAlarmSkipSunday(time: String, skipSunday: Boolean) {
+        val current = offDayAlarms.map {
+            if (it.time == time) it.copy(skipSunday = skipSunday) else it
+        }
+        offDayAlarms = current
+    }
+
+    fun removeOffDayAlarm(time: String) {
+        val current = offDayAlarms.filter { it.time != time }
+        offDayAlarms = current
+    }
+
+    fun addOffDayAlarmTime(time: String) {
+        addOffDayAlarm(time, true)
+    }
+
+    fun removeOffDayAlarmTime(time: String) {
+        removeOffDayAlarm(time)
+    }
 }
