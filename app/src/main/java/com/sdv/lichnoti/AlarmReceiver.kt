@@ -85,15 +85,7 @@ class AlarmReceiver : BroadcastReceiver() {
             }
             val dayOfWeekVal = today.dayOfWeek.value
             val activeTimesToday = prefs.getActiveOffDayAlarmTimesForDay(dayOfWeekVal)
-            val isMatchActiveTime = activeTimesToday.any { timeStr ->
-                val parts = timeStr.split(":")
-                if (parts.size != 2) return@any false
-                val h = parts[0].toIntOrNull() ?: return@any false
-                val m = parts[1].toIntOrNull() ?: return@any false
-                val diffMinutes = Math.abs((nowTime.hour * 60 + nowTime.minute) - (h * 60 + m))
-                diffMinutes <= 3
-            }
-            if (!isMatchActiveTime) {
+            if (activeTimesToday.isEmpty()) {
                 NotificationScheduler.scheduleNext(context)
                 return
             }
