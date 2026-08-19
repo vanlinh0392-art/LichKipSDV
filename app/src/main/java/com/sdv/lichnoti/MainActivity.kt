@@ -1441,7 +1441,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 rowTop.addView(tvTime)
 
-                val switchItem = SwitchMaterial(this).apply {
+                val switchItem = IosSwitchMaterial(this).apply {
                     isChecked = item.enabled
                     setOnCheckedChangeListener { _, isChecked ->
                         prefs.toggleOffDayAlarm(item.time, isChecked)

@@ -2,6 +2,7 @@ package com.sdv.lichnoti
 
 import android.content.Context
 import android.util.AttributeSet
+import androidx.core.content.ContextCompat
 import com.google.android.material.switchmaterial.SwitchMaterial
 
 /**
@@ -16,5 +17,12 @@ class IosSwitchMaterial @JvmOverloads constructor(
 
     init {
         setEnforceSwitchWidth(false)
+        setUseMaterialThemeColors(false)
+        setThumbResource(R.drawable.ios_switch_thumb)
+        setTrackResource(R.drawable.ios_switch_track)
+        trackTintList = ContextCompat.getColorStateList(context, R.color.ios_switch_track_tint)
+        splitTrack = false
+        showText = false
+        switchMinWidth = (46 * resources.displayMetrics.density).toInt()
     }
 }

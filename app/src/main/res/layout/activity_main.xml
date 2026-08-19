@@ -722,16 +722,28 @@
                 android:layout_marginBottom="12dp" />
 
             <!-- Enable/Disable Notification -->
-            <com.sdv.lichnoti.IosSwitchMaterial
-                android:id="@+id/switchNotificationDrawer"
-                style="@style/Widget.LichNoti.IosSwitch"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Bật thông báo nhắc nhở"
-                android:textColor="@color/on_background"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Bật thông báo nhắc nhở"
+                    android:textColor="@color/on_background"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.sdv.lichnoti.IosSwitchMaterial
+                    android:id="@+id/switchNotificationDrawer"
+                    style="@style/Widget.LichNoti.IosSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -1090,11 +1102,11 @@
                         android:textStyle="bold"
                         android:textColor="@color/on_surface" />
 
-                    <com.google.android.material.switchmaterial.SwitchMaterial
+                    <com.sdv.lichnoti.IosSwitchMaterial
                         android:id="@+id/switchOffDayAlarm"
+                        style="@style/Widget.LichNoti.IosSwitch"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:padding="0dp" />
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
                 <LinearLayout
