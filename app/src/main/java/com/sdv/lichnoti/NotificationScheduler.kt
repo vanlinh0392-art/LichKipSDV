@@ -61,9 +61,39 @@ object NotificationScheduler {
                     }
                 }
                 ShiftCalculator.ShiftType.DEM -> {
-                    val alarmTime = date.atTime(prefs.nightNotificationHour, prefs.nightNotificationMinute)
-                    if (alarmTime.isAfter(now)) {
-                        return alarmTime
+                    val candidates = mutableListOf<LocalDateTime>()
+
+                    val nightAlarm = date.atTime(prefs.nightNotificationHour, prefs.nightNotificationMinute)
+                    if (nightAlarm.isAfter(now)) {
+                        candidates.add(nightAlarm)
+                    }
+
+                    if (prefs.offDayAlarmEnabled) {
+                        val yesterday = date.minusDays(1)
+                        val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
+
+                        val validOffTimes = prefs.getActiveOffDayAlarmTimesForDay(date.dayOfWeek.value).mapNotNull { timeStr ->
+                            val parts = timeStr.split(":")
+                            if (parts.size != 2) return@mapNotNull null
+                            val h = parts[0].toIntOrNull() ?: return@mapNotNull null
+                            val m = parts[1].toIntOrNull() ?: return@mapNotNull null
+
+                            // Chỉ nhận các mốc trước 20:00 (trước khi vào ca làm việc đêm)
+                            if (h >= 20) return@mapNotNull null
+
+                            // Nếu hôm qua là ca đêm thì bỏ qua các mốc trong ca làm việc đêm (<= 08:00 sáng)
+                            if (isAfterNightShift && (h < 8 || (h == 8 && m == 0))) {
+                                return@mapNotNull null
+                            }
+                            date.atTime(h, m)
+                        }.filter { it.isAfter(now) }
+
+                        candidates.addAll(validOffTimes)
+                    }
+
+                    val earliest = candidates.minOrNull()
+                    if (earliest != null) {
+                        return earliest
                     }
                 }
                 ShiftCalculator.ShiftType.NGHI -> {

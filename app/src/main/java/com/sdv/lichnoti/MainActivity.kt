@@ -33,6 +33,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import java.time.LocalDate
+import java.time.LocalDateTime
 import android.app.AlarmManager
 import android.app.NotificationManager
 import android.app.TimePickerDialog
@@ -1295,12 +1296,45 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 ShiftCalculator.ShiftType.DEM -> {
-                    val alarmDateTime = date.atTime(prefs.nightNotificationHour, prefs.nightNotificationMinute)
-                    if (alarmDateTime.isAfter(timeNow)) {
+                    val candidates = mutableListOf<Pair<LocalDateTime, String>>()
+
+                    val nightAlarm = date.atTime(prefs.nightNotificationHour, prefs.nightNotificationMinute)
+                    if (nightAlarm.isAfter(timeNow)) {
                         val timeStr = String.format("%02d:%02d", prefs.nightNotificationHour, prefs.nightNotificationMinute)
                         val isHol = ShiftCalculator.isHoliday(date)
                         val labelSuffix = if (isHol) " (HO Lễ)" else ""
-                        tvNextAlarm.text = "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (${shift.emoji}$labelSuffix)"
+                        candidates.add(Pair(nightAlarm, "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (${shift.emoji}$labelSuffix)"))
+                    }
+
+                    if (prefs.offDayAlarmEnabled) {
+                        val yesterday = date.minusDays(1)
+                        val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
+
+                        val validOffTimes = prefs.getActiveOffDayAlarmTimesForDay(date.dayOfWeek.value).mapNotNull { timeStr ->
+                            val parts = timeStr.split(":")
+                            if (parts.size != 2) return@mapNotNull null
+                            val h = parts[0].toIntOrNull() ?: return@mapNotNull null
+                            val m = parts[1].toIntOrNull() ?: return@mapNotNull null
+
+                            // Chỉ nhận các mốc trước 20:00 (trước khi vào ca làm việc đêm)
+                            if (h >= 20) return@mapNotNull null
+
+                            // Nếu hôm qua là ca đêm thì bỏ qua <= 08:00
+                            if (isAfterNightShift && (h < 8 || (h == 8 && m == 0))) {
+                                return@mapNotNull null
+                            }
+                            date.atTime(h, m)
+                        }.filter { it.isAfter(timeNow) }
+
+                        for (offTime in validOffTimes) {
+                            val timeStr = String.format("%02d:%02d", offTime.hour, offTime.minute)
+                            candidates.add(Pair(offTime, "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (😴 Nghỉ trước ca Đêm)"))
+                        }
+                    }
+
+                    if (candidates.isNotEmpty()) {
+                        val earliest = candidates.minByOrNull { it.first }!!
+                        tvNextAlarm.text = earliest.second
                         return
                     }
                 }

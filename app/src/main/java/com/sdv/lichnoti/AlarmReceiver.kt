@@ -70,13 +70,16 @@ class AlarmReceiver : BroadcastReceiver() {
         val shiftInfo = ShiftCalculator.getShiftInfo(crewId, today)
         val shouldSkipAlarm = ShiftCalculator.isHoliday(today) && !prefs.holidayAlertEnabled
 
+        val nowTime = java.time.LocalTime.now()
         val isRestDay = shiftInfo.type == ShiftCalculator.ShiftType.NGHI
-        if (isRestDay) {
+        val isNightShift = shiftInfo.type == ShiftCalculator.ShiftType.DEM
+        val isDaytimeBeforeNightShift = isNightShift && (nowTime.hour < 20)
+
+        if (isRestDay || isDaytimeBeforeNightShift) {
             if (!prefs.offDayAlarmEnabled) {
                 NotificationScheduler.scheduleNext(context)
                 return
             }
-            val nowTime = java.time.LocalTime.now()
             val yesterday = today.minusDays(1)
             val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
             if (isAfterNightShift && (nowTime.hour < 8 || (nowTime.hour == 8 && nowTime.minute == 0))) {
@@ -112,10 +115,13 @@ class AlarmReceiver : BroadcastReceiver() {
             return
         }
 
+        val label = if (isDaytimeBeforeNightShift) "Nghỉ (trước ca Đêm)" else shiftInfo.type.label
+        val emoji = if (isDaytimeBeforeNightShift) "😴" else shiftInfo.type.emoji
+
         val serviceIntent = Intent(context, AlarmService::class.java).apply {
             putExtra(AlarmService.EXTRA_CREW_ID, crewId)
-            putExtra(AlarmService.EXTRA_SHIFT_LABEL, shiftInfo.type.label)
-            putExtra(AlarmService.EXTRA_SHIFT_EMOJI, shiftInfo.type.emoji)
+            putExtra(AlarmService.EXTRA_SHIFT_LABEL, label)
+            putExtra(AlarmService.EXTRA_SHIFT_EMOJI, emoji)
             pendingState?.eventId?.let {
                 putExtra(AlarmService.EXTRA_MDM_EVENT_ID, it)
             }
