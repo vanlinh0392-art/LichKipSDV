@@ -45,8 +45,12 @@ object NotificationHelper {
         val today = java.time.LocalDate.now()
         val shiftInfo = ShiftCalculator.getShiftInfo(crewId, today)
         
+        val nowTime = java.time.LocalTime.now()
+        val isDaytimeBeforeNight = (shiftInfo.type == ShiftCalculator.ShiftType.DEM) && (nowTime.hour < 20)
         val isOfficialHol = ShiftCalculator.isHoliday(today)
-        val shiftLabel = if (isOfficialHol) {
+        val shiftLabel = if (isDaytimeBeforeNight) {
+            "😴 Nghỉ (trước ca Đêm)"
+        } else if (isOfficialHol) {
             val label = when (shiftInfo.type) {
                 ShiftCalculator.ShiftType.NGAY -> "HO Ngày"
                 ShiftCalculator.ShiftType.DEM -> "HO Đêm"
@@ -98,10 +102,12 @@ object NotificationHelper {
         val notificationManager = context.getSystemService(NotificationManager::class.java)
 
         if (fullScreen) {
+            val label = if (isDaytimeBeforeNight) "Nghỉ (trước ca Đêm)" else shiftInfo.type.label
+            val emoji = if (isDaytimeBeforeNight) "😴" else shiftInfo.type.emoji
             val alarmIntent = Intent(context, AlarmActivity::class.java).apply {
                 putExtra(AlarmService.EXTRA_CREW_ID, crewId)
-                putExtra(AlarmService.EXTRA_SHIFT_LABEL, shiftInfo.type.label)
-                putExtra(AlarmService.EXTRA_SHIFT_EMOJI, shiftInfo.type.emoji)
+                putExtra(AlarmService.EXTRA_SHIFT_LABEL, label)
+                putExtra(AlarmService.EXTRA_SHIFT_EMOJI, emoji)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val fullScreenPendingIntent =
