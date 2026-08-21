@@ -1425,7 +1425,7 @@ class MainActivity : AppCompatActivity() {
         scroll.addView(dialogView)
 
         val tvNote = TextView(this).apply {
-            text = "⚠️ Các mốc trước 08:00 sáng sẽ tự động bỏ qua vào ngày nghỉ đầu tiên sau ca Đêm để tránh làm phiền khi đang trong ca làm việc cuối cùng."
+            text = "⚠️ Các mốc trước 08:00 sáng sẽ tự động bỏ qua vào ngày nghỉ đầu tiên sau ca Đêm.\n💡 Mẹo: Bấm hoặc bấm giữ vào mốc giờ để đổi thời gian."
             textSize = 12f
             setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface_variant))
             setPadding(0, 0, 0, 24)
@@ -1472,6 +1472,30 @@ class MainActivity : AppCompatActivity() {
                         else Color.parseColor("#9E9E9E")
                     )
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+
+                    val editAction = {
+                        val parts = item.time.split(":")
+                        val initH = parts.getOrNull(0)?.toIntOrNull() ?: 7
+                        val initM = parts.getOrNull(1)?.toIntOrNull() ?: 30
+                        showTimePicker(initH, initM, "Sửa mốc giờ ngày nghỉ") { newH, newM ->
+                            val newFormatted = String.format("%02d:%02d", newH, newM)
+                            if (newFormatted != item.time) {
+                                prefs.updateOffDayAlarmTime(item.time, newFormatted)
+                                updateOffDayAlarmTimesText()
+                                onSettingsChanged()
+                                renderTimesList()
+                                Toast.makeText(this@MainActivity, "Đã đổi mốc ${item.time} ➔ $newFormatted", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                    setOnLongClickListener {
+                        editAction()
+                        true
+                    }
+                    setOnClickListener {
+                        editAction()
+                    }
                 }
                 rowTop.addView(tvTime)
 

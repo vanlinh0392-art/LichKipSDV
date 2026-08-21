@@ -288,6 +288,13 @@ class AppPreferences(context: Context) {
         offDayAlarms = current
     }
 
+    fun updateOffDayAlarmTime(oldTime: String, newTime: String) {
+        val current = offDayAlarms.map {
+            if (it.time == oldTime) it.copy(time = newTime) else it
+        }.distinctBy { it.time }.sortedBy { it.time }
+        offDayAlarms = current
+    }
+
     fun removeOffDayAlarm(time: String) {
         val current = offDayAlarms.filter { it.time != time }
         offDayAlarms = current
