@@ -68,11 +68,11 @@ object NotificationScheduler {
                         candidates.add(nightAlarm)
                     }
 
-                    if (prefs.offDayAlarmEnabled && prefs.offDayAlarmMode == 0) {
+                    if (prefs.offDayAlarmEnabled) {
                         val yesterday = date.minusDays(1)
                         val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
 
-                        val validOffTimes = prefs.getActiveOffDayAlarmTimesForDay(date.dayOfWeek.value).mapNotNull { timeStr ->
+                        val validOffTimes = prefs.getActiveOffDayAlarmTimesForDay(date.dayOfWeek.value, isNightShiftDay = true).mapNotNull { timeStr ->
                             val parts = timeStr.split(":")
                             if (parts.size != 2) return@mapNotNull null
                             val h = parts[0].toIntOrNull() ?: return@mapNotNull null

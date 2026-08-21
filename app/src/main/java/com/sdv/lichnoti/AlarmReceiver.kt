@@ -73,7 +73,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val nowTime = java.time.LocalTime.now()
         val isRestDay = shiftInfo.type == ShiftCalculator.ShiftType.NGHI
         val isNightShift = shiftInfo.type == ShiftCalculator.ShiftType.DEM
-        val isDaytimeBeforeNightShift = isNightShift && (nowTime.hour < 20) && (prefs.offDayAlarmMode == 0)
+        val isDaytimeBeforeNightShift = isNightShift && (nowTime.hour < 20)
 
         if (isRestDay || isDaytimeBeforeNightShift) {
             if (!prefs.offDayAlarmEnabled) {
@@ -87,7 +87,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 return
             }
             val dayOfWeekVal = today.dayOfWeek.value
-            val activeTimesToday = prefs.getActiveOffDayAlarmTimesForDay(dayOfWeekVal)
+            val activeTimesToday = prefs.getActiveOffDayAlarmTimesForDay(dayOfWeekVal, isNightShiftDay = isDaytimeBeforeNightShift)
             if (activeTimesToday.isEmpty()) {
                 NotificationScheduler.scheduleNext(context)
                 return

@@ -7,7 +7,8 @@ data class OffDayAlarmItem(
     val time: String,
     val enabled: Boolean = true,
     val skipSaturday: Boolean = false,
-    val skipSunday: Boolean = false
+    val skipSunday: Boolean = false,
+    val onlyTrueOffDays: Boolean = false
 )
 
 class AppPreferences(context: Context) {
@@ -193,7 +194,7 @@ class AppPreferences(context: Context) {
 
     var offDayAlarms: List<OffDayAlarmItem>
         get() {
-            val raw = prefs.getString(KEY_OFF_DAY_ALARM_TIMES, "07:30:1:0:0") ?: "07:30:1:0:0"
+            val raw = prefs.getString(KEY_OFF_DAY_ALARM_TIMES, "07:30:1:0:0:0") ?: "07:30:1:0:0:0"
             if (raw.isBlank()) return emptyList()
             return raw.split(",")
                 .map { it.trim() }
@@ -204,14 +205,14 @@ class AppPreferences(context: Context) {
                         2 -> {
                             val time = "${parts[0]}:${parts[1]}"
                             if (time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))) {
-                                OffDayAlarmItem(time, enabled = true, skipSaturday = false, skipSunday = false)
+                                OffDayAlarmItem(time, enabled = true, skipSaturday = false, skipSunday = false, onlyTrueOffDays = false)
                             } else null
                         }
                         3 -> {
                             val time = "${parts[0]}:${parts[1]}"
                             val isEnabled = parts[2] != "0"
                             if (time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))) {
-                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = false, skipSunday = false)
+                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = false, skipSunday = false, onlyTrueOffDays = false)
                             } else null
                         }
                         4 -> {
@@ -219,7 +220,7 @@ class AppPreferences(context: Context) {
                             val isEnabled = parts[2] != "0"
                             val skipWeekend = parts[3] == "1"
                             if (time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))) {
-                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = skipWeekend, skipSunday = skipWeekend)
+                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = skipWeekend, skipSunday = skipWeekend, onlyTrueOffDays = false)
                             } else null
                         }
                         5 -> {
@@ -228,10 +229,19 @@ class AppPreferences(context: Context) {
                             val skipSat = parts[3] == "1"
                             val skipSun = parts[4] == "1"
                             if (time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))) {
-                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = skipSat, skipSunday = skipSun)
+                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = skipSat, skipSunday = skipSun, onlyTrueOffDays = false)
                             } else null
                         }
-                        else -> null
+                        else -> {
+                            val time = "${parts[0]}:${parts[1]}"
+                            val isEnabled = parts[2] != "0"
+                            val skipSat = parts[3] == "1"
+                            val skipSun = parts[4] == "1"
+                            val onlyTrueOff = parts.getOrNull(5) == "1"
+                            if (time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))) {
+                                OffDayAlarmItem(time, enabled = isEnabled, skipSaturday = skipSat, skipSunday = skipSun, onlyTrueOffDays = onlyTrueOff)
+                            } else null
+                        }
                     }
                 }
                 .distinctBy { it.time }
@@ -241,7 +251,7 @@ class AppPreferences(context: Context) {
             val formatted = value.distinctBy { it.time }
                 .sortedBy { it.time }
                 .joinToString(",") { 
-                    "${it.time}:${if (it.enabled) "1" else "0"}:${if (it.skipSaturday) "1" else "0"}:${if (it.skipSunday) "1" else "0"}" 
+                    "${it.time}:${if (it.enabled) "1" else "0"}:${if (it.skipSaturday) "1" else "0"}:${if (it.skipSunday) "1" else "0"}:${if (it.onlyTrueOffDays) "1" else "0"}" 
                 }
             prefs.edit().putString(KEY_OFF_DAY_ALARM_TIMES, formatted).apply()
         }
@@ -256,19 +266,26 @@ class AppPreferences(context: Context) {
         return offDayAlarms.filter { it.enabled }.map { it.time }
     }
 
-    fun getActiveOffDayAlarmTimesForDay(dayOfWeekValue: Int): List<String> {
+    fun getActiveOffDayAlarmTimesForDay(dayOfWeekValue: Int, isNightShiftDay: Boolean = false): List<String> {
         return offDayAlarms.filter { item ->
             if (!item.enabled) return@filter false
             if (dayOfWeekValue == 6 && item.skipSaturday) return@filter false
             if (dayOfWeekValue == 7 && item.skipSunday) return@filter false
+            if (isNightShiftDay && item.onlyTrueOffDays) return@filter false
             true
         }.map { it.time }
     }
 
-    fun addOffDayAlarm(time: String, enabled: Boolean = true, skipSat: Boolean = false, skipSun: Boolean = false) {
+    fun addOffDayAlarm(
+        time: String,
+        enabled: Boolean = true,
+        skipSat: Boolean = false,
+        skipSun: Boolean = false,
+        onlyTrueOffDays: Boolean = false
+    ) {
         val current = offDayAlarms.toMutableList()
         current.removeAll { it.time == time }
-        current.add(OffDayAlarmItem(time, enabled, skipSat, skipSun))
+        current.add(OffDayAlarmItem(time, enabled, skipSat, skipSun, onlyTrueOffDays))
         offDayAlarms = current
     }
 
@@ -289,6 +306,13 @@ class AppPreferences(context: Context) {
     fun toggleOffDayAlarmSkipSunday(time: String, skipSunday: Boolean) {
         val current = offDayAlarms.map {
             if (it.time == time) it.copy(skipSunday = skipSunday) else it
+        }
+        offDayAlarms = current
+    }
+
+    fun toggleOffDayAlarmOnlyTrueOffDays(time: String, onlyTrueOffDays: Boolean) {
+        val current = offDayAlarms.map {
+            if (it.time == time) it.copy(onlyTrueOffDays = onlyTrueOffDays) else it
         }
         offDayAlarms = current
     }

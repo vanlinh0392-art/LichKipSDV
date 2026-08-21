@@ -1306,11 +1306,11 @@ class MainActivity : AppCompatActivity() {
                         candidates.add(Pair(nightAlarm, "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (${shift.emoji}$labelSuffix)"))
                     }
 
-                    if (prefs.offDayAlarmEnabled && prefs.offDayAlarmMode == 0) {
+                    if (prefs.offDayAlarmEnabled) {
                         val yesterday = date.minusDays(1)
                         val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
 
-                        val validOffTimes = prefs.getActiveOffDayAlarmTimesForDay(date.dayOfWeek.value).mapNotNull { timeStr ->
+                        val validOffTimes = prefs.getActiveOffDayAlarmTimesForDay(date.dayOfWeek.value, isNightShiftDay = true).mapNotNull { timeStr ->
                             val parts = timeStr.split(":")
                             if (parts.size != 2) return@mapNotNull null
                             val h = parts[0].toIntOrNull() ?: return@mapNotNull null
@@ -1428,47 +1428,9 @@ class MainActivity : AppCompatActivity() {
             text = "⚠️ Các mốc trước 08:00 sáng sẽ tự động bỏ qua vào ngày nghỉ đầu tiên sau ca Đêm.\n💡 Mẹo: Bấm hoặc bấm giữ vào mốc giờ để đổi thời gian."
             textSize = 12f
             setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface_variant))
-            setPadding(0, 0, 0, 16)
+            setPadding(0, 0, 0, 20)
         }
         dialogView.addView(tvNote)
-
-        val tvModeLabel = TextView(this).apply {
-            text = "⚙️ Phạm vi reo chuông:"
-            textSize = 13f
-            setTypeface(null, Typeface.BOLD)
-            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface))
-            setPadding(0, 0, 0, 6)
-        }
-        dialogView.addView(tvModeLabel)
-
-        val radioGroupMode = RadioGroup(this).apply {
-            orientation = RadioGroup.VERTICAL
-            setPadding(0, 0, 0, 16)
-        }
-
-        val rbModeBoth = RadioButton(this).apply {
-            text = "Cả trước ca Đêm (Ngày nghỉ & < 20h ca Đêm)"
-            textSize = 12.5f
-            id = View.generateViewId()
-            isChecked = prefs.offDayAlarmMode == 0
-        }
-        val rbModeOnlyOff = RadioButton(this).apply {
-            text = "Chỉ ngày nghỉ kíp thật sự"
-            textSize = 12.5f
-            id = View.generateViewId()
-            isChecked = prefs.offDayAlarmMode == 1
-        }
-        radioGroupMode.addView(rbModeBoth)
-        radioGroupMode.addView(rbModeOnlyOff)
-
-        radioGroupMode.setOnCheckedChangeListener { _, checkedId ->
-            val newMode = if (checkedId == rbModeOnlyOff.id) 1 else 0
-            if (prefs.offDayAlarmMode != newMode) {
-                prefs.offDayAlarmMode = newMode
-                onSettingsChanged()
-            }
-        }
-        dialogView.addView(radioGroupMode)
 
         val timesContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -1563,7 +1525,7 @@ class MainActivity : AppCompatActivity() {
                 rowTop.addView(btnDelete)
                 itemCard.addView(rowTop)
 
-                // Row tùy chọn Bỏ qua Thứ 7 / Chủ Nhật
+                // Row tùy chọn: Thứ 7 | Chủ Nhật | Phạm vi (Cả trước ca Đêm vs Chỉ nghỉ kíp)
                 val rowOptions = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = Gravity.CENTER_VERTICAL
@@ -1571,8 +1533,11 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val btnSkipSat = Button(this, null, android.R.attr.borderlessButtonStyle).apply {
-                    text = if (item.skipSaturday) "🔕 Bỏ qua T7" else "🔔 Reo T7"
-                    textSize = 12f
+                    text = if (item.skipSaturday) "🔕 T7" else "🔔 T7"
+                    textSize = 11.5f
+                    setPadding(12, 0, 12, 0)
+                    minWidth = 0
+                    minimumWidth = 0
                     setTextColor(if (item.skipSaturday) Color.parseColor("#EF4444") else Color.parseColor("#64748B"))
                     setOnClickListener {
                         prefs.toggleOffDayAlarmSkipSaturday(item.time, !item.skipSaturday)
@@ -1584,8 +1549,11 @@ class MainActivity : AppCompatActivity() {
                 rowOptions.addView(btnSkipSat)
 
                 val btnSkipSun = Button(this, null, android.R.attr.borderlessButtonStyle).apply {
-                    text = if (item.skipSunday) "🔕 Bỏ qua CN" else "🔔 Reo CN"
-                    textSize = 12f
+                    text = if (item.skipSunday) "🔕 CN" else "🔔 CN"
+                    textSize = 11.5f
+                    setPadding(12, 0, 12, 0)
+                    minWidth = 0
+                    minimumWidth = 0
                     setTextColor(if (item.skipSunday) Color.parseColor("#EF4444") else Color.parseColor("#64748B"))
                     setOnClickListener {
                         prefs.toggleOffDayAlarmSkipSunday(item.time, !item.skipSunday)
@@ -1595,6 +1563,22 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 rowOptions.addView(btnSkipSun)
+
+                val btnScope = Button(this, null, android.R.attr.borderlessButtonStyle).apply {
+                    text = if (item.onlyTrueOffDays) "😴 Chỉ nghỉ kíp" else "☀️ + Trước ca Đêm"
+                    textSize = 11.5f
+                    setPadding(12, 0, 12, 0)
+                    minWidth = 0
+                    minimumWidth = 0
+                    setTextColor(if (item.onlyTrueOffDays) Color.parseColor("#6366F1") else Color.parseColor("#10B981"))
+                    setOnClickListener {
+                        prefs.toggleOffDayAlarmOnlyTrueOffDays(item.time, !item.onlyTrueOffDays)
+                        updateOffDayAlarmTimesText()
+                        onSettingsChanged()
+                        renderTimesList()
+                    }
+                }
+                rowOptions.addView(btnScope)
 
                 itemCard.addView(rowOptions)
                 timesContainer.addView(itemCard)
