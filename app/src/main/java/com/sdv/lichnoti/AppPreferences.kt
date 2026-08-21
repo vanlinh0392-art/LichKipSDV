@@ -41,6 +41,7 @@ class AppPreferences(context: Context) {
         private const val KEY_AUTO_SEND_MDM_ON_SCREEN = "auto_send_mdm_on_screen"
         private const val KEY_OFF_DAY_ALARM_ENABLED = "off_day_alarm_enabled"
         private const val KEY_OFF_DAY_ALARM_TIMES = "off_day_alarm_times"
+        private const val KEY_OFF_DAY_ALARM_MODE = "off_day_alarm_mode"
     }
 
     private val prefs: SharedPreferences = DirectBootStorage.preferences(context, PREFS_NAME)
@@ -185,6 +186,10 @@ class AppPreferences(context: Context) {
     var offDayAlarmEnabled: Boolean
         get() = prefs.getBoolean(KEY_OFF_DAY_ALARM_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_OFF_DAY_ALARM_ENABLED, value).apply()
+
+    var offDayAlarmMode: Int // 0: Cả trước ca Đêm (mặc định), 1: Chỉ ngày nghỉ kíp
+        get() = prefs.getInt(KEY_OFF_DAY_ALARM_MODE, 0)
+        set(value) = prefs.edit().putInt(KEY_OFF_DAY_ALARM_MODE, value).apply()
 
     var offDayAlarms: List<OffDayAlarmItem>
         get() {

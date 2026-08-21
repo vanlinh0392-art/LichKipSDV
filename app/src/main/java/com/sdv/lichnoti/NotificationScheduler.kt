@@ -68,7 +68,7 @@ object NotificationScheduler {
                         candidates.add(nightAlarm)
                     }
 
-                    if (prefs.offDayAlarmEnabled) {
+                    if (prefs.offDayAlarmEnabled && prefs.offDayAlarmMode == 0) {
                         val yesterday = date.minusDays(1)
                         val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
 

@@ -73,7 +73,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val nowTime = java.time.LocalTime.now()
         val isRestDay = shiftInfo.type == ShiftCalculator.ShiftType.NGHI
         val isNightShift = shiftInfo.type == ShiftCalculator.ShiftType.DEM
-        val isDaytimeBeforeNightShift = isNightShift && (nowTime.hour < 20)
+        val isDaytimeBeforeNightShift = isNightShift && (nowTime.hour < 20) && (prefs.offDayAlarmMode == 0)
 
         if (isRestDay || isDaytimeBeforeNightShift) {
             if (!prefs.offDayAlarmEnabled) {

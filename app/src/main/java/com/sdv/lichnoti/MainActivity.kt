@@ -1306,7 +1306,7 @@ class MainActivity : AppCompatActivity() {
                         candidates.add(Pair(nightAlarm, "🔔 $timeStr - ${dayNames[dow]}, ${date.dayOfMonth}/${date.monthValue} (${shift.emoji}$labelSuffix)"))
                     }
 
-                    if (prefs.offDayAlarmEnabled) {
+                    if (prefs.offDayAlarmEnabled && prefs.offDayAlarmMode == 0) {
                         val yesterday = date.minusDays(1)
                         val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
 
@@ -1428,9 +1428,47 @@ class MainActivity : AppCompatActivity() {
             text = "⚠️ Các mốc trước 08:00 sáng sẽ tự động bỏ qua vào ngày nghỉ đầu tiên sau ca Đêm.\n💡 Mẹo: Bấm hoặc bấm giữ vào mốc giờ để đổi thời gian."
             textSize = 12f
             setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface_variant))
-            setPadding(0, 0, 0, 24)
+            setPadding(0, 0, 0, 16)
         }
         dialogView.addView(tvNote)
+
+        val tvModeLabel = TextView(this).apply {
+            text = "⚙️ Phạm vi reo chuông:"
+            textSize = 13f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface))
+            setPadding(0, 0, 0, 6)
+        }
+        dialogView.addView(tvModeLabel)
+
+        val radioGroupMode = RadioGroup(this).apply {
+            orientation = RadioGroup.VERTICAL
+            setPadding(0, 0, 0, 16)
+        }
+
+        val rbModeBoth = RadioButton(this).apply {
+            text = "Cả trước ca Đêm (Ngày nghỉ & < 20h ca Đêm)"
+            textSize = 12.5f
+            id = View.generateViewId()
+            isChecked = prefs.offDayAlarmMode == 0
+        }
+        val rbModeOnlyOff = RadioButton(this).apply {
+            text = "Chỉ ngày nghỉ kíp thật sự"
+            textSize = 12.5f
+            id = View.generateViewId()
+            isChecked = prefs.offDayAlarmMode == 1
+        }
+        radioGroupMode.addView(rbModeBoth)
+        radioGroupMode.addView(rbModeOnlyOff)
+
+        radioGroupMode.setOnCheckedChangeListener { _, checkedId ->
+            val newMode = if (checkedId == rbModeOnlyOff.id) 1 else 0
+            if (prefs.offDayAlarmMode != newMode) {
+                prefs.offDayAlarmMode = newMode
+                onSettingsChanged()
+            }
+        }
+        dialogView.addView(radioGroupMode)
 
         val timesContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
