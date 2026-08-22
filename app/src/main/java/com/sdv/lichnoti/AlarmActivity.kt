@@ -64,13 +64,15 @@ class AlarmActivity : AppCompatActivity() {
 
     private fun bindAlarmContent(prefs: AppPreferences) {
         val crewId = intent.getStringExtra(AlarmService.EXTRA_CREW_ID) ?: "A"
-        val shiftLabel = intent.getStringExtra(AlarmService.EXTRA_SHIFT_LABEL) ?: "Ngày"
+        val shiftLabel = intent.getStringExtra(AlarmService.EXTRA_SHIFT_LABEL) ?: "Ca Ngày"
         val shiftEmoji = intent.getStringExtra(AlarmService.EXTRA_SHIFT_EMOJI) ?: "☀️"
+        val customMessage = intent.getStringExtra(AlarmService.EXTRA_ALARM_MESSAGE) ?: prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
+        val customBgColor = intent.getStringExtra(AlarmService.EXTRA_ALARM_BG_COLOR)
         val crewName = ShiftCalculator.CREWS.find { it.id == crewId }?.name ?: "Kíp $crewId"
 
         findViewById<TextView>(R.id.tvAlarmCrew).text = crewName
-        findViewById<TextView>(R.id.tvAlarmShift).text = "$shiftEmoji Ca $shiftLabel"
-        findViewById<TextView>(R.id.tvAlarmMessage).text = prefs.notificationContent
+        findViewById<TextView>(R.id.tvAlarmShift).text = "$shiftEmoji $shiftLabel"
+        findViewById<TextView>(R.id.tvAlarmMessage).text = customMessage
 
         val snoozeButton = findViewById<Button>(R.id.btnSnoozeAlarm)
         if (prefs.snoozeDuration == -1) {
@@ -80,7 +82,7 @@ class AlarmActivity : AppCompatActivity() {
             snoozeButton.text = "NHẮC LẠI SAU ${prefs.snoozeDuration} PHÚT"
         }
 
-        val colorHex = if (shiftLabel.contains("Ngày")) prefs.dayColor else prefs.nightColor
+        val colorHex = customBgColor ?: if (shiftLabel.contains("Ngày") && !shiftLabel.contains("Nghỉ")) prefs.dayColor else prefs.nightColor
         runCatching {
             findViewById<View>(R.id.layoutAlarmRoot).background = GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,

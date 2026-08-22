@@ -46,21 +46,48 @@ object NotificationHelper {
         val shiftInfo = ShiftCalculator.getShiftInfo(crewId, today)
         
         val nowTime = java.time.LocalTime.now()
-        val isDaytimeBeforeNight = (shiftInfo.type == ShiftCalculator.ShiftType.DEM) && (nowTime.hour < 20)
+        val isRestDay = shiftInfo.type == ShiftCalculator.ShiftType.NGHI
+        val isNight = shiftInfo.type == ShiftCalculator.ShiftType.DEM
+        val isDaytimeBeforeNight = isNight && (nowTime.hour < 20)
         val isOfficialHol = ShiftCalculator.isHoliday(today)
-        val shiftLabel = if (isDaytimeBeforeNight) {
-            "😴 Nghỉ (trước ca Đêm)"
-        } else if (isOfficialHol) {
-            val label = when (shiftInfo.type) {
-                ShiftCalculator.ShiftType.NGAY -> "HO Ngày"
-                ShiftCalculator.ShiftType.DEM -> "HO Đêm"
-                else -> "Nghỉ lễ"
+        val isHO = shiftInfo.isHoliday
+
+        val shiftLabel: String
+        val shiftEmoji: String
+        val customContent: String
+        val bgColor: String
+
+        when {
+            isDaytimeBeforeNight -> {
+                shiftLabel = "Nghỉ trước ca Đêm"
+                shiftEmoji = "😴"
+                customContent = "🌙 Hôm nay vào ca Đêm lúc 20:00. Báo thức sinh hoạt ban ngày."
+                bgColor = "#0284C7"
             }
-            "🎉 ${shiftInfo.holidayName} ($label)"
-        } else if (shiftInfo.isHoliday) {
-            "${shiftInfo.type.emoji} Ca ${shiftInfo.type.label} (HO)"
-        } else {
-            "${shiftInfo.type.emoji} Ca ${shiftInfo.type.label}"
+            isRestDay -> {
+                shiftLabel = "Báo thức Ngày Nghỉ"
+                shiftEmoji = "😴"
+                customContent = "😴 Hôm nay được nghỉ kíp. Chúc bạn một ngày vui vẻ!"
+                bgColor = "#0D9488"
+            }
+            shiftInfo.type == ShiftCalculator.ShiftType.NGAY -> {
+                shiftLabel = if (isOfficialHol) "Ca HO Ngày (${shiftInfo.holidayName})" else if (isHO) "Ca Ngày (HO)" else "Ca Ngày"
+                shiftEmoji = if (isOfficialHol) "🎉" else "☀️"
+                customContent = prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
+                bgColor = prefs.dayColor
+            }
+            shiftInfo.type == ShiftCalculator.ShiftType.DEM -> {
+                shiftLabel = if (isOfficialHol) "Ca HO Đêm (${shiftInfo.holidayName})" else if (isHO) "Ca Đêm (HO)" else "Ca Đêm"
+                shiftEmoji = if (isOfficialHol) "🎉" else "🌙"
+                customContent = prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
+                bgColor = prefs.nightColor
+            }
+            else -> {
+                shiftLabel = "Ca ${shiftInfo.type.label}"
+                shiftEmoji = shiftInfo.type.emoji
+                customContent = prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
+                bgColor = prefs.dayColor
+            }
         }
 
         val pendingState = MdmPendingCoordinator.currentState(context)
@@ -84,14 +111,12 @@ object NotificationHelper {
             )
         }
 
-        val customContent = prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
-
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("⏰ Nhắc nhở $crewName - $shiftLabel")
+            .setContentTitle("⏰ Nhắc nhở $crewName - $shiftLabel $shiftEmoji")
             .setContentText(customContent)
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("$customContent\n$crewName đang làm ca $shiftLabel"))
+                .bigText("$customContent\n$crewName - $shiftLabel $shiftEmoji"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
@@ -102,12 +127,12 @@ object NotificationHelper {
         val notificationManager = context.getSystemService(NotificationManager::class.java)
 
         if (fullScreen) {
-            val label = if (isDaytimeBeforeNight) "Nghỉ (trước ca Đêm)" else shiftInfo.type.label
-            val emoji = if (isDaytimeBeforeNight) "😴" else shiftInfo.type.emoji
             val alarmIntent = Intent(context, AlarmActivity::class.java).apply {
                 putExtra(AlarmService.EXTRA_CREW_ID, crewId)
-                putExtra(AlarmService.EXTRA_SHIFT_LABEL, label)
-                putExtra(AlarmService.EXTRA_SHIFT_EMOJI, emoji)
+                putExtra(AlarmService.EXTRA_SHIFT_LABEL, shiftLabel)
+                putExtra(AlarmService.EXTRA_SHIFT_EMOJI, shiftEmoji)
+                putExtra(AlarmService.EXTRA_ALARM_MESSAGE, customContent)
+                putExtra(AlarmService.EXTRA_ALARM_BG_COLOR, bgColor)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val fullScreenPendingIntent =

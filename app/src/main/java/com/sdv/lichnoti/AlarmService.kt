@@ -33,6 +33,8 @@ class AlarmService : Service() {
         const val EXTRA_CREW_ID = "crew_id"
         const val EXTRA_SHIFT_LABEL = "shift_label"
         const val EXTRA_SHIFT_EMOJI = "shift_emoji"
+        const val EXTRA_ALARM_MESSAGE = "alarm_message"
+        const val EXTRA_ALARM_BG_COLOR = "alarm_bg_color"
         const val EXTRA_MDM_EVENT_ID = "mdm_event_id"
 
         @Volatile
@@ -90,14 +92,18 @@ class AlarmService : Service() {
             }
 
         val crewId = intent?.getStringExtra(EXTRA_CREW_ID) ?: "A"
-        val shiftLabel = intent?.getStringExtra(EXTRA_SHIFT_LABEL) ?: "Ngày"
+        val shiftLabel = intent?.getStringExtra(EXTRA_SHIFT_LABEL) ?: "Ca Ngày"
         val shiftEmoji = intent?.getStringExtra(EXTRA_SHIFT_EMOJI) ?: "☀️"
+        val alarmMessage = intent?.getStringExtra(EXTRA_ALARM_MESSAGE) ?: prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
+        val alarmBgColor = intent?.getStringExtra(EXTRA_ALARM_BG_COLOR)
         val crewName = ShiftCalculator.CREWS.find { it.id == crewId }?.name ?: crewId
 
         val alarmIntent = Intent(this, AlarmActivity::class.java).apply {
             putExtra(EXTRA_CREW_ID, crewId)
             putExtra(EXTRA_SHIFT_LABEL, shiftLabel)
             putExtra(EXTRA_SHIFT_EMOJI, shiftEmoji)
+            putExtra(EXTRA_ALARM_MESSAGE, alarmMessage)
+            putExtra(EXTRA_ALARM_BG_COLOR, alarmBgColor)
             currentEventId?.let { putExtra(EXTRA_MDM_EVENT_ID, it) }
             this.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -107,6 +113,8 @@ class AlarmService : Service() {
             putExtra(EXTRA_CREW_ID, crewId)
             putExtra(EXTRA_SHIFT_LABEL, shiftLabel)
             putExtra(EXTRA_SHIFT_EMOJI, shiftEmoji)
+            putExtra(EXTRA_ALARM_MESSAGE, alarmMessage)
+            putExtra(EXTRA_ALARM_BG_COLOR, alarmBgColor)
             putExtra("EXTRA_AUTO_STOP_AND_LOCK", true)
             currentEventId?.let { putExtra(EXTRA_MDM_EVENT_ID, it) }
             this.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -125,10 +133,17 @@ class AlarmService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val notificationTitle = when {
+            shiftLabel.contains("Ngày Nghỉ") -> "⏰ Nhắc nhở $crewName - Báo thức Ngày Nghỉ $shiftEmoji"
+            shiftLabel.contains("Nghỉ trước") -> "⏰ Nhắc nhở $crewName - Nghỉ trước ca Đêm $shiftEmoji"
+            else -> "⏰ Nhắc nhở $crewName - $shiftLabel $shiftEmoji"
+        }
+
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("⏰ Nhắc nhở $crewName - Ca $shiftLabel $shiftEmoji")
-            .setContentText(prefs.notificationContent)
+            .setContentTitle(notificationTitle)
+            .setContentText(alarmMessage)
+            .setStyle(NotificationCompat.BigTextStyle().bigText("$alarmMessage\n$crewName - $shiftLabel $shiftEmoji"))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(false)

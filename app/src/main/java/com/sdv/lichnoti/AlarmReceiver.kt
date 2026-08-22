@@ -115,13 +115,53 @@ class AlarmReceiver : BroadcastReceiver() {
             return
         }
 
-        val label = if (isDaytimeBeforeNightShift) "Nghỉ (trước ca Đêm)" else shiftInfo.type.label
-        val emoji = if (isDaytimeBeforeNightShift) "😴" else shiftInfo.type.emoji
+        val isOfficialHol = ShiftCalculator.isHoliday(today)
+        val isHO = shiftInfo.isHoliday
+
+        val label: String
+        val emoji: String
+        val message: String
+        val bgColor: String
+
+        when {
+            isDaytimeBeforeNightShift -> {
+                label = "Nghỉ trước ca Đêm"
+                emoji = "😴"
+                message = "🌙 Hôm nay vào ca Đêm lúc 20:00. Báo thức sinh hoạt ban ngày."
+                bgColor = "#0284C7"
+            }
+            isRestDay -> {
+                label = "Báo thức Ngày Nghỉ"
+                emoji = "😴"
+                message = "😴 Hôm nay được nghỉ kíp. Chúc bạn một ngày vui vẻ!"
+                bgColor = "#0D9488"
+            }
+            shiftInfo.type == ShiftCalculator.ShiftType.NGAY -> {
+                label = if (isOfficialHol) "Ca HO Ngày (${shiftInfo.holidayName})" else if (isHO) "Ca Ngày (HO)" else "Ca Ngày"
+                emoji = if (isOfficialHol) "🎉" else "☀️"
+                message = prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
+                bgColor = prefs.dayColor
+            }
+            shiftInfo.type == ShiftCalculator.ShiftType.DEM -> {
+                label = if (isOfficialHol) "Ca HO Đêm (${shiftInfo.holidayName})" else if (isHO) "Ca Đêm (HO)" else "Ca Đêm"
+                emoji = if (isOfficialHol) "🎉" else "🌙"
+                message = prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
+                bgColor = prefs.nightColor
+            }
+            else -> {
+                label = "Ca ${shiftInfo.type.label}"
+                emoji = shiftInfo.type.emoji
+                message = prefs.notificationContent.ifBlank { "Hãy dán cam hoặc mở app MDM" }
+                bgColor = prefs.dayColor
+            }
+        }
 
         val serviceIntent = Intent(context, AlarmService::class.java).apply {
             putExtra(AlarmService.EXTRA_CREW_ID, crewId)
             putExtra(AlarmService.EXTRA_SHIFT_LABEL, label)
             putExtra(AlarmService.EXTRA_SHIFT_EMOJI, emoji)
+            putExtra(AlarmService.EXTRA_ALARM_MESSAGE, message)
+            putExtra(AlarmService.EXTRA_ALARM_BG_COLOR, bgColor)
             pendingState?.eventId?.let {
                 putExtra(AlarmService.EXTRA_MDM_EVENT_ID, it)
             }
