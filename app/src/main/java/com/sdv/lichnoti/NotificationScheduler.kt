@@ -71,15 +71,17 @@ object NotificationScheduler {
                     if (prefs.offDayAlarmEnabled) {
                         val yesterday = date.minusDays(1)
                         val isAfterNightShift = ShiftCalculator.getActualShift(crewId, yesterday) == ShiftCalculator.ShiftType.DEM
+                        val nightAlarmTime = java.time.LocalTime.of(prefs.nightNotificationHour, prefs.nightNotificationMinute)
 
                         val validOffTimes = prefs.getActiveOffDayAlarmTimesForDay(date.dayOfWeek.value, isNightShiftDay = true).mapNotNull { timeStr ->
                             val parts = timeStr.split(":")
                             if (parts.size != 2) return@mapNotNull null
                             val h = parts[0].toIntOrNull() ?: return@mapNotNull null
                             val m = parts[1].toIntOrNull() ?: return@mapNotNull null
+                            val offTime = java.time.LocalTime.of(h, m)
 
-                            // Chỉ nhận các mốc trước 20:00 (trước khi vào ca làm việc đêm)
-                            if (h >= 20) return@mapNotNull null
+                            // Chỉ nhận các mốc trước giờ báo ca Đêm và trước 20:00 (để ca Đêm luôn ưu tiên cao nhất)
+                            if (h >= 20 || !offTime.isBefore(nightAlarmTime)) return@mapNotNull null
 
                             // Nếu hôm qua là ca đêm thì bỏ qua các mốc trong ca làm việc đêm (<= 08:00 sáng)
                             if (isAfterNightShift && (h < 8 || (h == 8 && m == 0))) {

@@ -73,7 +73,13 @@ class AlarmReceiver : BroadcastReceiver() {
         val nowTime = java.time.LocalTime.now()
         val isRestDay = shiftInfo.type == ShiftCalculator.ShiftType.NGHI
         val isNightShift = shiftInfo.type == ShiftCalculator.ShiftType.DEM
-        val isDaytimeBeforeNightShift = isNightShift && (nowTime.hour < 20)
+        val nightAlarmTime = java.time.LocalTime.of(prefs.nightNotificationHour, prefs.nightNotificationMinute)
+
+        // Kiểm tra xem lần reo này có phải là chuông Ca Đêm không (gần đúng giờ ca đêm +- 3 phút hoặc sau giờ ca đêm)
+        val diffNightMinutes = java.time.Duration.between(nowTime, nightAlarmTime).abs().toMinutes()
+        val isNightShiftAlarmTrigger = isNightShift && (diffNightMinutes <= 3 || !nowTime.isBefore(nightAlarmTime))
+
+        val isDaytimeBeforeNightShift = isNightShift && !isNightShiftAlarmTrigger && (nowTime.hour < 20) && nowTime.isBefore(nightAlarmTime)
 
         if (isRestDay || isDaytimeBeforeNightShift) {
             if (!prefs.offDayAlarmEnabled) {
